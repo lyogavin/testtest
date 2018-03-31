@@ -14,6 +14,8 @@ import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 # For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
 
 import os
+import pickle
+
 print(os.listdir("../input"))
 
 
@@ -33,70 +35,6 @@ Example below
 '''
 
 
-class FFMFormatPandas:
-    def __init__(self):
-        self.field_index_ = None
-        self.feature_index_ = None
-        self.y = None
-
-    def fit(self, df, y=None):
-        self.y = y
-        print('fitting')
-        df_ffm = df[df.columns.difference([self.y])]
-        if self.field_index_ is None:
-            self.field_index_ = {col: i for i, col in enumerate(df_ffm)}
-
-        if self.feature_index_ is not None:
-            last_idx = max(list(self.feature_index_.values()))
-
-        if self.feature_index_ is None:
-            self.feature_index_ = dict()
-            last_idx = 0
-
-        for col in df.columns:
-            print('fit procssing ', col)
-            vals = df[col].unique()
-            for val in vals:
-                if pd.isnull(val):
-                    continue
-                name = '{}_{}'.format(col, val)
-                if name not in self.feature_index_:
-                    self.feature_index_[name] = last_idx
-                    last_idx += 1
-            self.feature_index_[col] = last_idx
-            last_idx += 1
-        return self
-
-    def fit_transform(self, df, y=None):
-        self.fit(df, y)
-        return self.transform(df)
-
-    def transform_row_(self, idx, row, t):
-        if idx % 1000 == 0:
-            print('transforming idx: {}'.format(idx))
-        ffm = []
-        if self.y != None:
-            ffm.append(str(row.loc[row.index == self.y][0]))
-        if self.y is None:
-            ffm.append(str(0))
-            
-        items = row.loc[row.index != self.y].to_dict().items()
-
-        for col, val in items:
-            col_type = t[col]
-            name = '_'.join([col, str(val)])
-            if col_type.kind ==  'O':
-                ffm.append(':'.join[self.field_index_[col], self.feature_index_[name],'1'])
-            elif col_type.kind == 'i':
-                ffm.append(':'.join([self.field_index_[col], self.feature_index_[col], str(val)]))
-        return ' '.join(ffm)
-
-    def transform(self, df):
-        t = df.dtypes.to_dict()
-        print('transforming')
-        return pd.Series({idx: self.transform_row_(idx, row, t) for idx, row in df.iterrows()})
-
-
 
 
 
@@ -105,6 +43,9 @@ import lightgbm as lgb
 import sys
 import gc
 
+use_sample = False
+
+gen_test_input = True
 
 path = '../input/' 
 path_train = path + 'train.csv'
@@ -126,41 +67,24 @@ dtypes = {
         
 skip = range(1, 140000000)
 print("Loading Data")
-#skiprows=skip, 
-train = pd.read_csv(path_train, dtype=dtypes,
-        header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
+#skiprows=skip,
+
+import pickle
 
 
-FFM = False
-if FFM:
-    ffm_train = FFMFormatPandas()
-    ffm_train_data = ffm_train.fit_transform(train, y='is_attributed')
-
-    print('FFM data:',ffm_train_data)
+if not gen_test_input:
+    train = pd.read_csv(path_train_sample if use_sample else path_train, dtype=dtypes,
+            header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
 
 
+    len_train = len(train)
+    print('The initial size of the train set is', len_train)
+    print('Binding the training and test set together...')
 
 
-
-test = pd.read_csv(path_test, dtype=dtypes, header=0,
-        usecols=test_cols,parse_dates=["click_time"])#.sample(1000)
-#test['is_attributed'] = -1
-
-len_train = len(train)
-print('The initial size of the train set is', len_train)
-print('The initial size of the test set is', len(test))
-print('Binding the training and test set together...')
-
-
-
-print("Creating new time features in train: 'hour' and 'day'...")
-train['hour'] = train["click_time"].dt.hour.astype('uint8')
-train['day'] = train["click_time"].dt.day.astype('uint8')
-
-
-print("Creating new time features in test: 'hour' and 'day'...")
-test['hour'] = test["click_time"].dt.hour.astype('uint8')
-test['day'] = test["click_time"].dt.day.astype('uint8')
+    print("Creating new time features in train: 'hour' and 'day'...")
+    train['hour'] = train["click_time"].dt.hour.astype('uint8')
+    train['day'] = train["click_time"].dt.day.astype('uint8')
 
 
 # In[2]:
@@ -190,42 +114,96 @@ def prepare_data(data, training_day, profile_days, sample_count=1):
     
     return train, train_ip_contains_training_day, train_ip_contains_training_day_attributed
 
-def add_statistic_feature(group_by_cols, training, training_hist, training_hist_attribution, 
-                          with_hist, counting_col='channel'):
+
+def add_statistic_feature(group_by_cols, training, training_hist, training_hist_attribution,
+                          with_hist, counting_col='channel', cast_type=True, qcut_count=0, discretization=1000):
     features_added = []
     feature_name_added = '_'.join(group_by_cols) + 'count'
     print('count ip with group by:', group_by_cols)
-    n_chans = training[group_by_cols + [counting_col]].groupby(by=group_by_cols)[[counting_col]]         .count().reset_index().rename(columns={counting_col: feature_name_added})
+    n_chans = training[group_by_cols + [counting_col]].groupby(by=group_by_cols)[[counting_col]] \
+        .count().reset_index().rename(columns={counting_col: feature_name_added})
     training = training.merge(n_chans, on=group_by_cols, how='left')
     del n_chans
     gc.collect()
     training[feature_name_added] = training[feature_name_added].astype('uint16')
+    if qcut_count != 0:
+        print('before qcut', feature_name_added, training[feature_name_added].describe())
+        quantile_cut = training[feature_name_added].quantile(qcut_count)
+        training[feature_name_added] = training[feature_name_added].apply(
+            lambda x: x if x < quantile_cut else 65535).astype('uint16')
+        print('after qcut', feature_name_added, training[feature_name_added].describe())
+    if discretization != 0:
+        print('before qcut', feature_name_added, training[feature_name_added].describe())
+        training[feature_name_added] = pd.qcut(training[feature_name_added], discretization, labels=False,
+                                               duplicates='drop').fillna(0).astype('uint16')
+        print('after qcut', feature_name_added, training[feature_name_added].describe())
+
     features_added.append(feature_name_added)
-    
+
     if with_hist:
         print('count ip with group by in hist data:', group_by_cols)
         feature_name_added = '_'.join(group_by_cols) + "count_in_hist"
-        n_chans = training_hist[group_by_cols + [counting_col]].groupby(by=group_by_cols)[[counting_col]]             .count().reset_index().rename(columns={counting_col: feature_name_added})
+        n_chans = training_hist[group_by_cols + [counting_col]].groupby(by=group_by_cols)[[counting_col]] \
+            .count().reset_index().rename(columns={counting_col: feature_name_added})
         training = training.merge(n_chans, on=group_by_cols, how='left')
         del n_chans
         gc.collect()
-        #training[feature_name_added] = training[feature_name_added].astype('uint16')
         print('count ip attribution with group by in hist data:', group_by_cols)
         feature_name_added1 = '_'.join(group_by_cols) + "count_attribution_in_hist"
-        n_chans = training_hist_attribution[group_by_cols + [counting_col]]             .groupby(by=group_by_cols)[[counting_col]]             .count().reset_index().rename(columns={counting_col: feature_name_added1 })
+        n_chans = training_hist_attribution[group_by_cols + [counting_col]] \
+            .groupby(by=group_by_cols)[[counting_col]] \
+            .count().reset_index().rename(columns={counting_col: feature_name_added1})
         training = training.merge(n_chans, on=group_by_cols, how='left')
         del n_chans
         gc.collect()
-        #training[feature_name_added1] = training[feature_name_added1].astype('uint16')
-                                               
-        training['_'.join(group_by_cols) + "count_attribution_rate_in_hist"] =             training[feature_name_added] / training[feature_name_added1]
-            
+
+        feature_name_added2 = '_'.join(group_by_cols) + "count_attribution_rate_in_hist"
+        training[feature_name_added2] = \
+            training[feature_name_added1] / training[feature_name_added] * 1000.0
+
+        if qcut_count != 0:
+            print('before qcut', feature_name_added, training[feature_name_added].describe())
+            quantile_cut = training[feature_name_added].quantile(qcut_count)
+            training[feature_name_added] = training[feature_name_added].apply(lambda x: x if x < quantile_cut else -1)
+            print('after qcut', feature_name_added, training[feature_name_added].describe())
+
+        if cast_type:
+            training[feature_name_added] = training[feature_name_added].fillna(0).astype('uint16')
+        if discretization != 0:
+            print('before qcut', feature_name_added, training[feature_name_added].describe())
+            training[feature_name_added] = pd.qcut(training[feature_name_added], discretization, labels=False,
+                                                   duplicates='drop').fillna(0).astype('uint16')
+            print('after qcut', feature_name_added, training[feature_name_added].describe())
+
+
+
+        if qcut_count != 0:
+            print('before qcut', feature_name_added1, training[feature_name_added1].describe())
+            quantile_cut = training[feature_name_added1].quantile(qcut_count)
+            training[feature_name_added1] = training[feature_name_added1].apply(lambda x: x if x < quantile_cut else -1)
+            print('after qcut', feature_name_added1, training[feature_name_added1].describe())
+
+        if cast_type:
+            training[feature_name_added1] = training[feature_name_added1].fillna(0).astype('uint16')
+            #training = training.astype({feature_name_added1:'uint16'})
+            print(training[feature_name_added1])
+        if discretization != 0:
+            print('before qcut', feature_name_added1, training[feature_name_added1].describe())
+            training[feature_name_added1] = pd.qcut(training[feature_name_added1], discretization, labels=False,
+                                                    duplicates='drop').fillna(0).astype('uint16')
+            print('after qcut', feature_name_added1, training[feature_name_added1].describe())
+        # training[feature_name_added1] = training[feature_name_added1].astype('uint16')
+
+
+        if cast_type:
+            training[feature_name_added2] = training[feature_name_added2].fillna(0).astype('uint16')
+
         features_added.append(feature_name_added)
         features_added.append(feature_name_added1)
-        features_added.append('_'.join(group_by_cols) + "count_attribution_rate_in_hist")
-        
+        features_added.append(feature_name_added2)
+
     print('added features:', features_added)
-                                               
+
     return training, features_added
 
 def generate_counting_history_features(data, history, history_attribution):
@@ -277,125 +255,138 @@ def generate_counting_history_features(data, history, history_attribution):
 #test['hour'] = test["click_time"].dt.hour.astype('uint8')
 #test['day'] = test["click_time"].dt.day.astype('uint8')
 
-train, train_ip_contains_training_day, train_ip_contains_training_day_attributed =     prepare_data(train, 9, 3, 4)
 
-train, new_features = generate_counting_history_features(train, train_ip_contains_training_day, 
-                                                         train_ip_contains_training_day_attributed)
+if not gen_test_input:
+    train, train_ip_contains_training_day, train_ip_contains_training_day_attributed =     prepare_data(train, 9, 3, 4)
 
-print('train data:', train)
-print('new features:', new_features)
+    train, new_features = generate_counting_history_features(train, train_ip_contains_training_day,
+                                                             train_ip_contains_training_day_attributed)
 
-val = train.set_index('ip').loc[lambda x: (x.index) % 17 == 0].reset_index()
-print(val)
-print('The size of the validation set is ', len(val))
+    print('train data:', train)
+    print('new features:', new_features)
 
-gc.collect()
+    val = train.set_index('ip').loc[lambda x: (x.index) % 17 == 0].reset_index()
+    print(val)
+    print('The size of the validation set is ', len(val))
 
-train = train.set_index('ip').loc[lambda x: (x.index) % 17 != 0].reset_index()
-print('The size of the train set is ', len(train))
+    gc.collect()
 
-target = 'is_attributed'
-train[target] = train[target].astype('uint8')
-train.info()
+    train = train.set_index('ip').loc[lambda x: (x.index) % 17 != 0].reset_index()
+    print('The size of the train set is ', len(train))
 
-train.to_csv('training.csv')
-val.to_csv('val.csv')
+    target = 'is_attributed'
+    train[target] = train[target].astype('uint8')
+    train.info()
 
-sys.exit(0)
+    if use_sample:
+        train.to_csv('training_sample.csv', index=False)
+        val.to_csv('val_sample.csv', index=False)
+    else:
+        train.to_csv('training.csv', index=False)
+        val.to_csv('val.csv', index=False)
+
+    print('save dtypes')
+
+    y = {k: str(v) for k, v in train.dtypes.to_dict().items()}
+    print(y)
+    del y['click_time']
+    #del y['Unnamed: 0']
+    pickle.dump(y,open('output_dtypes.pickle','wb'))
+
+    sys.exit(0)
 
 
-# In[6]:
+train_lgbm = False
 
-print(train[['ip_channelcount','ip_channel_appcount']])
+if train_lgbm:
 
+    # In[7]:
 
-# In[7]:
+    predictors0 = ['device', 'app', 'os', 'channel', 'hour', # Starter Vars, Then new features below
+                  'ip_day_hourcount','ipcount','ip_appcount', 'ip_app_oscount',
+                  "ip_hour_channelcount", "ip_hour_oscount", "ip_hour_appcount","ip_hour_devicecount"]
 
-predictors0 = ['device', 'app', 'os', 'channel', 'hour', # Starter Vars, Then new features below
-              'ip_day_hourcount','ipcount','ip_appcount', 'ip_app_oscount',
-              "ip_hour_channelcount", "ip_hour_oscount", "ip_hour_appcount","ip_hour_devicecount"]
+    categorical = ['app', 'device', 'os', 'channel', 'hour']
 
-categorical = ['app', 'device', 'os', 'channel', 'hour']
+    predictors1 = categorical + new_features
+    #for ii in new_features:
+    #    predictors1 = predictors1 + ii
+    #print(predictors1)
+    gc.collect()
 
-predictors1 = categorical + new_features
-#for ii in new_features:
-#    predictors1 = predictors1 + ii
-#print(predictors1)
-gc.collect()
+    #train.fillna(value={x:-1 for x in new_features})
 
-#train.fillna(value={x:-1 for x in new_features})
+    print("Preparing the datasets for training...")
 
-print("Preparing the datasets for training...")
+    params = {
+        'boosting_type': 'gbdt',
+        'objective': 'binary',
+        'metric': 'auc',
+        'learning_rate': 0.1,
+        'num_leaves': 7,
+        'max_depth': 4,
+        'min_child_samples': 100,
+        'max_bin': 150,
+        'subsample': 0.7,
+        'subsample_freq': 1,
+        'colsample_bytree': 0.7,
+        'min_child_weight': 0,
+        'subsample_for_bin': 200000,
+        'min_split_gain': 0,
+        'reg_alpha': 0,
+        'reg_lambda': 0,
+        'nthread': 5,
+        'verbose': 9,
+        #'is_unbalance': True,
+        'scale_pos_weight':99
+        }
 
-params = {
-    'boosting_type': 'gbdt',
-    'objective': 'binary',
-    'metric': 'auc',
-    'learning_rate': 0.1,
-    'num_leaves': 7,  
-    'max_depth': 4,  
-    'min_child_samples': 100,  
-    'max_bin': 150,  
-    'subsample': 0.7,  
-    'subsample_freq': 1,  
-    'colsample_bytree': 0.7,  
-    'min_child_weight': 0,  
-    'subsample_for_bin': 200000,  
-    'min_split_gain': 0,  
-    'reg_alpha': 0,  
-    'reg_lambda': 0,  
-    'nthread': 5,
-    'verbose': 9,
-    #'is_unbalance': True,
-    'scale_pos_weight':99 
-    }
-    
-predictors_to_train = [predictors1]
+    predictors_to_train = [predictors1]
 
-for predictors in predictors_to_train:
-    print('training with :', predictors)
-    #print('training data: ', train[predictors].values)
-    #print('validation data: ', val[predictors].values)
-    dtrain = lgb.Dataset(train[predictors].values, label=train[target].values,
-                          feature_name=predictors,
-                          categorical_feature=categorical
-                          )
-    dvalid = lgb.Dataset(val[predictors].values, label=val[target].values,
-                          feature_name=predictors,
-                          categorical_feature=categorical
-                          )
+    for predictors in predictors_to_train:
+        print('training with :', predictors)
+        #print('training data: ', train[predictors].values)
+        #print('validation data: ', val[predictors].values)
+        dtrain = lgb.Dataset(train[predictors].values, label=train[target].values,
+                              feature_name=predictors,
+                              categorical_feature=categorical
+                              )
+        dvalid = lgb.Dataset(val[predictors].values, label=val[target].values,
+                              feature_name=predictors,
+                              categorical_feature=categorical
+                              )
 
-    evals_results = {}
-    print("Training the model...")
+        evals_results = {}
+        print("Training the model...")
 
-    lgb_model = lgb.train(params, 
-                     dtrain, 
-                     valid_sets=[dtrain, dvalid], 
-                     valid_names=['train','valid'], 
-                     evals_result=evals_results, 
-                     num_boost_round=1000,
-                     early_stopping_rounds=30,
-                     verbose_eval=50, 
-                     feval=None)
+        lgb_model = lgb.train(params,
+                         dtrain,
+                         valid_sets=[dtrain, dvalid],
+                         valid_names=['train','valid'],
+                         evals_result=evals_results,
+                         num_boost_round=1000,
+                         early_stopping_rounds=30,
+                         verbose_eval=50,
+                         feval=None)
 
-    #del train
-    #del val
-    #gc.collect()
+        #del train
+        #del val
+        #gc.collect()
 
-    # Nick's Feature Importance Plot
-    import matplotlib.pyplot as plt
-    f, ax = plt.subplots(figsize=[7,10])
-    lgb.plot_importance(lgb_model, ax=ax, max_num_features=len(predictors))
-    plt.title("Light GBM Feature Importance")
-    plt.savefig('feature_import.png')
+        # Nick's Feature Importance Plot
+        import matplotlib.pyplot as plt
+        f, ax = plt.subplots(figsize=[7,10])
+        lgb.plot_importance(lgb_model, ax=ax, max_num_features=len(predictors))
+        plt.title("Light GBM Feature Importance")
+        plt.savefig('feature_import.png')
 
-    # Feature names:
-    print('Feature names:', lgb_model.feature_name())
-    # Feature importances:
-    print('Feature importances:', list(lgb_model.feature_importance()))
+        # Feature names:
+        print('Feature names:', lgb_model.feature_name())
+        # Feature importances:
+        print('Feature importances:', list(lgb_model.feature_importance()))
 
-    feature_imp = pd.DataFrame(lgb_model.feature_name(),list(lgb_model.feature_importance()))
-    
+        feature_imp = pd.DataFrame(lgb_model.feature_name(),list(lgb_model.feature_importance()))
+
     
     
 
@@ -404,10 +395,10 @@ for predictors in predictors_to_train:
 
 for_test = True
 
-if for_test:
-    del train
-    del test
-    gc.collect()
+if gen_test_input:
+    #del train
+    #del test
+    #gc.collect()
 
     #prepare test data:
     train = pd.read_csv(path_train, dtype=dtypes,
@@ -426,24 +417,28 @@ if for_test:
     train, new_features = generate_counting_history_features(train, train_ip_contains_training_day, 
                                                              train_ip_contains_training_day_attributed)
 
+    train['is_attributed'] = 0
+    train.to_csv('to_submit.csv', index=False)
 
 # In[ ]:
+to_submit = False
 
-print('test data:', train)
+if to_submit:
+    print('test data:', train)
 
-print('new features:', new_features)
-print("Preparing data for submission...")
+    print('new features:', new_features)
+    print("Preparing data for submission...")
 
-submit = pd.read_csv(path_test, dtype='int', usecols=['click_id'])
-print('submit test len:', len(submit))
-print("Predicting the submission data...")
-submit['is_attributed'] = lgb_model.predict(train[predictors1], num_iteration=lgb_model.best_iteration)
+    submit = pd.read_csv(path_test, dtype='int', usecols=['click_id'])
+    print('submit test len:', len(submit))
+    print("Predicting the submission data...")
+    submit['is_attributed'] = lgb_model.predict(train[predictors1], num_iteration=lgb_model.best_iteration)
 
-print("Writing the submission data into a csv file...")
+    print("Writing the submission data into a csv file...")
 
-submit.to_csv("submission_notebook.csv",index=False)
+    submit.to_csv("submission_notebook.csv",index=False)
 
-print("All done...")
+    print("All done...")
 
 
 

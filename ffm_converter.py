@@ -8,6 +8,11 @@
 # It is defined by the kaggle/python docker image: https://github.com/kaggle/docker-python
 # For example, here's several helpful packages to load in 
 
+
+
+
+####!/usr/bin/env python3 -m cProfile
+
 import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import argparse,sys
@@ -17,6 +22,14 @@ import argparse,sys
 
 import os
 print(os.listdir("../input"))
+
+import logging
+logger = logging.getLogger('myapp')
+hdlr = logging.FileHandler('./ffm_converter.log')
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+hdlr.setFormatter(formatter)
+logger.addHandler(hdlr) 
+logger.setLevel(logging.INFO)
 
 
 
@@ -43,7 +56,7 @@ class FFMFormatPandas:
 
     def fit(self, df, y=None):
         self.y = y
-        print('fitting')
+        logger.info('fitting')
         df_ffm = df[df.columns.difference([self.y])]
         if self.field_index_ is None:
             self.field_index_ = {col: i for i, col in enumerate(df_ffm)}
@@ -56,7 +69,7 @@ class FFMFormatPandas:
             last_idx = 0
 
         for col in df.columns:
-            print('fit procssing ', col)
+            logger.info('fit procssing %s', col)
             vals = df[col].unique()
             for val in vals:
                 if pd.isnull(val):
@@ -75,7 +88,7 @@ class FFMFormatPandas:
 
     def transform_row_(self, idx, row, t):
         if idx % 1000 == 0:
-            print('transforming idx: {}'.format(idx))
+            logger.info('transforming idx: %d, %s, %s',idx, row, t)
         ffm = []
         if self.y != None:
             ffm.append(str(row.loc[row.index == self.y][0]))
@@ -89,13 +102,14 @@ class FFMFormatPandas:
             name = '_'.join([str(col), str(val)])
             if col_type.kind ==  'O':
                 ffm.append(':'.join[str(self.field_index_[col]), str(self.feature_index_[name]),'1'])
-            elif col_type.kind == 'i':
+            elif col_type.kind == 'u' or col_type.kind == 'i':
                 ffm.append(':'.join([str(self.field_index_[col]), str(self.feature_index_[col]), str(val)]))
+
         return ' '.join(ffm)
 
     def transform(self, df):
         t = df.dtypes.to_dict()
-        print('transforming')
+        logger.info('transforming')
         return pd.Series({idx: self.transform_row_(idx, row, t) for idx, row in df.iterrows()})
 
 
@@ -112,17 +126,25 @@ parser.add_argument('tr_dst_path')
 parser.add_argument('va_dst_path')
 args = vars(parser.parse_args())
 
+import pickle
+dtypes = pickle.load(open("output_dtypes.pickle",'rb'))
+print('use dtypes:',dtypes)
+data = pd.read_csv(args['tr_src_path'], parse_dates=["click_time"],dtype=dtypes,header=0)#.sample(1000)
+data.drop('click_time', axis=1, inplace=True)
+data.drop('ip', axis=1, inplace=True)
+#print('data:',data)
 
-data = pd.read_csv(args['tr_src_path'], parse_dates=["click_time"])#.sample(1000)
 ffm_train = FFMFormatPandas()
 ffm_train_data = ffm_train.fit_transform(data, y='is_attributed')
-print('converted data:', ffm_train_data)
+logger.info('converted data: %s', ffm_train_data)
 
-ffm_train_data.to_csv(args['tr_dst_path'])
+ffm_train_data.to_csv(args['tr_dst_path'], index=False)
 
-data = pd.read_csv(args['va_src_path'], parse_dates=["click_time"])#.sample(1000)
+data = pd.read_csv(args['va_src_path'], parse_dates=["click_time"],dtype=dtypes,header=0)#.sample(1000)
+data.drop('click_time', axis=1, inplace=True)
+data.drop('ip', axis=1, inplace=True)
 ffm_train = FFMFormatPandas()
 ffm_train_data = ffm_train.fit_transform(data, y='is_attributed')
-print('converted data:', ffm_train_data)
+logger.info('converted data: %s', ffm_train_data)
 
-ffm_train_data.to_csv(args['va_dst_path'])
+ffm_train_data.to_csv(args['va_dst_path'], index=False)

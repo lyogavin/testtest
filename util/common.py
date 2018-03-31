@@ -52,7 +52,9 @@ def parallel_convert(cvt_path, arg_paths, nr_thread):
         worker = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
         workers.append(worker)
     for worker in workers:
-        worker.communicate()
+        out, err = worker.communicate()
+        print('out:', out)
+        print('err:', err)
 
 def cat(path, nr_thread):
     
