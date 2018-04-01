@@ -21,6 +21,15 @@ import argparse,sys
 # For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
 
 import os
+import hashlib
+import csv
+
+
+NR_BINS = 1000000
+
+def hashstr(input):
+    return str(int(hashlib.md5(input.encode('utf8')).hexdigest(), 16)%(NR_BINS-1)+1)
+
 print(os.listdir("../input"))
 
 import logging
@@ -90,6 +99,7 @@ class FFMFormatPandas:
         if idx % 1000 == 0:
             logger.info('transforming idx: %d, %s, %s',idx, row, t)
         ffm = []
+        ffm.append(str(idx))
         if self.y != None:
             ffm.append(str(row.loc[row.index == self.y][0]))
         if self.y is None:
@@ -98,12 +108,13 @@ class FFMFormatPandas:
         items = row.loc[row.index != self.y].to_dict().items()
 
         for col, val in items:
-            col_type = t[col]
+            #col_type = t[col]
             name = '_'.join([str(col), str(val)])
-            if col_type.kind ==  'O':
-                ffm.append(':'.join[str(self.field_index_[col]), str(self.feature_index_[name]),'1'])
-            elif col_type.kind == 'u' or col_type.kind == 'i':
-                ffm.append(':'.join([str(self.field_index_[col]), str(self.feature_index_[col]), str(val)]))
+            ffm.append(hashstr(name))
+            #if col_type.kind ==  'O':
+            #    ffm.append(':'.join[str(self.field_index_[col]), str(self.feature_index_[name]),'1'])
+            #elif col_type.kind == 'u' or col_type.kind == 'i':
+            #    ffm.append(':'.join([str(self.field_index_[col]), str(self.feature_index_[col]), str(val)]))
 
         return ' '.join(ffm)
 
