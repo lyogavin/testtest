@@ -501,11 +501,36 @@ def gen_ffm_data():
     print(test)
 
 
+train_model = False
 
-train, val, new_features = gen_train_df(True)
+if train_model:
 
-train_lgbm(train, val, new_features)
-# In[ ]:
+    train, val, new_features = gen_train_df(True)
+
+    train_lgbm(train, val, new_features)
+    # In[ ]:
 
 
 #gen_ffm_data()
+
+predict_from_saved_model = False
+
+if predict_from_saved_model:
+    test, new_test_features = gen_test_df(True)
+
+    print(test['ipcount_in_hist'].describe())
+
+    print(test)
+
+    lgb_saved_model = lgb.Booster(model_file='model.txt.01-04-2018_10:59:15')
+
+    submit = pd.read_csv(path_test, dtype='int', usecols=['click_id'])
+
+    predictors1 = categorical + new_test_features
+    submit['is_attributed'] = lgb_saved_model.predict(test[predictors1], num_iteration=lgb_saved_model.best_iteration)
+
+    print("Writing the submission data into a csv file...")
+
+    submit.to_csv(get_dated_filename("submission_notebook.csv"), index=False)
+
+    print("All done...")
