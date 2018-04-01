@@ -9,6 +9,12 @@
 
 import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+import time
+
+
+def get_dated_filename(filename):
+    return '{}.{}_{}'.format(filename, time.strftime("%d-%m-%Y"), time.strftime("%X"))
+
 
 # Input data files are available in the "../input/" directory.
 # For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
@@ -110,7 +116,7 @@ def prepare_data(data, training_day, profile_days, sample_count=1, with_hist_pro
 
 
 def add_statistic_feature(group_by_cols, training, training_hist, training_hist_attribution,
-                          with_hist, counting_col='channel', cast_type=True, qcut_count=0, discretization=0):
+                          with_hist, counting_col='channel', cast_type=False, qcut_count=0, discretization=0):
     features_added = []
     feature_name_added = '_'.join(group_by_cols) + 'count'
     print('count ip with group by:', group_by_cols)
@@ -293,11 +299,11 @@ def gen_train_df(with_hist_profile = True):
     train.info()
 
     if use_sample:
-        train.to_csv('training_sample.csv', index=False)
-        val.to_csv('val_sample.csv', index=False)
+        train.to_csv(get_dated_filename('training_sample.csv'), index=False)
+        val.to_csv(get_dated_filename('val_sample.csv'), index=False)
     else:
-        train.to_csv('training.csv', index=False)
-        val.to_csv('val.csv', index=False)
+        train.to_csv(get_dated_filename('training.csv'), index=False)
+        val.to_csv(get_dated_filename('val.csv'), index=False)
 
     print('save dtypes')
 
@@ -313,9 +319,11 @@ def gen_train_df(with_hist_profile = True):
 
 train_lgbm = False
 
-if train_lgbm:
+def train_lgbm(train, val, new_features):
+#if train_lgbm:
 
     # In[7]:
+    target = 'is_attributed'
 
     predictors0 = ['device', 'app', 'os', 'channel', 'hour', # Starter Vars, Then new features below
                   'ip_day_hourcount','ipcount','ip_appcount', 'ip_app_oscount',
@@ -400,8 +408,14 @@ if train_lgbm:
 
         feature_imp = pd.DataFrame(lgb_model.feature_name(),list(lgb_model.feature_importance()))
 
-    
-    
+        lgb_model.save_model(get_dated_filename('model.txt'))
+
+        print('gen val prediction')
+        val_prediction = lgb_model.predict(val[predictors1], num_iteration=lgb_model.best_iteration)
+
+        print("Writing the val_prediction into a csv file...")
+
+        pd.Series(val_prediction).to_csv(get_dated_filename("val_prediction.csv"), index=False)
 
 
 # In[ ]:
@@ -437,7 +451,7 @@ def gen_test_df(with_hist_profile = True):
                                                              with_hist_profile)
 
     train['is_attributed'] = 0
-    train.to_csv('to_submit.csv' + '.sample' if use_sample else '', index=False)
+    train.to_csv(get_dated_filename('to_submit.csv' + '.sample' if use_sample else ''), index=False)
 
     return train, new_features
 
@@ -457,7 +471,7 @@ if to_submit:
 
     print("Writing the submission data into a csv file...")
 
-    submit.to_csv("submission_notebook.csv",index=False)
+    submit.to_csv(get_dated_filename("submission_notebook.csv"),index=False)
 
     print("All done...")
 
@@ -487,7 +501,11 @@ def gen_ffm_data():
     print(test)
 
 
+
+train, val, new_features = gen_train_df(True)
+
+train_lgbm(train, val, new_features)
 # In[ ]:
 
 
-gen_ffm_data()
+#gen_ffm_data()
