@@ -489,20 +489,20 @@ def gen_test_df(with_hist_profile = True):
     #del test
     #gc.collect()
 
+    train = None
+
     #prepare test data:
     if with_hist_profile:
         train = pd.read_csv(path_train if not use_sample else path_train_sample, dtype=dtypes,
                 header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
-    train = pd.read_csv(path_train if not use_sample else path_train_sample, dtype=dtypes,
-            header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
+    #train = pd.read_csv(path_train if not use_sample else path_train_sample, dtype=dtypes,
+    #        header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
     test = pd.read_csv(path_test if not use_sample else path_test_sample, dtype=dtypes, header=0,
             usecols=test_cols,parse_dates=["click_time"])#.sample(1000)
-    #if with_hist_profile:
-    #    train=train.append(test)
-    #else:
-    #    train = test
-
-    train = train.append(test)
+    if train is not None:
+        train=train.append(test)
+    else:
+        train = test
 
     del test
     gc.collect()
@@ -589,6 +589,8 @@ if to_submit:
 predict_from_saved_model = False
 
 to_predict = True
+
+gc.collect()
 
 if to_predict:
     test, new_test_features = gen_test_df(False)

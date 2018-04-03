@@ -57,13 +57,20 @@ base @20:
 23. base + add frequent/infrequent test hours features:
     1. grid test: train's auc: 0.983929	valid's auc: 0.968495
 24. base + only the current day's data to extract features
-    1. grid test: running
+    1. grid test: train's auc: 0.983696	valid's auc: 0.969374
 25. base + only the current day's data to extract features + 2 times more data(1/3)
     1. grid test2: train's auc: 0.98291	valid's auc: 0.97013
 26. base + only the current day's data to extract features + all training data
-    1. new val split: running
+    1. new val split: train's auc: 0.98287	valid's auc: 0.972121
+    2. new val split: running again to predict
 27. base + only the current day's data to extract features + all training data + use 09 to train
-    1. aliyun: running
+    1. aliyun:  train's auc: 0.97724    valid's auc: 0.97743    pub LB: 0.9693
+28. base + remove last two features
+    1. aliyun: train's auc: 0.982993	valid's auc: 0.968284
+29. base + only the current day's data to extract features + all training data + hh feature
+    1. grid test2: train's auc: 0.982993	valid's auc: 0.970014
+30. base + only the current day's data to extract features 1/6 + hh feature
+    1. grid test: running
 
 
 to do test:
