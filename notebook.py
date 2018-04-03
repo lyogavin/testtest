@@ -517,10 +517,13 @@ def gen_test_df(with_hist_profile = True):
                 header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
     test = pd.read_csv(path_test if not use_sample else path_test_sample, dtype=dtypes, header=0,
             usecols=test_cols,parse_dates=["click_time"])#.sample(1000)
-    if with_hist_profile:
-        train=train.append(test)
-    else:
-        train = test
+    #if with_hist_profile:
+    #    train=train.append(test)
+    #else:
+    #    train = test
+
+    train = train.append(test)
+
     del test
     gc.collect()
     print("Creating new time features in train: 'hour' and 'day'...")
@@ -529,7 +532,7 @@ def gen_test_df(with_hist_profile = True):
     
     train, train_ip_contains_training_day, train_ip_contains_training_day_attributed = \
         prepare_data(train, 10, 2, 1, with_hist_profile, for_test=True,
-                     start_time = '2017-11-10 00:00:00',
+                     start_time = '2017-11-08 00:00:00',
                      end_time = '2017-11-10 23:59:59', start_hist_time = '2017-11-07 0:00:00'
     )
 
@@ -537,6 +540,7 @@ def gen_test_df(with_hist_profile = True):
                                                              train_ip_contains_training_day_attributed,
                                                              with_hist_profile)
 
+    train = train.set_index('click_time').ix['2017-11-10 04:00:00':'2017-11-10 15:00:00'].reset_index()
     train['is_attributed'] = 0
 
     if persist_intermediate:

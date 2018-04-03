@@ -1,6 +1,6 @@
 arc testing:
 
-base from 13:
+base @ 13:
 	1/6 train, val sample, use all history feature, label 4:00-15:00, with casting uint16,
 	qcut 0.98,scale_pos_weight:99.7
 
@@ -29,19 +29,23 @@ base from 13:
     1. new val split: train's auc: 0.980404	valid's auc: 0.968002
 12. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, add  app count feature:
     1. grid test 2: train's auc: 0.982621	valid's auc: 0.967913
-13. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, scale_pos_weight:99.7
+13. use all history feature, label 4:00-15:00, with casting to uint16, qcut 0.98, scale_pos_weight:99.7
     1. new val split: train's auc: 0.982792	valid's auc: 0.968499
-14. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, scale_pos_weight:99.3
+14. use all history feature, label 4:00-15:00, with casting to uint16, qcut 0.98, scale_pos_weight:99.3
     1. grid test 2: train's auc: 0.982592	valid's auc: 0.968233
-15. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, scale_pos_weight:98.5
+15. use all history feature, label 4:00-15:00, with casting to uint16, qcut 0.98, scale_pos_weight:98.5
     1. new val split: train's auc: 0.983195	valid's auc: 0.968301
-16. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, scale_pos_weight:99.9
+16. use all history feature, label 4:00-15:00, with casting to uint16, qcut 0.98, scale_pos_weight:99.9
     1. grid test: train's auc: 0.981288	valid's auc: 0.968207
-17. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, scale_pos_weight:98.8
+17. use all history feature, label 4:00-15:00, with casting to uint16, qcut 0.98, scale_pos_weight:98.8
+    1. grid test: train's auc: 0.983375	valid's auc: 0.96822
+18. use all history feature, label 4:00-15:00, with casting to uint16, qcut 0.98, scale_pos_weight:98.9
+    1. grid test 2: train's auc: 0.980357	valid's auc: 0.96775
+19. use all history feature, label 4:00-15:00, with casting to uint16, qcut 0.98, scale_pos_weight:99.1
+    1. new val split: train's auc: 0.981529	valid's auc: 0.968157
+20. use all history feature, label 4:00-15:00, with casting to uint16, qcut 0.98, scale_pos_weight:99.0
     1. grid test: running
-18. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, scale_pos_weight:98.9
-    1. grid test 2: running
-19. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, scale_pos_weight:99.1
+21. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, scale_pos_weight:99.7
     1. new val split: running
 
 to do test:
