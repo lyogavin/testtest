@@ -1,0 +1,40 @@
+arc testing:
+
+base:
+	1/6 train, val sample, ,
+
+1. feature and label use only range from 4:00 - 15:00, with casting to uint16:
+    1. train's auc: 0.982385	valid's auc: 0.966781
+2. use all history feature, label 4:00-15:00, with casting to uint16:
+    1. train's auc: 0.981373	valid's auc: 0.968077
+    2. mac:train's auc: 0.981373	valid's auc: 0.968077
+3. use all history feature, label 4:00-15:00, without casting to uint16:
+    1. train's auc: 0.981373	valid's auc: 0.968077
+4. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.95:
+    1. kernel:train's auc: 0.982129	valid's auc: 0.968454
+5. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98:
+    1. kernel:train's auc: 0.983909	valid's auc: 0.96873
+6. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.95, discretization 500:
+    1. mac: train's auc: 0.983119	valid's auc: 0.968293
+7. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.95, scale_pos_weight:99.7:
+    1. grid test kernel: running
+8. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, add channel, app  os count feature:
+    1. grid test 2 kernel: train's auc: 0.982419	valid's auc: 0.968044
+9. use all history feature, label 4:00-15:00, with casting to uint16, qcut 0.99:
+    1. new val kernel: train's auc: 0.978534	valid's auc: 0.967561
+10. use all history feature, label 4:00-15:00, with casting to uint16, qcut 0.98:
+    1. new val kernel: train's auc: 0.978534	valid's auc: 0.967561
+11. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, add channel count feature:
+    1. new val split: running
+12.
+
+
+to do test:
+1. kaggle public kernel, most least frequent hours feature
+2. break down auc by dimensions and filter data and train separately and ensemble
+3. bag features
+4. gbdt + ffm
+5. gbdt feature + ffm
+6. normalization
+7. count smoothing: xxxx
+8.

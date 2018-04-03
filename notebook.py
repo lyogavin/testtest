@@ -10,7 +10,7 @@
 import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import time
-
+from dateutil import parser
 
 def get_dated_filename(filename):
     return '{}.{}_{}'.format(filename, time.strftime("%d-%m-%Y"), time.strftime("%X"))
@@ -49,7 +49,8 @@ import lightgbm as lgb
 import sys
 import gc
 
-use_sample = True
+use_sample = False
+persist_intermediate = False
 
 gen_test_input = True
 
@@ -83,7 +84,10 @@ import pickle
 
 # In[2]:
 
-def prepare_data(data, training_day, profile_days, sample_count=1, with_hist_profile=True):
+def prepare_data(data, training_day, profile_days, sample_count=1,
+                 with_hist_profile=True, only_for_ip_with_hist = False, for_test = False,
+                 start_time=None, end_time=None,
+                 start_hist_time=None):
     if sample_count != 1:
         #sample 1/4 of the data:
         data = data.set_index('ip').loc[lambda x: (x.index + 401) % sample_count == 0].reset_index()
@@ -94,13 +98,22 @@ def prepare_data(data, training_day, profile_days, sample_count=1, with_hist_pro
     train_ip_contains_training_day_attributed = None
 
     if with_hist_profile:
-        train_ip_contains_training_day = data.groupby('ip').filter(lambda x: x['day'].max() == training_day)
+        #train_ip_contains_training_day = data.groupby('ip').filter(lambda x: x['day'].max() == training_day)
 
-        print('train_ip_contains_training_day', train_ip_contains_training_day)
-        print('train_ip_contains_training_day unique ips:', len(train_ip_contains_training_day['ip'].unique()))
+        #print('train_ip_contains_training_day', train_ip_contains_training_day)
+        #print('train_ip_contains_training_day unique ips:', len(train_ip_contains_training_day['ip'].unique()))
 
-        train_ip_contains_training_day = train_ip_contains_training_day  \
-            .query('day < {0} & day > {1}'.format(training_day, training_day - 1 - profile_days) )
+        #if only_for_ip_with_hist:
+        #    data = train_ip_contains_training_day.groupby('ip').filter(lambda x: x['day'].min() < training_day)
+
+        #train_ip_contains_training_day = train_ip_contains_training_day  \
+        #    .query('day < {0} & day > {1}'.format(training_day, training_day - 1 - profile_days) )
+
+        print('original len', len(data))
+        print('original unique ips:', len(data['ip'].unique()))
+
+        train_ip_contains_training_day = data.set_index('click_time').ix[start_hist_time:start_time].reset_index()
+        print('train_ip_contains_training_day len', len(train_ip_contains_training_day))
         print('train_ip_contains_training_day unique ips:', len(train_ip_contains_training_day['ip'].unique()))
 
         print('split attributed data:')
@@ -108,15 +121,22 @@ def prepare_data(data, training_day, profile_days, sample_count=1, with_hist_pro
         print('len:',len(train_ip_contains_training_day_attributed))
 
     #only use data on 9 to train, but data before 9 as features
-    train = data.query('day == {}'.format(training_day))
+    if start_time is None:
+        train = data.query('day == {}'.format(training_day))
+    else:
+        xx = parser.parse(start_time)
+        yy = parser.parse(end_time)
+
+        train = data.set_index('click_time').ix[start_time:end_time].reset_index()
     print('training data len:', len(train))
+    print('train unique ips:', len(train['ip'].unique()))
     
     return train, \
            train_ip_contains_training_day, train_ip_contains_training_day_attributed
 
 
 def add_statistic_feature(group_by_cols, training, training_hist, training_hist_attribution,
-                          with_hist, counting_col='channel', cast_type=False, qcut_count=0, discretization=0):
+                          with_hist, counting_col='channel', cast_type=True, qcut_count=0.98, discretization=0):
     features_added = []
     feature_name_added = '_'.join(group_by_cols) + 'count'
     print('count ip with group by:', group_by_cols)
@@ -206,7 +226,8 @@ def add_statistic_feature(group_by_cols, training, training_hist, training_hist_
 
     return training, features_added
 
-def generate_counting_history_features(data, history, history_attribution, with_hist_profile = True):
+def generate_counting_history_features(data, history, history_attribution,
+                                       with_hist_profile = True, remove_hist_profile_count=0):
         
     new_features = []
 
@@ -236,6 +257,22 @@ def generate_counting_history_features(data, history, history_attribution, with_
     data, features_added  = add_statistic_feature(['ip'], data, history, history_attribution, with_hist_profile)
     new_features = new_features + features_added
 
+    #######
+    #tested channle, app, os count feature, worse in test 8.
+    #######
+    # Count by Channel
+    #data, features_added  = add_statistic_feature(['channel'], data, history, history_attribution, with_hist_profile, counting_col='os')
+    #new_features = new_features + features_added
+    #######
+    # Count by APP
+    #data, features_added  = add_statistic_feature(['app'], data, history, history_attribution, with_hist_profile)
+    #new_features = new_features + features_added
+    #######
+    # Count by OS
+    #data, features_added  = add_statistic_feature(['os'], data, history, history_attribution, with_hist_profile)
+    #new_features = new_features + features_added
+
+
     # Count by IP HOUR CHANNEL                                               
     data, features_added  = add_statistic_feature(['ip','hour','channel'],
                                                   data, history, history_attribution, with_hist_profile, counting_col='os')
@@ -247,13 +284,29 @@ def generate_counting_history_features(data, history, history_attribution, with_
     new_features = new_features + features_added
 
     data, features_added  = add_statistic_feature(['ip','hour','app'],
+                                                  data, history, history_attribution, with_hist_profile, counting_col='os')
+    new_features = new_features + features_added
+
+    data, features_added  = add_statistic_feature(['channel','app'],
+                                                  data, history, history_attribution, with_hist_profile, counting_col='os')
+    new_features = new_features + features_added
+
+    data, features_added  = add_statistic_feature(['channel','os'],
+                                                  data, history, history_attribution, with_hist_profile, counting_col='app')
+    new_features = new_features + features_added
+
+    data, features_added  = add_statistic_feature(['channel','app','os'],
+                                                  data, history, history_attribution, with_hist_profile, counting_col='device')
+    new_features = new_features + features_added
+
+    data, features_added  = add_statistic_feature(['app','os'],
                                                   data, history, history_attribution, with_hist_profile)
     new_features = new_features + features_added
 
-    data, features_added  = add_statistic_feature(['ip','hour','device'],
-                                                  data, history, history_attribution, with_hist_profile)
-    new_features = new_features + features_added
-    
+
+    if remove_hist_profile_count != 0:
+        data = data.query('ipcount_in_hist > {}'.format(remove_hist_profile_count))
+
     return data, new_features
 
 #test['hour'] = test["click_time"].dt.hour.astype('uint8')
@@ -275,43 +328,68 @@ def gen_train_df(with_hist_profile = True):
     train['hour'] = train["click_time"].dt.hour.astype('uint8')
     train['day'] = train["click_time"].dt.day.astype('uint8')
 
-    train, train_ip_contains_training_day, train_ip_contains_training_day_attributed =  \
-        prepare_data(train, 9, 3, 4, with_hist_profile)
+    train_data, train_ip_contains_training_day, train_ip_contains_training_day_attributed =  \
+        prepare_data(train, 8, 2, 6, with_hist_profile, start_time='2017-11-06 00:00:00',
+                     end_time='2017-11-08 15:00:00', start_hist_time='2017-11-06 0:00:00')
 
-    train, new_features = generate_counting_history_features(train, train_ip_contains_training_day,
-                                                             train_ip_contains_training_day_attributed,
-                                                             with_hist_profile)
+    train_data, new_features = generate_counting_history_features(train_data, train_ip_contains_training_day,
+                                                                  train_ip_contains_training_day_attributed,
+                                                                  with_hist_profile)
+
+    train_data = train_data.set_index('click_time').ix['2017-11-08 04:00:00':'2017-11-08 15:00:00'].reset_index()
 
     print('train data:', train)
     print('new features:', new_features)
+    #print('train data ip count in hist:', train_data['ipcount_in_hist'].describe())
+    #print('train data min ', train_ip_contains_training_day.groupby('ip')['day'].min())
 
-    val = train.set_index('ip').loc[lambda x: (x.index) % 17 == 0].reset_index()
-    print(val)
-    print('The size of the validation set is ', len(val))
+    #gen val data:
+    #val = train.set_index('ip').loc[lambda x: (x.index) % 17 == 0].reset_index()
+    #print(val)
+    #print('The size of the validation set is ', len(val))
 
+    del train_ip_contains_training_day
+    del train_ip_contains_training_day_attributed
     gc.collect()
 
-    train = train.set_index('ip').loc[lambda x: (x.index) % 17 != 0].reset_index()
-    print('The size of the train set is ', len(train))
+    val, train_ip_contains_training_day, train_ip_contains_training_day_attributed =  \
+        prepare_data(train, 9, 2, 6, with_hist_profile, start_time='2017-11-07 00:00:00',
+                     end_time='2017-11-09 15:00:00', start_hist_time='2017-11-07 0:00:00')
+
+    print('len val:', len(val))
+    val, new_features1 = generate_counting_history_features(val, train_ip_contains_training_day,
+                                                           train_ip_contains_training_day_attributed,
+                                                           with_hist_profile)
+
+    val = val.set_index('click_time').ix['2017-11-09 04:00:00':'2017-11-09 15:00:00'].reset_index()
+    train = train_data
+
+    del train_ip_contains_training_day
+    del train_ip_contains_training_day_attributed
+    del train_data
+    gc.collect()
+    #train = train.set_index('ip').loc[lambda x: (x.index) % 17 != 0].reset_index()
+    #print('The size of the train set is ', len(train))
 
     target = 'is_attributed'
     train[target] = train[target].astype('uint8')
     train.info()
 
-    if use_sample:
-        train.to_csv(get_dated_filename('training_sample.csv'), index=False)
-        val.to_csv(get_dated_filename('val_sample.csv'), index=False)
-    else:
-        train.to_csv(get_dated_filename('training.csv'), index=False)
-        val.to_csv(get_dated_filename('val.csv'), index=False)
+    if persist_intermediate:
+        if use_sample:
+            train.to_csv(get_dated_filename('training_sample.csv'), index=False)
+            val.to_csv(get_dated_filename('val_sample.csv'), index=False)
+        else:
+            train.to_csv(get_dated_filename('training.csv'), index=False)
+            val.to_csv(get_dated_filename('val.csv'), index=False)
 
-    print('save dtypes')
+        print('save dtypes')
 
-    y = {k: str(v) for k, v in train.dtypes.to_dict().items()}
-    print(y)
-    del y['click_time']
-    #del y['Unnamed: 0']
-    pickle.dump(y,open('output_dtypes.pickle','wb'))
+        y = {k: str(v) for k, v in train.dtypes.to_dict().items()}
+        print(y)
+        del y['click_time']
+        #del y['Unnamed: 0']
+        pickle.dump(y,open('output_dtypes.pickle','wb'))
 
     #sys.exit(0)
     return train, val, new_features
@@ -358,6 +436,7 @@ def train_lgbm(train, val, new_features):
         'reg_lambda': 0,
         'nthread': 5,
         'verbose': 9,
+        'early_stopping_round':20,
         #'is_unbalance': True,
         'scale_pos_weight':99
         }
@@ -408,14 +487,18 @@ def train_lgbm(train, val, new_features):
 
         feature_imp = pd.DataFrame(lgb_model.feature_name(),list(lgb_model.feature_importance()))
 
-        lgb_model.save_model(get_dated_filename('model.txt'))
-
-        print('gen val prediction')
-        val_prediction = lgb_model.predict(val[predictors1], num_iteration=lgb_model.best_iteration)
+        if persist_intermediate:
+            print('dumping model')
+            lgb_model.save_model(get_dated_filename('model.txt'))
 
         print("Writing the val_prediction into a csv file...")
+        if persist_intermediate:
 
-        pd.Series(val_prediction).to_csv(get_dated_filename("val_prediction.csv"), index=False)
+            print('gen val prediction')
+            val_prediction = lgb_model.predict(val[predictors1], num_iteration=lgb_model.best_iteration)
+            pd.Series(val_prediction).to_csv(get_dated_filename("val_prediction.csv"), index=False)
+
+    return lgb_model
 
 
 # In[ ]:
@@ -429,7 +512,7 @@ def gen_test_df(with_hist_profile = True):
 
     #prepare test data:
     if with_hist_profile:
-        train = pd.read_csv(path_train, dtype=dtypes,
+        train = pd.read_csv(path_train if not use_sample else path_train_sample, dtype=dtypes,
                 header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
     test = pd.read_csv(path_test if not use_sample else path_test_sample, dtype=dtypes, header=0,
             usecols=test_cols,parse_dates=["click_time"])#.sample(1000)
@@ -444,37 +527,23 @@ def gen_test_df(with_hist_profile = True):
     train['day'] = train["click_time"].dt.day.astype('uint8')
     
     train, train_ip_contains_training_day, train_ip_contains_training_day_attributed = \
-        prepare_data(train, 10, 3, 1, with_hist_profile)
+        prepare_data(train, 10, 2, 1, with_hist_profile, for_test=True,
+                     start_time = '2017-11-10 00:00:00',
+                     end_time = '2017-11-10 23:59:59', start_hist_time = '2017-11-07 0:00:00'
+    )
 
     train, new_features = generate_counting_history_features(train, train_ip_contains_training_day, 
                                                              train_ip_contains_training_day_attributed,
                                                              with_hist_profile)
 
     train['is_attributed'] = 0
-    train.to_csv(get_dated_filename('to_submit.csv' + '.sample' if use_sample else ''), index=False)
+
+    if persist_intermediate:
+        train.to_csv(get_dated_filename('to_submit.csv' + '.sample' if use_sample else 'to_submit.csv'), index=False)
 
     return train, new_features
 
 # In[ ]:
-to_submit = False
-
-if to_submit:
-    print('test data:', train)
-
-    print('new features:', new_features)
-    print("Preparing data for submission...")
-
-    submit = pd.read_csv(path_test, dtype='int', usecols=['click_id'])
-    print('submit test len:', len(submit))
-    print("Predicting the submission data...")
-    submit['is_attributed'] = lgb_model.predict(train[predictors1], num_iteration=lgb_model.best_iteration)
-
-    print("Writing the submission data into a csv file...")
-
-    submit.to_csv(get_dated_filename("submission_notebook.csv"),index=False)
-
-    print("All done...")
-
 
 
 
@@ -501,33 +570,57 @@ def gen_ffm_data():
     print(test)
 
 
-train_model = False
+train_model = True
 
 if train_model:
 
-    train, val, new_features = gen_train_df(True)
+    train, val, new_features = gen_train_df(False)
 
-    train_lgbm(train, val, new_features)
+    lgb_model = train_lgbm(train, val, new_features)
     # In[ ]:
+    del train
+    del val
+    gc.collect()
 
+to_submit = False
+
+if to_submit:
+    print('test data:', train)
+
+    print('new features:', new_features)
+    print("Preparing data for submission...")
+
+    submit = pd.read_csv(path_test, dtype='int', usecols=['click_id'])
+    print('submit test len:', len(submit))
+    print("Predicting the submission data...")
+    submit['is_attributed'] = lgb_model.predict(train[predictors1], num_iteration=lgb_model.best_iteration)
+
+    print("Writing the submission data into a csv file...")
+
+    submit.to_csv(get_dated_filename("submission_notebook.csv"),index=False)
+
+    print("All done...")
 
 #gen_ffm_data()
 
 predict_from_saved_model = False
 
-if predict_from_saved_model:
-    test, new_test_features = gen_test_df(True)
+to_predict = False
 
-    print(test['ipcount_in_hist'].describe())
+if to_predict:
+    test, new_test_features = gen_test_df(False)
+
+    #print(test['ipcount_in_hist'].describe())
 
     print(test)
 
-    lgb_saved_model = lgb.Booster(model_file='model.txt.01-04-2018_10:59:15')
+    if predict_from_saved_model:
+        lgb_model = lgb.Booster(model_file='model.txt.01-04-2018_10:59:15')
 
-    submit = pd.read_csv(path_test, dtype='int', usecols=['click_id'])
+    submit = pd.read_csv(path_test if not use_sample else path_test_sample, dtype='int', usecols=['click_id'])
 
     predictors1 = categorical + new_test_features
-    submit['is_attributed'] = lgb_saved_model.predict(test[predictors1], num_iteration=lgb_saved_model.best_iteration)
+    submit['is_attributed'] = lgb_model.predict(test[predictors1], num_iteration=lgb_model.best_iteration)
 
     print("Writing the submission data into a csv file...")
 

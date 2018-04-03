@@ -80,48 +80,89 @@ import pickle
 
 #lgb_model = lgb.Booster(model_file='model.txt')
 #submit['is_attributed'] = lgb_model.predict(train[predictors1], num_iteration=lgb_model.best_iteration)
+import math
 
 
-
-val = pd.read_csv('val.csv.01-04-2018_10:48:51', header=0, usecols=['is_attributed'])  # .sample(1000)
-
-lgbm_prediction = pd.read_csv('val_prediction.csv.01-04-2018_10:59:18', header=0)  # .sample(1000)
-
-ffm_prediction = pd.read_csv('new_val.sp.prd', header=0, usecols=['click'])  # .sample(1000)
-
-print('val {}'.format(val.info()))
-print('lgbm_prediction {}'.format( lgbm_prediction.info()))
-print('ffm_prediction {}'.format(ffm_prediction.info()))
+def logit(x):
+    y = x / (1 - x)
+    return math.log(y  if y>0 else 1)
 
 
-lgbm_prediction_values = lgbm_prediction['is_attributed'].values
-
-fpr, tpr, thresholds = metrics.roc_curve(val['is_attributed'].values, lgbm_prediction_values)
-lgbm_auc = metrics.auc(fpr, tpr)
-
-ffm_prediction_values = ffm_prediction['click'].values
-fpr, tpr, thresholds = metrics.roc_curve(val['is_attributed'].values,ffm_prediction_values)
-ffm_auc = metrics.auc(fpr, tpr)
-
-print('lgbm auc: {}, ffm auc: {}'.format(lgbm_auc, ffm_auc))
-
-max_auc = 0
-for ratio in range(0, 100, 1):
-    i = ratio / 100.0
-    fpr, tpr, thresholds = metrics.roc_curve(val['is_attributed'].values,
-                                             (i * lgbm_prediction_values + (1-i) * ffm_prediction_values))
-    auc = metrics.auc(fpr, tpr)
-    if auc > max_auc:
-        i_at_max_auc = i
-        max_auc = auc
-    print('ensembled auc of {}:{} is {}'.format(i, 1-i, auc))
+def logistic(x):
+    return 1 / (1 + math.exp(-x))
 
 
-lgbm_submission = pd.read_csv('submission_notebook.csv.01-04-2018_13:47:13', header = 0)
-ffm_submision = pd.read_csv('new_test.sp.prd', header = 0, usecols=['click'])
+vlogit = np.vectorize(logit)
+vlogistic = np.vectorize(logistic)
 
-ffm_submision['is_attributed'] = i_at_max_auc * lgbm_submission['is_attributed'] + \
-                                 (1.0-i_at_max_auc) * ffm_submision['click']
+ratio_based_on_val = False
+
+i_at_max_auc = 0.5
+
+if ratio_based_on_val:
+
+    val = pd.read_csv('val.csv.01-04-2018_10:48:51', header=0, usecols=['is_attributed'])  # .sample(1000)
+
+    lgbm_prediction = pd.read_csv('val_prediction.csv.01-04-2018_10:59:18', header=0)  # .sample(1000)
+
+    ffm_prediction = pd.read_csv('new_val.sp.prd', header=0, usecols=['click'])  # .sample(1000)
+
+    print('val {}'.format(val.info()))
+    print('lgbm_prediction {}'.format( lgbm_prediction.info()))
+    print('ffm_prediction {}'.format(ffm_prediction.info()))
 
 
-ffm_submision.to_csv(get_dated_filename('ensemble_submission.csv'), index=False)
+    lgbm_prediction_values = lgbm_prediction['is_attributed'].values
+
+    fpr, tpr, thresholds = metrics.roc_curve(val['is_attributed'].values, lgbm_prediction_values)
+    lgbm_auc = metrics.auc(fpr, tpr)
+
+    ffm_prediction_values = ffm_prediction['click'].values
+    fpr, tpr, thresholds = metrics.roc_curve(val['is_attributed'].values,ffm_prediction_values)
+    ffm_auc = metrics.auc(fpr, tpr)
+
+    print('lgbm auc: {}, ffm auc: {}'.format(lgbm_auc, ffm_auc))
+
+
+    max_auc = 0
+    for ratio in range(0, 11, 1):
+        i = ratio / 10.0
+        fpr, tpr, thresholds = metrics.roc_curve(val['is_attributed'].values,
+                                                 vlogistic(i * vlogit(lgbm_prediction_values) + (1-i) * vlogit(ffm_prediction_values)))
+        auc = metrics.auc(fpr, tpr)
+        if auc > max_auc:
+            i_at_max_auc = i
+            max_auc = auc
+        print('ensembled auc of {}:{} is {}'.format(i, 1-i, auc))
+
+
+    lgbm_submission = pd.read_csv('submission_notebook.csv.01-04-2018_13:47:13', header = 0)
+    ffm_submision = pd.read_csv('new_test.sp.prd', header = 0, usecols=['click'])
+    #ffm_submision = pd.read_csv('submission_notebook.csv.02-04-2018_22:48:59', header = 0)
+
+    lgbm_submission['is_attributed'] = vlogistic(i_at_max_auc * vlogit(lgbm_submission['is_attributed']) + \
+                                     (1.0-i_at_max_auc) * vlogit(ffm_submision['click']))
+
+ensemble_list = [{'file':'submission_notebook.csv.01-04-2018_13:47:13', 'click':False},
+                 {'file': 'new_test.sp.prd', 'click': True},
+                 {'file':'submission_notebook.csv.03-04-2018_01:32:23', 'click':False},
+                 {'file': 'submission_notebook.csv.02-04-2018_22:48:59', 'click': False}]
+
+sum = None
+for ensemble in ensemble_list:
+    print('processing ', ensemble['file'])
+    if ensemble['click']:
+        lgbm_submission = pd.read_csv(ensemble['file'], header = 0, usecols=['click']) \
+            .rename(columns={'click':'is_attributed'})
+    else:
+        lgbm_submission = pd.read_csv(ensemble['file'], header = 0)
+    #ffm_submision = pd.read_csv('new_test.sp.prd', header = 0, usecols=['click'])
+    #ffm_submision = pd.read_csv('submission_notebook.csv.02-04-2018_22:48:59', header = 0)
+    print('min:', lgbm_submission['is_attributed'].min())
+    if sum is None:
+        sum = lgbm_submission
+    else:
+        sum['is_attributed'] = vlogit(sum['is_attributed']) + vlogit(lgbm_submission['is_attributed'])
+
+sum['is_attributed'] = vlogistic(sum['is_attributed']/len(ensemble_list))
+sum.to_csv(get_dated_filename('ensemble_submission.csv'), index=False)
