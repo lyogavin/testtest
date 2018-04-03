@@ -66,7 +66,7 @@ path_test_sample = path + 'test_sample.csv'
 train_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'is_attributed']
 test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time']
 
-categorical = ['app', 'device', 'os', 'channel', 'hour', 'in_test_hh']
+categorical = ['app', 'device', 'os', 'channel', 'hour']
 
 dtypes = {
         'ip'            : 'uint32',
@@ -93,9 +93,13 @@ def gen_categorical_features(data):
     print("Creating new time features in train: 'hour' and 'day'...")
     data['hour'] = data["click_time"].dt.hour.astype('uint8')
     data['day'] = data["click_time"].dt.day.astype('uint8')
-    data['in_test_hh'] = (   3
-                           - 2*df['hour'].isin(  most_freq_hours_in_test_data )
-                           - 1*df['hour'].isin( least_freq_hours_in_test_data ) ).astype('uint8')
+
+    add_hh_feature = False
+    if add_hh_feature:
+        data['in_test_hh'] = (   3
+                               - 2*data['hour'].isin(  most_freq_hours_in_test_data )
+                               - 1*data['hour'].isin( least_freq_hours_in_test_data ) ).astype('uint8')
+        categorical.append('in_test_hh')
     return data
 
 
@@ -246,78 +250,34 @@ def generate_counting_history_features(data, history, history_attribution,
         
     new_features = []
 
-    # Count by IP,DAY,HOUR
-    print('a given IP address within each hour...')
-    data, features_added = add_statistic_feature(['ip','day','hour'], data, history, history_attribution, False)
-    new_features = new_features + features_added
-    gc.collect()
+    add_features_list = [
+        {'group':['ip','day','hour'], 'with_hist': False, 'counting_col':'channel'},
+        {'group':['ip','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+        {'group':['ip','os', 'app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+        {'group':['ip'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+        {'group':['ip','hour','channel'], 'with_hist': with_hist_profile, 'counting_col':'os'},
+        {'group':['ip','hour','os'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+        {'group':['ip','hour','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+        {'group':['channel','app'], 'with_hist': with_hist_profile, 'counting_col':'os'},
+        {'group':['channel','os'], 'with_hist': with_hist_profile, 'counting_col':'app'},
+        {'group':['channel','app','os'], 'with_hist': with_hist_profile, 'counting_col':'device'},
+        {'group':['os','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'}
+        ]
 
-    # Count by IP and APP
-    data, features_added = add_statistic_feature(['ip','app'], data, history, history_attribution, with_hist_profile)
-    new_features = new_features + features_added
-    
-    # Count by IP and channel
-    data, features_added = add_statistic_feature(['ip','channel'], data, history, history_attribution, with_hist_profile, counting_col='os')
-    new_features = new_features + features_added
-    
-    # Count by IP and channel app
-    data, features_added = add_statistic_feature(['ip','channel', 'app'], data, history, history_attribution, with_hist_profile, counting_col='os')
-    new_features = new_features + features_added
-    
-    data, features_added  = add_statistic_feature(['ip','app','os'], data, history, history_attribution, with_hist_profile)
-    new_features = new_features + features_added
+    new_features_data = []
 
-    #######
-    # Count by IP
-    data, features_added  = add_statistic_feature(['ip'], data, history, history_attribution, with_hist_profile)
-    new_features = new_features + features_added
+    for add_feature in add_features_list:
+        new_data, features_added = add_statistic_feature(add_feature['group'],
+                                                     data[add_feature['group'] + [add_feature['counting_col']]],
+                                                     history, history_attribution, add_feature['with_hist'],
+                                                     counting_col=add_feature['counting_col'])
+        new_features = new_features + features_added
+        new_features_data.append({'data':new_data[features_added], 'features':features_added})
+        gc.collect()
 
-    #######
-    #tested channle, app, os count feature, worse in test 8.
-    #######
-    # Count by Channel
-    #data, features_added  = add_statistic_feature(['channel'], data, history, history_attribution, with_hist_profile, counting_col='os')
-    #new_features = new_features + features_added
-    #######
-    # Count by APP
-    #data, features_added  = add_statistic_feature(['app'], data, history, history_attribution, with_hist_profile)
-    #new_features = new_features + features_added
-    #######
-    # Count by OS
-    #data, features_added  = add_statistic_feature(['os'], data, history, history_attribution, with_hist_profile)
-    #new_features = new_features + features_added
-
-
-    # Count by IP HOUR CHANNEL                                               
-    data, features_added  = add_statistic_feature(['ip','hour','channel'],
-                                                  data, history, history_attribution, with_hist_profile, counting_col='os')
-    new_features = new_features + features_added
-
-    # Count by IP HOUR Device
-    data, features_added  = add_statistic_feature(['ip','hour','os'],
-                                                  data, history, history_attribution, with_hist_profile)
-    new_features = new_features + features_added
-
-    data, features_added  = add_statistic_feature(['ip','hour','app'],
-                                                  data, history, history_attribution, with_hist_profile, counting_col='os')
-    new_features = new_features + features_added
-
-    data, features_added  = add_statistic_feature(['channel','app'],
-                                                  data, history, history_attribution, with_hist_profile, counting_col='os')
-    new_features = new_features + features_added
-
-    data, features_added  = add_statistic_feature(['channel','os'],
-                                                  data, history, history_attribution, with_hist_profile, counting_col='app')
-    new_features = new_features + features_added
-
-    data, features_added  = add_statistic_feature(['channel','app','os'],
-                                                  data, history, history_attribution, with_hist_profile, counting_col='device')
-    new_features = new_features + features_added
-
-    data, features_added  = add_statistic_feature(['app','os'],
-                                                  data, history, history_attribution, with_hist_profile)
-    new_features = new_features + features_added
-
+    for new_data in new_features_data:
+        for feature in new_data['features']:
+            data[feature] = new_data['data'][feature]
 
     if remove_hist_profile_count != 0:
         data = data.query('ipcount_in_hist > {}'.format(remove_hist_profile_count))
