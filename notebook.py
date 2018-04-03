@@ -24,7 +24,7 @@ def get_dated_filename(filename):
 import os
 import pickle
 
-print('test log 16')
+print('test log 27')
 print(os.listdir("../input"))
 
 
@@ -302,14 +302,14 @@ def gen_train_df(with_hist_profile = True):
     train = gen_categorical_features(train)
 
     train_data, train_ip_contains_training_day, train_ip_contains_training_day_attributed =  \
-        prepare_data(train, 8, 2, 6, with_hist_profile, start_time='2017-11-06 00:00:00',
-                     end_time='2017-11-08 15:00:00', start_hist_time='2017-11-06 0:00:00')
+        prepare_data(train, 8, 2, 1, with_hist_profile, start_time='2017-11-09 04:00:00',
+                     end_time='2017-11-09 15:00:00', start_hist_time='2017-11-06 0:00:00')
 
     train_data, new_features = generate_counting_history_features(train_data, train_ip_contains_training_day,
                                                                   train_ip_contains_training_day_attributed,
                                                                   with_hist_profile)
 
-    train_data = train_data.set_index('click_time').ix['2017-11-08 04:00:00':'2017-11-08 15:00:00'].reset_index()
+    train_data = train_data.set_index('click_time').ix['2017-11-09 04:00:00':'2017-11-09 15:00:00'].reset_index()
 
     print('train data:', train)
     print('new features:', new_features)
@@ -326,15 +326,15 @@ def gen_train_df(with_hist_profile = True):
     gc.collect()
 
     val, train_ip_contains_training_day, train_ip_contains_training_day_attributed =  \
-        prepare_data(train, 9, 2, 6, with_hist_profile, start_time='2017-11-07 00:00:00',
-                     end_time='2017-11-09 15:00:00', start_hist_time='2017-11-07 0:00:00')
+        prepare_data(train, 9, 2, 6, with_hist_profile, start_time='2017-11-08 04:00:00',
+                     end_time='2017-11-08 15:00:00', start_hist_time='2017-11-07 0:00:00')
 
     print('len val:', len(val))
     val, new_features1 = generate_counting_history_features(val, train_ip_contains_training_day,
                                                            train_ip_contains_training_day_attributed,
                                                            with_hist_profile)
 
-    val = val.set_index('click_time').ix['2017-11-09 04:00:00':'2017-11-09 15:00:00'].reset_index()
+    val = val.set_index('click_time').ix['2017-11-08 04:00:00':'2017-11-08 15:00:00'].reset_index()
     train = train_data
 
     del train_ip_contains_training_day
@@ -510,7 +510,7 @@ def gen_test_df(with_hist_profile = True):
     
     train, train_ip_contains_training_day, train_ip_contains_training_day_attributed = \
         prepare_data(train, 10, 2, 1, with_hist_profile, for_test=True,
-                     start_time = '2017-11-08 00:00:00',
+                     start_time = '2017-11-10 04:00:00',
                      end_time = '2017-11-10 23:59:59', start_hist_time = '2017-11-07 0:00:00'
     )
 
@@ -588,7 +588,7 @@ if to_submit:
 
 predict_from_saved_model = False
 
-to_predict = False
+to_predict = True
 
 if to_predict:
     test, new_test_features = gen_test_df(False)
