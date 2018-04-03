@@ -11,6 +11,8 @@ import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import time
 from dateutil import parser
+import matplotlib
+matplotlib.use('Agg')
 
 def get_dated_filename(filename):
     return '{}.{}_{}'.format(filename, time.strftime("%d-%m-%Y"), time.strftime("%X"))
@@ -439,7 +441,7 @@ def train_lgbm(train, val, new_features):
         'verbose': 9,
         'early_stopping_round':20,
         #'is_unbalance': True,
-        'scale_pos_weight':99.7
+        'scale_pos_weight':99.0
         }
 
     predictors_to_train = [predictors1]
@@ -515,6 +517,8 @@ def gen_test_df(with_hist_profile = True):
     if with_hist_profile:
         train = pd.read_csv(path_train if not use_sample else path_train_sample, dtype=dtypes,
                 header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
+    train = pd.read_csv(path_train if not use_sample else path_train_sample, dtype=dtypes,
+            header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
     test = pd.read_csv(path_test if not use_sample else path_test_sample, dtype=dtypes, header=0,
             usecols=test_cols,parse_dates=["click_time"])#.sample(1000)
     #if with_hist_profile:
@@ -610,7 +614,7 @@ if to_submit:
 
 predict_from_saved_model = False
 
-to_predict = False
+to_predict = True
 
 if to_predict:
     test, new_test_features = gen_test_df(False)
