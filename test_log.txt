@@ -1,7 +1,8 @@
 arc testing:
 
-base:
-	1/6 train, val sample, ,
+base from 13:
+	1/6 train, val sample, use all history feature, label 4:00-15:00, with casting uint16,
+	qcut 0.98,scale_pos_weight:99.7
 
 1. feature and label use only range from 4:00 - 15:00, with casting to uint16:
     1. train's auc: 0.982385	valid's auc: 0.966781
@@ -17,7 +18,7 @@ base:
 6. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.95, discretization 500:
     1. mac: train's auc: 0.983119	valid's auc: 0.968293
 7. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.95, scale_pos_weight:99.7:
-    1. grid test kernel: running
+    1. grid test kernel: train's auc: 0.983002	valid's auc: 0.968661, to merge to base
 8. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, add channel, app  os count feature:
     1. grid test 2 kernel: train's auc: 0.982419	valid's auc: 0.968044
 9. use all history feature, label 4:00-15:00, with casting to uint16, qcut 0.99:
@@ -25,9 +26,23 @@ base:
 10. use all history feature, label 4:00-15:00, with casting to uint16, qcut 0.98:
     1. new val kernel: train's auc: 0.978534	valid's auc: 0.967561
 11. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, add channel count feature:
+    1. new val split: train's auc: 0.980404	valid's auc: 0.968002
+12. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, add  app count feature:
+    1. grid test 2: train's auc: 0.982621	valid's auc: 0.967913
+13. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, scale_pos_weight:99.7
+    1. new val split: train's auc: 0.982792	valid's auc: 0.968499
+14. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, scale_pos_weight:99.3
+    1. grid test 2: train's auc: 0.982592	valid's auc: 0.968233
+15. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, scale_pos_weight:98.5
+    1. new val split: train's auc: 0.983195	valid's auc: 0.968301
+16. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, scale_pos_weight:99.9
+    1. grid test: train's auc: 0.981288	valid's auc: 0.968207
+17. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, scale_pos_weight:98.8
+    1. grid test: running
+18. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, scale_pos_weight:98.9
+    1. grid test 2: running
+19. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, scale_pos_weight:99.1
     1. new val split: running
-12.
-
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature

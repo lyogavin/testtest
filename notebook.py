@@ -22,6 +22,7 @@ def get_dated_filename(filename):
 import os
 import pickle
 
+print('test log 16')
 print(os.listdir("../input"))
 
 
@@ -438,7 +439,7 @@ def train_lgbm(train, val, new_features):
         'verbose': 9,
         'early_stopping_round':20,
         #'is_unbalance': True,
-        'scale_pos_weight':99
+        'scale_pos_weight':99.7
         }
 
     predictors_to_train = [predictors1]
