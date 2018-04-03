@@ -15,7 +15,7 @@ import matplotlib
 matplotlib.use('Agg')
 
 def get_dated_filename(filename):
-    return '{}.{}_{}'.format(filename, time.strftime("%d-%m-%Y"), time.strftime("%X"))
+    return '{}.{}'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S"))
 
 
 # Input data files are available in the "../input/" directory.
@@ -66,7 +66,7 @@ path_test_sample = path + 'test_sample.csv'
 train_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'is_attributed']
 test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time']
 
-categorical = ['app', 'device', 'os', 'channel', 'hour']
+categorical = ['app', 'device', 'os', 'channel', 'hour', 'in_test_hh']
 
 dtypes = {
         'ip'            : 'uint32',
@@ -86,6 +86,18 @@ import pickle
 
 
 # In[2]:
+
+def gen_categorical_features(data):
+    most_freq_hours_in_test_data = [4, 5, 9, 10, 13, 14]
+    least_freq_hours_in_test_data = [6, 11, 15]
+    print("Creating new time features in train: 'hour' and 'day'...")
+    data['hour'] = data["click_time"].dt.hour.astype('uint8')
+    data['day'] = data["click_time"].dt.day.astype('uint8')
+    data['in_test_hh'] = (   3
+                           - 2*df['hour'].isin(  most_freq_hours_in_test_data )
+                           - 1*df['hour'].isin( least_freq_hours_in_test_data ) ).astype('uint8')
+    return data
+
 
 def prepare_data(data, training_day, profile_days, sample_count=1,
                  with_hist_profile=True, only_for_ip_with_hist = False, for_test = False,
@@ -327,9 +339,7 @@ def gen_train_df(with_hist_profile = True):
     print('Binding the training and test set together...')
 
 
-    print("Creating new time features in train: 'hour' and 'day'...")
-    train['hour'] = train["click_time"].dt.hour.astype('uint8')
-    train['day'] = train["click_time"].dt.day.astype('uint8')
+    train = gen_categorical_features(train)
 
     train_data, train_ip_contains_training_day, train_ip_contains_training_day_attributed =  \
         prepare_data(train, 8, 2, 6, with_hist_profile, start_time='2017-11-06 00:00:00',
@@ -494,14 +504,20 @@ def train_lgbm(train, val, new_features):
             print('dumping model')
             lgb_model.save_model(get_dated_filename('model.txt'))
 
-        print("Writing the val_prediction into a csv file...")
-        if persist_intermediate:
+        do_val_prediction = False
+        val_prediction = None
+        if do_val_prediction:
+            print("Writing the val_prediction into a csv file...")
+            #if persist_intermediate:
 
             print('gen val prediction')
             val_prediction = lgb_model.predict(val[predictors1], num_iteration=lgb_model.best_iteration)
-            pd.Series(val_prediction).to_csv(get_dated_filename("val_prediction.csv"), index=False)
+            val['predict'] = val_prediction
+            #pd.Series(val_prediction).to_csv(get_dated_filename("val_prediction.csv"), index=False)
+            val.to_csv(get_dated_filename("val_prediction.csv"), index=False)
 
-    return lgb_model
+
+    return lgb_model, val_prediction
 
 
 # In[ ]:
@@ -530,9 +546,7 @@ def gen_test_df(with_hist_profile = True):
 
     del test
     gc.collect()
-    print("Creating new time features in train: 'hour' and 'day'...")
-    train['hour'] = train["click_time"].dt.hour.astype('uint8')
-    train['day'] = train["click_time"].dt.day.astype('uint8')
+    train = gen_categorical_features(train)
     
     train, train_ip_contains_training_day, train_ip_contains_training_day_attributed = \
         prepare_data(train, 10, 2, 1, with_hist_profile, for_test=True,
@@ -585,7 +599,7 @@ if train_model:
 
     train, val, new_features = gen_train_df(False)
 
-    lgb_model = train_lgbm(train, val, new_features)
+    lgb_model, val_prediction = train_lgbm(train, val, new_features)
     # In[ ]:
     del train
     del val
@@ -614,7 +628,7 @@ if to_submit:
 
 predict_from_saved_model = False
 
-to_predict = True
+to_predict = False
 
 if to_predict:
     test, new_test_features = gen_test_df(False)

@@ -4,6 +4,10 @@ base @ 13:
 	1/6 train, val sample, use all history feature, label 4:00-15:00, with casting uint16,
 	qcut 0.98,scale_pos_weight:99.7
 
+base @20:
+	1/6 train, val sample, use all history feature, label 4:00-15:00, with casting uint16,
+	qcut 0.98,scale_pos_weight:99.0
+
 1. feature and label use only range from 4:00 - 15:00, with casting to uint16:
     1. train's auc: 0.982385	valid's auc: 0.966781
 2. use all history feature, label 4:00-15:00, with casting to uint16:
@@ -44,9 +48,15 @@ base @ 13:
 19. use all history feature, label 4:00-15:00, with casting to uint16, qcut 0.98, scale_pos_weight:99.1
     1. new val split: train's auc: 0.981529	valid's auc: 0.968157
 20. use all history feature, label 4:00-15:00, with casting to uint16, qcut 0.98, scale_pos_weight:99.0
-    1. grid test: running
+    1. grid test: train's auc: 0.983909	valid's auc: 0.96873
+    2. merge to base
 21. use all history feature, label 4:00-15:00, without casting to uint16, qcut 0.98, scale_pos_weight:99.7
-    1. new val split: running
+    1. new val split: train's auc: 0.981529	valid's auc: 0.968157
+22. use all history feature, label 4:00-15:00, with casting to uint16, qcut 0.95, scale_pos_weight:99.7
+    1. grid test: train's auc: 0.983002	valid's auc: 0.968661
+23. base + add frequent/infrequent test hours features:
+    1. grid test: train's auc: 0.983929	valid's auc: 0.968495
+
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature
