@@ -64,7 +64,7 @@ base @20:
     1. new val split: train's auc: 0.98287	valid's auc: 0.972121
     2. new val split: running again to predict
 27. base + only the current day's data to extract features + all training data + use 09 to train
-    1. aliyun:  train's auc: 0.97724    valid's auc: 0.97743    pub LB: 0.9693
+    1. aliyun:  train's auc: 0.97724    valid's auc: 0.97743     LB: 0.9693
 28. base + remove last two features
     1. aliyun: train's auc: 0.982993	valid's auc: 0.968284
 29. base + only the current day's data to extract features + all training data + hh feature
