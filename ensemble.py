@@ -17,6 +17,8 @@ import pickle
 from sklearn import metrics
 #from ggplot import *
 
+from os import walk
+
 import time
 
 def get_dated_filename(filename):
@@ -156,9 +158,18 @@ def inv_logistic_func(x):
 
 mprd = collections.defaultdict(list)
 
-for ensemble in ensemble_list:
-    print('processing ', ensemble['file'])
-    lgbm_submission = pd.read_csv(ensemble['file'], header = 0)
+#for ensemble in ensemble_list:
+ensemble_dir_path = './ensemble_predictions'
+
+f = []
+
+for (dirpath, dirnames, filenames) in walk(ensemble_dir_path):
+    f.extend(filenames)
+    break
+
+for filename in f:
+    print('processing ', filename)
+    lgbm_submission = pd.read_csv('%s/%s' % (ensemble_dir_path,filename), header = 0)
     #ffm_submision = pd.read_csv('new_test.sp.prd', header = 0, usecols=['click'])
     #ffm_submision = pd.read_csv('submission_notebook.csv.02-04-2018_22:48:59', header = 0)
     #print('min:', lgbm_submission['is_attributed'].min())
@@ -172,6 +183,7 @@ for ensemble in ensemble_list:
         i = i+1
         if i % 10000 ==0:
             print('processing... ', i)
+            break
         value = row['is_attributed']
         if value == 0:
             value = 0.00001
@@ -184,5 +196,6 @@ for key in mprd:
     
 
 res = pd.DataFrame({'click_id':list(mprd.keys()),'is_attributed':list(mprd.values())})
+res['click_id'] = res['click_id'].astype('uint32')
 
 res.to_csv(get_dated_filename('ensemble_submission.csv'), index=False)

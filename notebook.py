@@ -24,7 +24,7 @@ def get_dated_filename(filename):
 import os
 import pickle
 
-print('test log 33. base + filter 3 apps + predict')
+print('test log 34 base + filter 1 apps(12) + predict')
 print(os.listdir("../input"))
 
 
@@ -52,7 +52,7 @@ import lightgbm as lgb
 import sys
 import gc
 
-use_sample = False
+use_sample = True
 persist_intermediate = False
 
 gen_test_input = True
@@ -68,12 +68,15 @@ test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
 
 categorical = ['app', 'device', 'os', 'channel', 'hour']
 
-field_sample_filter = {'filter_type': 'filter_field',
-                       'filter_field': 'channel',
-                       'filter_field_values': [107, 477, 265]}
-field_sample_filter1 = {'filter_type': 'filter_field',
-                        'filter_field': 'app',
-                        'filter_field_values': [3, 9]}
+field_sample_filter_channel_filter = {'filter_type': 'filter_field',
+                                      'filter_field': 'channel',
+                                      'filter_field_values': [107, 477, 265]}
+field_sample_filter_app_filter1 = {'filter_type': 'filter_field',
+                                   'filter_field': 'app',
+                                   'filter_field_values': [12, 18, 14]}
+field_sample_filter_app_filter2 = {'filter_type': 'filter_field',
+                                   'filter_field': 'app',
+                                   'filter_field_values': [12]}
 
 shuffle_sample_filter = {'filter_type': 'sample', 'sample_count': 6}
 
@@ -93,6 +96,32 @@ print("Loading Data")
 
 import pickle
 
+
+
+
+class ConfigScheme:
+    def __init__(self, predict = False, train = True, ffm_data_gen = False,
+               train_filter = None,
+               val_filter = shuffle_sample_filter,
+               test_filter = None):
+        self.predict = predict
+        self.train = train
+        self.ffm_data_gen = ffm_data_gen
+        self.train_filter = train_filter
+        self.val_filter = val_filter
+        self.test_filter = test_filter
+
+
+train_predict_config = ConfigScheme(True, True, False)
+train_config = ConfigScheme(False, True, False)
+ffm_data_config = ConfigScheme(False, False, True)
+
+
+train_predict_filter_app_12_config = ConfigScheme(True, True, False, train_filter=field_sample_filter_app_filter2,
+                                                  val_filter=field_sample_filter_app_filter2,
+                                                  test_filter=field_sample_filter_app_filter2)
+
+config_scheme_to_use = train_predict_filter_app_12_config
 
 # In[2]:
 
@@ -306,7 +335,7 @@ def generate_counting_history_features(data, history, history_attribution,
 
 
 
-def gen_train_df(with_hist_profile = True):
+def gen_train_df(with_hist_profile = True, persist_fe_data = False):
     train = pd.read_csv(path_train_sample if use_sample else path_train, dtype=dtypes,
             header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
 
@@ -320,7 +349,8 @@ def gen_train_df(with_hist_profile = True):
 
 
     train_data, train_ip_contains_training_day, train_ip_contains_training_day_attributed =  \
-        prepare_data(train, 8, 2, field_sample_filter1, with_hist_profile, start_time='2017-11-09 04:00:00',
+        prepare_data(train, 8, 2, config_scheme_to_use.train_filter, with_hist_profile,
+                     start_time='2017-11-09 04:00:00',
                      end_time='2017-11-09 15:00:00', start_hist_time='2017-11-06 0:00:00')
 
     train_data, new_features = generate_counting_history_features(train_data, train_ip_contains_training_day,
@@ -345,7 +375,7 @@ def gen_train_df(with_hist_profile = True):
 
 
     val, train_ip_contains_training_day, train_ip_contains_training_day_attributed =  \
-        prepare_data(train, 9, 2, field_sample_filter1, with_hist_profile, start_time='2017-11-08 04:00:00',
+        prepare_data(train, 9, 2, config_scheme_to_use.val_filter, with_hist_profile, start_time='2017-11-08 04:00:00',
                      end_time='2017-11-08 15:00:00', start_hist_time='2017-11-07 0:00:00')
 
     print('len val:', len(val))
@@ -367,13 +397,13 @@ def gen_train_df(with_hist_profile = True):
     train[target] = train[target].astype('uint8')
     train.info()
 
-    if persist_intermediate:
+    if persist_fe_data:
         if use_sample:
-            train.to_csv(get_dated_filename('training_sample.csv'), index=False)
-            val.to_csv(get_dated_filename('val_sample.csv'), index=False)
+            train.to_csv(get_dated_filename('train_fe_sample.csv'), index=False)
+            val.to_csv(get_dated_filename('val_fe_sample.csv'), index=False)
         else:
-            train.to_csv(get_dated_filename('training.csv'), index=False)
-            val.to_csv(get_dated_filename('val.csv'), index=False)
+            train.to_csv(get_dated_filename('train_fe.csv'), index=False)
+            val.to_csv(get_dated_filename('val_fe.csv'), index=False)
 
         print('save dtypes')
 
@@ -381,7 +411,7 @@ def gen_train_df(with_hist_profile = True):
         print(y)
         del y['click_time']
         #del y['Unnamed: 0']
-        pickle.dump(y,open('output_dtypes.pickle','wb'))
+        pickle.dump(y,open(get_dated_filename('fe_dtypes.pickle'),'wb'))
 
     #sys.exit(0)
     return train, val, new_features
@@ -503,7 +533,7 @@ def train_lgbm(train, val, new_features):
 
 for_test = True
 
-def gen_test_df(with_hist_profile = True):
+def gen_test_df(with_hist_profile = True, persist_fe_data = False):
     #del train
     #del test
     #gc.collect()
@@ -528,7 +558,7 @@ def gen_test_df(with_hist_profile = True):
     train = gen_categorical_features(train)
     
     train, train_ip_contains_training_day, train_ip_contains_training_day_attributed = \
-        prepare_data(train, 10, 2, field_sample_filter1, with_hist_profile, for_test=True,
+        prepare_data(train, 10, 2, config_scheme_to_use.test_filter, with_hist_profile, for_test=True,
                      start_time = '2017-11-10 04:00:00',
                      end_time = '2017-11-10 23:59:59', start_hist_time = '2017-11-07 0:00:00'
     )
@@ -540,8 +570,8 @@ def gen_test_df(with_hist_profile = True):
     train = train.set_index('click_time').ix['2017-11-10 04:00:00':'2017-11-10 15:00:00'].reset_index()
     train['is_attributed'] = 0
 
-    if persist_intermediate:
-        train.to_csv(get_dated_filename('to_submit.csv' + '.sample' if use_sample else 'to_submit.csv'), index=False)
+    if persist_fe_data:
+        train.to_csv(get_dated_filename('test_fe.csv' + '.sample' if use_sample else 'test_fe.csv'), index=False)
 
     return train, new_features
 
@@ -550,31 +580,29 @@ def gen_test_df(with_hist_profile = True):
 
 
 def gen_ffm_data():
-    train, val, new_features = gen_train_df(False)
+    train, val, new_features = gen_train_df(False, True)
     train_len = len(train)
     val_len = len(val)
     gc.collect()
-    test, _ = gen_test_df(False)
+    test, _ = gen_test_df(False, True)
     test_len= len(test)
     gc.collect()
 
     print('train({}) val({}) test({}) generated'.format(train_len, val_len,test_len))
 
 
-    train = train.append(val)
-    test = train.append(test)
+    #train = train.append(val)
+    #test = train.append(test)
 
-    del train
-    del val
+    #del train
+    #del val
 
-    gc.collect()
+    #gc.collect()
 
-    print(test)
+    #print(test)
 
 
-train_model = True
-
-if train_model:
+if config_scheme_to_use.train:
 
     train, val, new_features = gen_train_df(False)
 
@@ -604,7 +632,6 @@ if to_submit:
 
     print("All done...")
 
-#gen_ffm_data()
 
 predict_from_saved_model = False
 
@@ -612,7 +639,7 @@ to_predict = True
 
 gc.collect()
 
-if to_predict:
+if config_scheme_to_use.predict:
     test, new_test_features = gen_test_df(False)
 
     #print(test['ipcount_in_hist'].describe())
@@ -632,3 +659,7 @@ if to_predict:
     test[['click_id','is_attributed']].to_csv(get_dated_filename("submission_notebook.csv"), index=False)
 
     print("All done...")
+
+
+if config_scheme_to_use.ffm_data_gen:
+    gen_ffm_data()
