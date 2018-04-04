@@ -24,7 +24,7 @@ def get_dated_filename(filename):
 import os
 import pickle
 
-print('test log 34 base + filter 1 apps(12) + predict')
+print('test log 40. base + filter 1 apps(12) + predict + different lgbm hyperparameters')
 print(os.listdir("../input"))
 
 
@@ -52,7 +52,7 @@ import lightgbm as lgb
 import sys
 import gc
 
-use_sample = True
+use_sample = False
 persist_intermediate = False
 
 gen_test_input = True
@@ -77,6 +77,61 @@ field_sample_filter_app_filter1 = {'filter_type': 'filter_field',
 field_sample_filter_app_filter2 = {'filter_type': 'filter_field',
                                    'filter_field': 'app',
                                    'filter_field_values': [12]}
+field_sample_filter_app_filter3 = {'filter_type': 'filter_field',
+                                   'filter_field': 'app',
+                                   'filter_field_values': [18, 14]}
+field_sample_filter_app_filter4 = {'filter_type': 'filter_field',
+                                   'filter_field': 'app',
+                                   'filter_field_values': [8, 11]}
+
+default_lgbm_params = {
+    'boosting_type': 'gbdt',
+    'objective': 'binary',
+    'metric': 'auc',
+    'learning_rate': 0.1,
+    'num_leaves': 7,
+    'max_depth': 4,
+    'min_child_samples': 100,
+    'max_bin': 150,
+    'subsample': 0.7,
+    'subsample_freq': 1,
+    'colsample_bytree': 0.7,
+    'min_child_weight': 0,
+    'subsample_for_bin': 200000,
+    'min_split_gain': 0,
+    'reg_alpha': 0,
+    'reg_lambda': 0,
+    'nthread': 5,
+    'verbose': 9,
+    'early_stopping_round': 20,
+    # 'is_unbalance': True,
+    'scale_pos_weight': 99.0
+}
+
+new_lgbm_params = {
+    'boosting_type': 'gbdt',
+    'objective': 'binary',
+    'metric': 'auc',
+    'learning_rate': 0.1,
+    'num_leaves': 9,
+    'max_depth': 5,
+    'min_child_samples': 100,
+    'max_bin': 150,
+    'subsample': 0.9,
+    'subsample_freq': 1,
+    'colsample_bytree': 0.7,
+    'min_child_weight': 0,
+    'subsample_for_bin': 200000,
+    'min_split_gain': 0,
+    'reg_alpha': 0,
+    'reg_lambda': 0,
+    'nthread': 5,
+    'verbose': 9,
+    'early_stopping_round': 20,
+    # 'is_unbalance': True,
+    'scale_pos_weight': 99.0
+}
+
 
 shuffle_sample_filter = {'filter_type': 'sample', 'sample_count': 6}
 
@@ -103,13 +158,15 @@ class ConfigScheme:
     def __init__(self, predict = False, train = True, ffm_data_gen = False,
                train_filter = None,
                val_filter = shuffle_sample_filter,
-               test_filter = None):
+               test_filter = None,
+               lgbm_params = default_lgbm_params):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
         self.train_filter = train_filter
         self.val_filter = val_filter
         self.test_filter = test_filter
+        self.lgbm_params = lgbm_params
 
 
 train_predict_config = ConfigScheme(True, True, False)
@@ -117,11 +174,36 @@ train_config = ConfigScheme(False, True, False)
 ffm_data_config = ConfigScheme(False, False, True)
 
 
+
+train_predict_new_lgbm_params_config = ConfigScheme(True, True, False, lgbm_params=new_lgbm_params)
+
+
 train_predict_filter_app_12_config = ConfigScheme(True, True, False, train_filter=field_sample_filter_app_filter2,
                                                   val_filter=field_sample_filter_app_filter2,
                                                   test_filter=field_sample_filter_app_filter2)
 
-config_scheme_to_use = train_predict_filter_app_12_config
+train_predict_filter_app_18_14_config = ConfigScheme(True, True, False, train_filter=field_sample_filter_app_filter3,
+                                                     val_filter=field_sample_filter_app_filter3,
+                                                     test_filter=field_sample_filter_app_filter3)
+
+train_predict_filter_app_8_11_config = ConfigScheme(True, True, False, train_filter=field_sample_filter_app_filter4,
+                                                    val_filter=field_sample_filter_app_filter4,
+                                                    test_filter=field_sample_filter_app_filter4)
+
+train_predict_filter_app_8_11_new_lgbm_params_config = \
+    ConfigScheme(True, True, False, train_filter=field_sample_filter_app_filter4,
+                 val_filter=field_sample_filter_app_filter4,
+                 test_filter=field_sample_filter_app_filter4,
+                 lgbm_params=new_lgbm_params
+                 )
+train_predict_filter_app_12_new_lgbm_params_config = \
+    ConfigScheme(True, True, False, train_filter=field_sample_filter_app_filter2,
+                 val_filter=field_sample_filter_app_filter2,
+                 test_filter=field_sample_filter_app_filter2,
+                 lgbm_params=new_lgbm_params
+                 )
+
+config_scheme_to_use = train_predict_filter_app_12_new_lgbm_params_config
 
 # In[2]:
 
@@ -439,29 +521,7 @@ def train_lgbm(train, val, new_features):
 
     print("Preparing the datasets for training...")
 
-    params = {
-        'boosting_type': 'gbdt',
-        'objective': 'binary',
-        'metric': 'auc',
-        'learning_rate': 0.1,
-        'num_leaves': 7,
-        'max_depth': 4,
-        'min_child_samples': 100,
-        'max_bin': 150,
-        'subsample': 0.7,
-        'subsample_freq': 1,
-        'colsample_bytree': 0.7,
-        'min_child_weight': 0,
-        'subsample_for_bin': 200000,
-        'min_split_gain': 0,
-        'reg_alpha': 0,
-        'reg_lambda': 0,
-        'nthread': 5,
-        'verbose': 9,
-        'early_stopping_round':20,
-        #'is_unbalance': True,
-        'scale_pos_weight':99.0
-        }
+
 
     predictors_to_train = [predictors1]
 
@@ -481,7 +541,7 @@ def train_lgbm(train, val, new_features):
         evals_results = {}
         print("Training the model...")
 
-        lgb_model = lgb.train(params,
+        lgb_model = lgb.train(config_scheme_to_use.lgbm_params,
                          dtrain,
                          valid_sets=[dtrain, dvalid],
                          valid_names=['train','valid'],

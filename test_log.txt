@@ -78,13 +78,32 @@ base @20:
 32. base + filter 3 channels + hh feature + predict
     1. grid test: train's auc: 0.831272	valid's auc: 0.795663,
         submission_notebook.csv.04-04-2018_01-35-01
-33. base + filter 3 apps + predict
+33. base + filter 2 apps(3,9) + predict
     1. grid test 2: train's auc: 0.867201	valid's auc: 0.86065
     2. grid test 2: predict
         submission_notebook.csv.04-04-2018_04-41-45
 34. base + filter 1 apps(12) + predict
-    1. new val split: running
-
+    1. new val split: train's auc: 0.807762	valid's auc: 0.752095
+        submission_notebook.csv.04-04-2018_13-30-39
+35. base + filter 2 apps(18 14) + predict
+    1. grid test 2: train's auc: 0.846225	valid's auc: 0.778439
+        submission_notebook.csv.04-04-2018_11-12-10
+36. ensemble of 27+31+33: LB 0.9694
+37. base + filter 2 apps(8 11) + predict
+    1. grid test : train's auc: 0.770682	valid's auc: 0.605115
+        submission_notebook.csv.04-04-2018_12-58-05
+        ^^^^^^^^^^^^  there's a bug to this versoin deleted
+38. base + different lgbm hyperparameters: # num_leaves : 7  ->  9, max_depth  :  4  ->  5, subsample  : 0.7 -> 0.9
+    1. grid test 2: train's auc: 0.978664	valid's auc: 0.97764 LB:0.9696
+        submission_notebook.csv.04-04-2018_15-08-53
+39. base + filter 2 apps(8 11) + predict + different lgbm hyperparameters:
+        # num_leaves : 7  ->  9, max_depth  :  4  ->  5, subsample  : 0.7 -> 0.9
+    1. grid test :train's auc: 0.832043	valid's auc: 0.818861
+        submission_notebook.csv.04-04-2018_16-23-14
+40. base + filter 1 apps(12) + predict + different lgbm hyperparameters:
+        # num_leaves : 7  ->  9, max_depth  :  4  ->  5, subsample  : 0.7 -> 0.9
+    1. grid test 2: train's auc: 0.866256	valid's auc: 0.757562
+        submission_notebook.csv.04-04-2018_16-27-49
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature
@@ -94,4 +113,4 @@ to do test:
 5. gbdt feature + ffm
 6. normalization
 7. count smoothing: xxxx
-8.
+8. unbalance labels

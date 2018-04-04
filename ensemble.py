@@ -183,7 +183,7 @@ for filename in f:
         i = i+1
         if i % 10000 ==0:
             print('processing... ', i)
-            break
+
         value = row['is_attributed']
         if value == 0:
             value = 0.00001
