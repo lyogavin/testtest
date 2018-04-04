@@ -142,12 +142,11 @@ if ratio_based_on_val:
     lgbm_submission['is_attributed'] = vlogistic(i_at_max_auc * vlogit(lgbm_submission['is_attributed']) + \
                                      (1.0-i_at_max_auc) * vlogit(ffm_submision['click']))
 
-ensemble_list = [{'file':'submission_notebook.csv.01-04-2018_13:47:13', 'click':False},
-                 {'file': 'new_test.sp.prd', 'click': True},
-                 {'file':'submission_notebook.csv.03-04-2018_01:32:23', 'click':False},
-                 {'file': 'submission_notebook.csv.02-04-2018_22:48:59', 'click': False}]
+ensemble_list = [{'file':'submission_notebook.csv.04-04-2018_03-33-26', 'click':False},
+                 #{'file': 'new_test.sp.prd', 'click': True},
+                 #{'file':'submission_notebook.csv.03-04-2018_01:32:23', 'click':False},
+                 {'file': 'submission_notebook.csv.04-04-2018_03-34-54', 'click': False}]
 
-sum = None
 
 def logistic_func(x):
     return 1/(1+math.exp(-x))
@@ -168,7 +167,11 @@ for ensemble in ensemble_list:
     #else:
     #    sum['is_attributed'] = vlogit(sum['is_attributed']) + vlogit(lgbm_submission['is_attributed'])
 
+    i = 0
     for index, row in lgbm_submission.reset_index().iterrows():
+        i = i+1
+        if i % 10000 ==0:
+            print('processing... ', i)
         value = row['is_attributed']
         if value == 0:
             value = 0.00001
@@ -178,6 +181,7 @@ for ensemble in ensemble_list:
 for key in mprd:
     mprd[key] = logistic_func(sum(map(inv_logistic_func, mprd[key]))/len(mprd[key]))
 
+    
 
 res = pd.DataFrame({'click_id':list(mprd.keys()),'is_attributed':list(mprd.values())})
 
