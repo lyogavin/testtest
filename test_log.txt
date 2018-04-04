@@ -62,15 +62,25 @@ base @20:
     1. grid test2: train's auc: 0.98291	valid's auc: 0.97013
 26. base + only the current day's data to extract features + all training data
     1. new val split: train's auc: 0.98287	valid's auc: 0.972121
-    2. new val split: running again to predict
+    2. new val split: train's auc: 0.98287	valid's auc: 0.972121
 27. base + only the current day's data to extract features + all training data + use 09 to train
-    1. aliyun:  train's auc: 0.97724    valid's auc: 0.97743     LB: 0.9693
+    1. aliyun:  train's auc: 0.97724    valid's auc: 0.97743     LB: 0.9693,
+        submission_notebook.csv.04-04-2018_03-33-26@aliyun
 28. base + remove last two features
     1. aliyun: train's auc: 0.982993	valid's auc: 0.968284
 29. base + only the current day's data to extract features + all training data + hh feature
     1. grid test2: train's auc: 0.982993	valid's auc: 0.970014
 30. base + only the current day's data to extract features 1/6 + hh feature
-    1. grid test: running
+    1. grid test: 0.983704	valid's auc: 0.969496
+31. base + filter 3 channels
+    1. grid test: train's auc: 0.853195	valid's auc: 0.799714
+    2. grid test: submission_notebook.csv.04-04-2018_03-34-54
+32. base + filter 3 channels + hh feature + predict
+    1. grid test: train's auc: 0.831272	valid's auc: 0.795663,
+        submission_notebook.csv.04-04-2018_01-35-01
+33. base + filter 3 apps + predict
+    1. grid test 2: train's auc: 0.867201	valid's auc: 0.86065
+    2. grid test 2: predict
 
 
 to do test:

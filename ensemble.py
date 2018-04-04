@@ -8,7 +8,7 @@
 
 import numpy as np  # linear algebra
 import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
-
+import collections
 # Input data files are available in the "../input/" directory.
 # For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
 
@@ -20,8 +20,7 @@ from sklearn import metrics
 import time
 
 def get_dated_filename(filename):
-    return '{}.{}_{}'.format(filename, time.strftime("%d-%m-%Y"), time.strftime("%X"))
-
+    return '{}.{}'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S"))
 
 print(os.listdir("../input"))
 
@@ -149,20 +148,37 @@ ensemble_list = [{'file':'submission_notebook.csv.01-04-2018_13:47:13', 'click':
                  {'file': 'submission_notebook.csv.02-04-2018_22:48:59', 'click': False}]
 
 sum = None
+
+def logistic_func(x):
+    return 1/(1+math.exp(-x))
+
+def inv_logistic_func(x):
+    return math.log(x/(1-x))
+
+mprd = collections.defaultdict(list)
+
 for ensemble in ensemble_list:
     print('processing ', ensemble['file'])
-    if ensemble['click']:
-        lgbm_submission = pd.read_csv(ensemble['file'], header = 0, usecols=['click']) \
-            .rename(columns={'click':'is_attributed'})
-    else:
-        lgbm_submission = pd.read_csv(ensemble['file'], header = 0)
+    lgbm_submission = pd.read_csv(ensemble['file'], header = 0)
     #ffm_submision = pd.read_csv('new_test.sp.prd', header = 0, usecols=['click'])
     #ffm_submision = pd.read_csv('submission_notebook.csv.02-04-2018_22:48:59', header = 0)
-    print('min:', lgbm_submission['is_attributed'].min())
-    if sum is None:
-        sum = lgbm_submission
-    else:
-        sum['is_attributed'] = vlogit(sum['is_attributed']) + vlogit(lgbm_submission['is_attributed'])
+    #print('min:', lgbm_submission['is_attributed'].min())
+    #if sum is None:
+    #    sum = lgbm_submission
+    #else:
+    #    sum['is_attributed'] = vlogit(sum['is_attributed']) + vlogit(lgbm_submission['is_attributed'])
 
-sum['is_attributed'] = vlogistic(sum['is_attributed']/len(ensemble_list))
-sum.to_csv(get_dated_filename('ensemble_submission.csv'), index=False)
+    for index, row in lgbm_submission.reset_index().iterrows():
+        value = row['is_attributed']
+        if value == 0:
+            value = 0.00001
+        mprd[row['click_id']].append(value)
+
+
+for key in mprd:
+    mprd[key] = logistic_func(sum(map(inv_logistic_func, mprd[key]))/len(mprd[key]))
+
+
+res = pd.DataFrame({'click_id':list(mprd.keys()),'is_attributed':list(mprd.values())})
+
+res.to_csv(get_dated_filename('ensemble_submission.csv'), index=False)
