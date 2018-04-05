@@ -376,7 +376,8 @@ def add_statistic_feature(group_by_cols, training, training_hist, training_hist_
     return training, features_added
 
 def generate_counting_history_features(data, history, history_attribution,
-                                       with_hist_profile = True, remove_hist_profile_count=0):
+                                       with_hist_profile = True, remove_hist_profile_count=0,
+                                       discretization=0):
         
     new_features = []
 
@@ -400,7 +401,8 @@ def generate_counting_history_features(data, history, history_attribution,
         new_data, features_added = add_statistic_feature(add_feature['group'],
                                                      data[add_feature['group'] + [add_feature['counting_col']]],
                                                      history, history_attribution, add_feature['with_hist'],
-                                                     counting_col=add_feature['counting_col'])
+                                                     counting_col=add_feature['counting_col'],
+                                                     discretization=discretization)
         new_features = new_features + features_added
         new_features_data.append({'data':new_data[features_added], 'features':features_added})
         gc.collect()
