@@ -3,7 +3,7 @@ import numpy as py
 
 path = '../input/' 
 
-path_test = path + 'test.csv'
+path_test = 'test_fe.csv.04-04-2018_19-20-51'
 
 submit = pd.read_csv(path_test, usecols=['click_id'])
 ffm_output = pd.read_csv('new_test.sp.prd', usecols=['click'])
