@@ -104,6 +104,18 @@ base @20:
         # num_leaves : 7  ->  9, max_depth  :  4  ->  5, subsample  : 0.7 -> 0.9
     1. grid test 2: train's auc: 0.866256	valid's auc: 0.757562
         submission_notebook.csv.04-04-2018_16-27-49
+41. ensemble of models:
+    a, submission_notebook.csv.04-04-2018_03-33-26, 27, all training data, params old
+    b, submission_notebook.csv.04-04-2018_03-34-54, 31, 3 channels
+    c, submission_notebook.csv.04-04-2018_04-41-45, 33, filter 2 apps:3 9
+    d, submission_notebook.csv.04-04-2018_11-12-10, 35, filter 2 apps:18 14
+    e, submission_notebook.csv.04-04-2018_13-30-39, 34, filter 1 app:12
+    f, submission_notebook.csv.04-04-2018_15-08-53, 38, all training data, new params
+    LB: 0.9697
+42, FFM of full training data:
+    1. aliyun: very bad, because of too big cardinality, need to qcut to 1000
+43, FFM of full training data, qcut 1000
+
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature

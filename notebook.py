@@ -24,7 +24,7 @@ def get_dated_filename(filename):
 import os
 import pickle
 
-print('test log 40. base + filter 1 apps(12) + predict + different lgbm hyperparameters')
+print('test log 43 gen ffm data with qcut 1000')
 print(os.listdir("../input"))
 
 
@@ -159,7 +159,8 @@ class ConfigScheme:
                train_filter = None,
                val_filter = shuffle_sample_filter,
                test_filter = None,
-               lgbm_params = default_lgbm_params):
+               lgbm_params = default_lgbm_params,
+               discretization = 0):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -167,11 +168,12 @@ class ConfigScheme:
         self.val_filter = val_filter
         self.test_filter = test_filter
         self.lgbm_params = lgbm_params
+        self.discretization = discretization
 
 
 train_predict_config = ConfigScheme(True, True, False)
 train_config = ConfigScheme(False, True, False)
-ffm_data_config = ConfigScheme(False, False, True)
+ffm_data_config = ConfigScheme(False, False, True, discretization=1000)
 
 
 
@@ -203,7 +205,7 @@ train_predict_filter_app_12_new_lgbm_params_config = \
                  lgbm_params=new_lgbm_params
                  )
 
-config_scheme_to_use = train_predict_filter_app_12_new_lgbm_params_config
+config_scheme_to_use = ffm_data_config
 
 # In[2]:
 
@@ -437,7 +439,8 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
 
     train_data, new_features = generate_counting_history_features(train_data, train_ip_contains_training_day,
                                                                   train_ip_contains_training_day_attributed,
-                                                                  with_hist_profile)
+                                                                  with_hist_profile,
+                                                                  discretization=config_scheme_to_use.discretization)
 
     train_data = train_data.set_index('click_time').ix['2017-11-09 04:00:00':'2017-11-09 15:00:00'].reset_index()
 
@@ -463,7 +466,8 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
     print('len val:', len(val))
     val, new_features1 = generate_counting_history_features(val, train_ip_contains_training_day,
                                                            train_ip_contains_training_day_attributed,
-                                                           with_hist_profile)
+                                                           with_hist_profile,
+                                                           discretization=config_scheme_to_use.discretization)
 
     val = val.set_index('click_time').ix['2017-11-08 04:00:00':'2017-11-08 15:00:00'].reset_index()
     train = train_data
@@ -625,7 +629,8 @@ def gen_test_df(with_hist_profile = True, persist_fe_data = False):
 
     train, new_features = generate_counting_history_features(train, train_ip_contains_training_day, 
                                                              train_ip_contains_training_day_attributed,
-                                                             with_hist_profile)
+                                                             with_hist_profile,
+                                                             discretization=config_scheme_to_use.discretization)
 
     train = train.set_index('click_time').ix['2017-11-10 04:00:00':'2017-11-10 15:00:00'].reset_index()
     train['is_attributed'] = 0
