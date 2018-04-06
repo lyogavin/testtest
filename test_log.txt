@@ -126,3 +126,5 @@ to do test:
 6. normalization
 7. count smoothing: xxxx
 8. unbalance labels
+9. drop ip count feature, who's very overfitting according to ffm work
+10. looking at some channel only, performs badly, consider remove channel+ip count feature that over-fits

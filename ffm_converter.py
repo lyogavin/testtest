@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3 -u
 
 # coding: utf-8
 
@@ -16,7 +16,7 @@
 import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import argparse,sys
-
+from collections import OrderedDict
 # Input data files are available in the "../input/" directory.
 # For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
 
@@ -105,7 +105,7 @@ class FFMFormatPandas:
         if self.y is None:
             ffm.append(str(0))
             
-        items = row.loc[row.index != self.y].to_dict().items()
+        items = row.loc[row.index != self.y].to_dict(into=OrderedDict).items()
 
         for col, val in items:
             #col_type = t[col]
