@@ -3,10 +3,10 @@ import numpy as py
 
 path = '../input/' 
 
-path_test = 'test_fe.csv.04-04-2018_19-20-51'
+path_test = 'test_fe.csv.05-04-2018_12-36-48'
 
 submit = pd.read_csv(path_test, usecols=['click_id'])
-ffm_output = pd.read_csv('new_test.sp.prd', usecols=['click'])
+ffm_output = pd.read_csv('new_new_test.sp.prd', usecols=['click'])
 
 submit['is_attributed'] = ffm_output['click']
 print(submit)

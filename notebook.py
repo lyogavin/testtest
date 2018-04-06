@@ -15,7 +15,8 @@ import matplotlib
 matplotlib.use('Agg')
 
 def get_dated_filename(filename):
-    return '{}.{}'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S"))
+    #return '{}.{}'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S"))
+    return filename
 
 
 # Input data files are available in the "../input/" directory.
@@ -134,6 +135,8 @@ new_lgbm_params = {
 
 
 shuffle_sample_filter = {'filter_type': 'sample', 'sample_count': 6}
+shuffle_sample_filter_1_to_10 = {'filter_type': 'sample', 'sample_count': 1}
+shuffle_sample_filter_1_to_10k = {'filter_type': 'sample', 'sample_count': 1}
 
 dtypes = {
         'ip'            : 'uint32',
@@ -173,7 +176,7 @@ class ConfigScheme:
 
 train_predict_config = ConfigScheme(True, True, False)
 train_config = ConfigScheme(False, True, False)
-ffm_data_config = ConfigScheme(False, False, True, discretization=1000)
+ffm_data_config = ConfigScheme(False, False, True,shuffle_sample_filter_1_to_10,shuffle_sample_filter_1_to_10,shuffle_sample_filter_1_to_10k,  discretization=100)
 
 
 
@@ -385,7 +388,7 @@ def generate_counting_history_features(data, history, history_attribution,
         {'group':['ip','day','hour'], 'with_hist': False, 'counting_col':'channel'},
         {'group':['ip','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
         {'group':['ip','os', 'app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
-        {'group':['ip'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+        #{'group':['ip'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
         {'group':['ip','hour','channel'], 'with_hist': with_hist_profile, 'counting_col':'os'},
         {'group':['ip','hour','os'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
         {'group':['ip','hour','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
@@ -486,12 +489,13 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
     train.info()
 
     if persist_fe_data:
+        predictors1 = categorical + new_features + ['is_attributed']
         if use_sample:
-            train.to_csv(get_dated_filename('train_fe_sample.csv'), index=False)
-            val.to_csv(get_dated_filename('val_fe_sample.csv'), index=False)
+            train[predictors1 ].to_csv(get_dated_filename('train_fe_sample.csv'), index=False)
+            val[predictors1].to_csv(get_dated_filename('val_fe_sample.csv'), index=False)
         else:
-            train.to_csv(get_dated_filename('train_fe.csv'), index=False)
-            val.to_csv(get_dated_filename('val_fe.csv'), index=False)
+            train[predictors1].to_csv(get_dated_filename('train_fe.csv'), index=False)
+            val[predictors1].to_csv(get_dated_filename('val_fe.csv'), index=False)
 
         print('save dtypes')
 
@@ -638,7 +642,8 @@ def gen_test_df(with_hist_profile = True, persist_fe_data = False):
     train['is_attributed'] = 0
 
     if persist_fe_data:
-        train.to_csv(get_dated_filename('test_fe.csv' + '.sample' if use_sample else 'test_fe.csv'), index=False)
+        predictors1 = categorical + new_features+ ['is_attributed']
+        train[predictors1 + ['click_id']].to_csv(get_dated_filename('test_fe.csv' + '.sample' if use_sample else 'test_fe.csv'), index=False)
 
     return train, new_features
 

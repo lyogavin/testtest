@@ -96,7 +96,7 @@ class FFMFormatPandas:
         return self.transform(df)
 
     def transform_row_(self, idx, row, t):
-        if idx % 1000 == 0:
+        if idx % 10000 == 0:
             logger.info('transforming idx: %d, %s, %s',idx, row, t)
         ffm = []
         ffm.append(str(idx))
@@ -121,6 +121,9 @@ class FFMFormatPandas:
     def transform(self, df):
         t = df.dtypes.to_dict()
         logger.info('transforming')
+        if 'click_id' in df.columns:
+            print('use click_id as idx')
+            df = df.set_index('click_id')
         return pd.Series({idx: self.transform_row_(idx, row, t) for idx, row in df.iterrows()})
 
 
@@ -140,9 +143,10 @@ args = vars(parser.parse_args())
 import pickle
 dtypes = pickle.load(open("output_dtypes.pickle",'rb'))
 print('use dtypes:',dtypes)
-data = pd.read_csv(args['tr_src_path'], parse_dates=["click_time"],dtype=dtypes,header=0)#.sample(1000)
-data.drop('click_time', axis=1, inplace=True)
-data.drop('ip', axis=1, inplace=True)
+data = pd.read_csv(args['tr_src_path'], dtype=dtypes,header=0)#.sample(1000)
+#data = pd.read_csv(args['tr_src_path'], parse_dates=["click_time"],dtype=dtypes,header=0)#.sample(1000)
+#data.drop('click_time', axis=1, inplace=True)
+#data.drop('ip', axis=1, inplace=True)
 #print('data:',data)
 
 ffm_train = FFMFormatPandas()
@@ -151,9 +155,10 @@ logger.info('converted data: %s', ffm_train_data)
 
 ffm_train_data.to_csv(args['tr_dst_path'], index=False)
 
-data = pd.read_csv(args['va_src_path'], parse_dates=["click_time"],dtype=dtypes,header=0)#.sample(1000)
-data.drop('click_time', axis=1, inplace=True)
-data.drop('ip', axis=1, inplace=True)
+data = pd.read_csv(args['va_src_path'], dtype=dtypes,header=0)#.sample(1000)
+#data = pd.read_csv(args['va_src_path'], parse_dates=["click_time"],dtype=dtypes,header=0)#.sample(1000)
+#data.drop('click_time', axis=1, inplace=True)
+#data.drop('ip', axis=1, inplace=True)
 ffm_train = FFMFormatPandas()
 ffm_train_data = ffm_train.fit_transform(data, y='is_attributed')
 logger.info('converted data: %s', ffm_train_data)
