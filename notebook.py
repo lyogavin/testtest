@@ -135,8 +135,8 @@ new_lgbm_params = {
 
 
 shuffle_sample_filter = {'filter_type': 'sample', 'sample_count': 6}
-shuffle_sample_filter_1_to_10 = {'filter_type': 'sample', 'sample_count': 1}
-shuffle_sample_filter_1_to_10k = {'filter_type': 'sample', 'sample_count': 1}
+shuffle_sample_filter_1_to_10 = {'filter_type': 'sample', 'sample_count': 20}
+shuffle_sample_filter_1_to_10k = {'filter_type': 'sample', 'sample_count': 20}
 
 dtypes = {
         'ip'            : 'uint32',
@@ -288,9 +288,11 @@ def prepare_data(data, training_day, profile_days, filter_config=None,
 
 
 def add_statistic_feature(group_by_cols, training, training_hist, training_hist_attribution,
-                          with_hist, counting_col='channel', cast_type=True, qcut_count=0.98, discretization=0):
+                          with_hist, counting_col='channel', cast_type=True, qcut_count=0.98,
+                          discretization=0, discretization_bins = None):
     features_added = []
     feature_name_added = '_'.join(group_by_cols) + 'count'
+    discretization_bins_used = {}
     print('count ip with group by:', group_by_cols)
     n_chans = training[group_by_cols + [counting_col]].groupby(by=group_by_cols)[[counting_col]] \
         .count().reset_index().rename(columns={counting_col: feature_name_added})
@@ -298,16 +300,22 @@ def add_statistic_feature(group_by_cols, training, training_hist, training_hist_
     del n_chans
     gc.collect()
     training[feature_name_added] = training[feature_name_added].astype('uint16')
-    if qcut_count != 0:
-        print('before qcut', feature_name_added, training[feature_name_added].describe())
+    if qcut_count != 0 and  discretization==0:
+        #print('before qcut', feature_name_added, training[feature_name_added].describe())
         quantile_cut = training[feature_name_added].quantile(qcut_count)
         training[feature_name_added] = training[feature_name_added].apply(
             lambda x: x if x < quantile_cut else 65535).astype('uint16')
-        print('after qcut', feature_name_added, training[feature_name_added].describe())
+        #print('after qcut', feature_name_added, training[feature_name_added].describe())
     if discretization != 0:
         print('before qcut', feature_name_added, training[feature_name_added].describe())
-        training[feature_name_added] = pd.qcut(training[feature_name_added], discretization, labels=False,
-                                               duplicates='drop').fillna(0).astype('uint16')
+        if discretization_bins is None:
+            ret, discretization_bins_used[feature_name_added]= pd.qcut(training[feature_name_added], discretization,
+                                                                  labels=False, duplicates='drop', retbins=True)
+            training[feature_name_added] = ret.fillna(0).astype('uint16')
+        else:
+            training[feature_name_added] = pd.cut(training[feature_name_added],
+                                                  discretization_bins[feature_name_added],
+                                                  labels=False).fillna(0).astype('uint16')
         print('after qcut', feature_name_added, training[feature_name_added].describe())
 
     features_added.append(feature_name_added)
@@ -376,11 +384,13 @@ def add_statistic_feature(group_by_cols, training, training_hist, training_hist_
 
     print('added features:', features_added)
 
-    return training, features_added
+    return training, features_added, discretization_bins_used
 
 def generate_counting_history_features(data, history, history_attribution,
                                        with_hist_profile = True, remove_hist_profile_count=0,
-                                       discretization=0):
+                                       discretization=0, discretization_bins=None):
+
+    print('discretization bins to use:', discretization_bins)
         
     new_features = []
 
@@ -399,14 +409,21 @@ def generate_counting_history_features(data, history, history_attribution,
         ]
 
     new_features_data = []
+    discretization_bins_used = None
 
     for add_feature in add_features_list:
-        new_data, features_added = add_statistic_feature(add_feature['group'],
+        new_data, features_added, discretization_bins_used_current_feature = add_statistic_feature(add_feature['group'],
                                                      data[add_feature['group'] + [add_feature['counting_col']]],
                                                      history, history_attribution, add_feature['with_hist'],
                                                      counting_col=add_feature['counting_col'],
-                                                     discretization=discretization)
+                                                     discretization=discretization,
+                                                     discretization_bins=discretization_bins)
         new_features = new_features + features_added
+        if discretization_bins_used_current_feature is not None:
+            if discretization_bins_used is None:
+                discretization_bins_used = {}
+            discretization_bins_used = \
+                dict(list(discretization_bins_used.items()) + list(discretization_bins_used_current_feature.items()))
         new_features_data.append({'data':new_data[features_added], 'features':features_added})
         gc.collect()
 
@@ -417,7 +434,11 @@ def generate_counting_history_features(data, history, history_attribution,
     if remove_hist_profile_count != 0:
         data = data.query('ipcount_in_hist > {}'.format(remove_hist_profile_count))
 
-    return data, new_features
+    if discretization_bins is None:
+        print('discretization bins used:',discretization_bins_used )
+    else:
+        print('discretizatoin bins passed in params, so no discretization_bins_used returned')
+    return data, new_features, discretization_bins_used
 
 #test['hour'] = test["click_time"].dt.hour.astype('uint8')
 #test['day'] = test["click_time"].dt.day.astype('uint8')
@@ -442,7 +463,7 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
                      start_time='2017-11-09 04:00:00',
                      end_time='2017-11-09 15:00:00', start_hist_time='2017-11-06 0:00:00')
 
-    train_data, new_features = generate_counting_history_features(train_data, train_ip_contains_training_day,
+    train_data, new_features, discretization_bins_used = generate_counting_history_features(train_data, train_ip_contains_training_day,
                                                                   train_ip_contains_training_day_attributed,
                                                                   with_hist_profile,
                                                                   discretization=config_scheme_to_use.discretization)
@@ -469,10 +490,11 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
                      end_time='2017-11-08 15:00:00', start_hist_time='2017-11-07 0:00:00')
 
     print('len val:', len(val))
-    val, new_features1 = generate_counting_history_features(val, train_ip_contains_training_day,
+    val, new_features1, _ = generate_counting_history_features(val, train_ip_contains_training_day,
                                                            train_ip_contains_training_day_attributed,
                                                            with_hist_profile,
-                                                           discretization=config_scheme_to_use.discretization)
+                                                           discretization=config_scheme_to_use.discretization,
+                                                           discretization_bins=discretization_bins_used)
 
     val = val.set_index('click_time').ix['2017-11-08 04:00:00':'2017-11-08 15:00:00'].reset_index()
     train = train_data
@@ -506,7 +528,7 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
         pickle.dump(y,open(get_dated_filename('fe_dtypes.pickle'),'wb'))
 
     #sys.exit(0)
-    return train, val, new_features
+    return train, val, new_features, discretization_bins_used
 
 
 train_lgbm = False
@@ -603,7 +625,8 @@ def train_lgbm(train, val, new_features):
 
 for_test = True
 
-def gen_test_df(with_hist_profile = True, persist_fe_data = False):
+def gen_test_df(with_hist_profile = True, persist_fe_data = False,
+            discretization_bins=None):
     #del train
     #del test
     #gc.collect()
@@ -633,10 +656,11 @@ def gen_test_df(with_hist_profile = True, persist_fe_data = False):
                      end_time = '2017-11-10 23:59:59', start_hist_time = '2017-11-07 0:00:00'
     )
 
-    train, new_features = generate_counting_history_features(train, train_ip_contains_training_day, 
+    train, new_features, _ = generate_counting_history_features(train, train_ip_contains_training_day,
                                                              train_ip_contains_training_day_attributed,
                                                              with_hist_profile,
-                                                             discretization=config_scheme_to_use.discretization)
+                                                             discretization=config_scheme_to_use.discretization,
+                                                             discretization_bins=discretization_bins)
 
     train = train.set_index('click_time').ix['2017-11-10 04:00:00':'2017-11-10 15:00:00'].reset_index()
     train['is_attributed'] = 0
@@ -652,11 +676,11 @@ def gen_test_df(with_hist_profile = True, persist_fe_data = False):
 
 
 def gen_ffm_data():
-    train, val, new_features = gen_train_df(False, True)
+    train, val, new_features, discretization_bins_used = gen_train_df(False, True)
     train_len = len(train)
     val_len = len(val)
     gc.collect()
-    test, _ = gen_test_df(False, True)
+    test, _ = gen_test_df(False, True, discretization_bins_used)
     test_len= len(test)
     gc.collect()
 
@@ -676,7 +700,7 @@ def gen_ffm_data():
 
 if config_scheme_to_use.train:
 
-    train, val, new_features = gen_train_df(False)
+    train, val, new_features, discretization_bins_used = gen_train_df(False)
 
     lgb_model, val_prediction = train_lgbm(train, val, new_features)
     # In[ ]:
@@ -712,7 +736,7 @@ to_predict = True
 gc.collect()
 
 if config_scheme_to_use.predict:
-    test, new_test_features = gen_test_df(False)
+    test, new_test_features = gen_test_df(False, discretization_bins = discretization_bins_used)
 
     #print(test['ipcount_in_hist'].describe())
 
