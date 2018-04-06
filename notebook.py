@@ -85,6 +85,15 @@ field_sample_filter_app_filter4 = {'filter_type': 'filter_field',
                                    'filter_field': 'app',
                                    'filter_field_values': [8, 11]}
 
+train_time_range_start = '2017-11-09 04:00:00'
+train_time_range_end = '2017-11-09 15:00:00'
+
+val_time_range_start = '2017-11-08 04:00:00'
+val_time_range_end = '2017-11-08 15:00:00'
+
+test_time_range_start = '2017-11-10 04:00:00'
+test_time_range_end = '2017-11-10 15:00:00'
+
 default_lgbm_params = {
     'boosting_type': 'gbdt',
     'objective': 'binary',
@@ -163,7 +172,8 @@ class ConfigScheme:
                val_filter = shuffle_sample_filter,
                test_filter = None,
                lgbm_params = default_lgbm_params,
-               discretization = 0):
+               discretization = 0,
+               mock_test_with_val_data_to_test = False):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -172,12 +182,17 @@ class ConfigScheme:
         self.test_filter = test_filter
         self.lgbm_params = lgbm_params
         self.discretization = discretization
+        self.mock_test_with_val_data_to_test = mock_test_with_val_data_to_test
 
 
 train_predict_config = ConfigScheme(True, True, False)
 train_config = ConfigScheme(False, True, False)
 ffm_data_config = ConfigScheme(False, False, True,shuffle_sample_filter_1_to_10,shuffle_sample_filter_1_to_10,shuffle_sample_filter_1_to_10k,  discretization=100)
 
+ffm_data_config_mock_test = ConfigScheme(False, False, True,shuffle_sample_filter_1_to_10,
+                                         shuffle_sample_filter_1_to_10,shuffle_sample_filter_1_to_10k,
+                                         discretization=100,
+                                         mock_test_with_val_data_to_test=True)
 
 
 train_predict_new_lgbm_params_config = ConfigScheme(True, True, False, lgbm_params=new_lgbm_params)
@@ -208,7 +223,7 @@ train_predict_filter_app_12_new_lgbm_params_config = \
                  lgbm_params=new_lgbm_params
                  )
 
-config_scheme_to_use = ffm_data_config
+config_scheme_to_use = ffm_data_config_mock_test
 
 # In[2]:
 
@@ -639,6 +654,10 @@ def gen_test_df(with_hist_profile = True, persist_fe_data = False,
                 header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
     #train = pd.read_csv(path_train if not use_sample else path_train_sample, dtype=dtypes,
     #        header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
+    if config_scheme_to_use.mock_test_with_val_data_to_test:
+        path_test = path_train
+        path_test_sample = path_train_sample
+        test_cols = train_cols
     test = pd.read_csv(path_test if not use_sample else path_test_sample, dtype=dtypes, header=0,
             usecols=test_cols,parse_dates=["click_time"])#.sample(1000)
     if train is not None:
@@ -649,12 +668,19 @@ def gen_test_df(with_hist_profile = True, persist_fe_data = False,
     del test
     gc.collect()
     train = gen_categorical_features(train)
-    
-    train, train_ip_contains_training_day, train_ip_contains_training_day_attributed = \
-        prepare_data(train, 10, 2, config_scheme_to_use.test_filter, with_hist_profile, for_test=True,
-                     start_time = '2017-11-10 04:00:00',
-                     end_time = '2017-11-10 23:59:59', start_hist_time = '2017-11-07 0:00:00'
-    )
+
+    if not config_scheme_to_use.mock_test_with_val_data_to_test:
+        train, train_ip_contains_training_day, train_ip_contains_training_day_attributed = \
+            prepare_data(train, 10, 2, config_scheme_to_use.test_filter, with_hist_profile, for_test=True,
+                         start_time = '2017-11-10 04:00:00',
+                         end_time = '2017-11-10 23:59:59', start_hist_time = '2017-11-07 0:00:00'
+        )
+    else:
+        train, train_ip_contains_training_day, train_ip_contains_training_day_attributed = \
+            prepare_data(train, 10, 2, config_scheme_to_use.test_filter, with_hist_profile, for_test=True,
+                         start_time = val_time_range_start,
+                         end_time = val_time_range_end, start_hist_time = '2017-11-07 0:00:00'
+        )
 
     train, new_features, _ = generate_counting_history_features(train, train_ip_contains_training_day,
                                                              train_ip_contains_training_day_attributed,
@@ -662,11 +688,20 @@ def gen_test_df(with_hist_profile = True, persist_fe_data = False,
                                                              discretization=config_scheme_to_use.discretization,
                                                              discretization_bins=discretization_bins)
 
-    train = train.set_index('click_time').ix['2017-11-10 04:00:00':'2017-11-10 15:00:00'].reset_index()
-    train['is_attributed'] = 0
+    if not config_scheme_to_use.mock_test_with_val_data_to_test:
+        train = train.set_index('click_time').ix['2017-11-10 04:00:00':'2017-11-10 15:00:00'].reset_index()
+    else:
+        train = train.set_index('click_time').ix[val_time_range_start:val_time_range_end].reset_index()
+
+    if not config_scheme_to_use.mock_test_with_val_data_to_test:
+        train['is_attributed'] = 0
 
     if persist_fe_data:
         predictors1 = categorical + new_features+ ['is_attributed']
+        if config_scheme_to_use.mock_test_with_val_data_to_test:
+            if 'click_id' not in train.columns:
+                train['click_id'] = train.index
+
         train[predictors1 + ['click_id']].to_csv(get_dated_filename('test_fe.csv' + '.sample' if use_sample else 'test_fe.csv'), index=False)
 
     return train, new_features
