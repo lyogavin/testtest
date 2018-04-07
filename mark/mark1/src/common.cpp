@@ -105,7 +105,7 @@ float predict(Problem const &prob, Model &model,
     if(!output_path.empty())
     {
         f = open_c_file(output_path, "w");
-        fprintf(f, "id,click\n");
+        fprintf(f, "click_id,is_attributed\n");
     }
 
     double loss = 0;

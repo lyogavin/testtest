@@ -114,7 +114,12 @@ base @20:
     LB: 0.9697
 42, FFM of full training data:
     1. aliyun: very bad, because of too big cardinality, need to qcut to 1000
-43, FFM of full training data, qcut 1000
+43, FFM of full training data, qcut 100, same qcut bins with training for val and test,
+    remove ip count to reduce overfitting
+    1. aliyun: submission_notebook.csv.04-07-2018_22-19-00, LB:0.9538
+44, ensemble of best FFM(submission_notebook.csv.04-07-2018_22-19-00) and
+    best LGM(submission_notebook.csv.04-04-2018_15-08-53):
+    1. aliyun: LB: 0.9686
 
 
 to do test:
