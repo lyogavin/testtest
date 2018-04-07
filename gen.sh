@@ -1,6 +1,6 @@
 #!/bin/bash
 
-python3 ./notebook.py 
+python3 -u ./notebook.py 
 
 #./test_fe.csv.05-04-2018_12-36-48  ./train_fe.csv.05-04-2018_12-17-46  ./val_fe.csv.05-04-2018_12-29-46
 
