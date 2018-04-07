@@ -53,7 +53,7 @@ import lightgbm as lgb
 import sys
 import gc
 
-use_sample = False
+use_sample = True
 persist_intermediate = False
 
 gen_test_input = True
@@ -144,8 +144,8 @@ new_lgbm_params = {
 
 
 shuffle_sample_filter = {'filter_type': 'sample', 'sample_count': 6}
-shuffle_sample_filter_1_to_10 = {'filter_type': 'sample', 'sample_count': 20}
-shuffle_sample_filter_1_to_10k = {'filter_type': 'sample', 'sample_count': 20}
+shuffle_sample_filter_1_to_10 = {'filter_type': 'sample', 'sample_count': 1}
+shuffle_sample_filter_1_to_10k = {'filter_type': 'sample', 'sample_count': 1}
 
 dtypes = {
         'ip'            : 'uint32',
@@ -223,7 +223,7 @@ train_predict_filter_app_12_new_lgbm_params_config = \
                  lgbm_params=new_lgbm_params
                  )
 
-config_scheme_to_use = ffm_data_config_mock_test
+config_scheme_to_use = ffm_data_config
 
 # In[2]:
 
@@ -654,12 +654,16 @@ def gen_test_df(with_hist_profile = True, persist_fe_data = False,
                 header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
     #train = pd.read_csv(path_train if not use_sample else path_train_sample, dtype=dtypes,
     #        header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
+
     if config_scheme_to_use.mock_test_with_val_data_to_test:
-        path_test = path_train
-        path_test_sample = path_train_sample
-        test_cols = train_cols
-    test = pd.read_csv(path_test if not use_sample else path_test_sample, dtype=dtypes, header=0,
-            usecols=test_cols,parse_dates=["click_time"])#.sample(1000)
+        path_test_to_use = path_train if not use_sample else path_train_sample
+        test_cols_to_use = train_cols
+    else:
+        path_test_to_use = path_test if not use_sample else path_test_sample
+        test_cols_to_use = test_cols
+
+    test = pd.read_csv(path_test_to_use, dtype=dtypes, header=0,
+            usecols=test_cols_to_use,parse_dates=["click_time"])#.sample(1000)
     if train is not None:
         train=train.append(test)
     else:
