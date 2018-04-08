@@ -158,7 +158,9 @@ base @20:
     6. r 0.11, t 100: 0.9638509291435216
     7. r 0.11, t 70:0.9639892505480051
 58, use new fts to train FFM, r 0.11, t 40:
-    1. aliyun:
+    1. aliyun: 0.966384372004959
+59, 58 + discretization 50:
+    1. aliyun: running
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature

@@ -25,7 +25,7 @@ def get_dated_filename(filename):
 import os
 import pickle
 
-print('test log 55 ')
+print('test log 59 ')
 print(os.listdir("../input"))
 
 
@@ -250,6 +250,16 @@ ffm_data_config_train = ConfigScheme(False, False, True,
                                      discretization=100,
                                      )
 
+ffm_data_config_train_discretization_50 = ConfigScheme(False, False, True,
+                                     shuffle_sample_filter,
+                                     shuffle_sample_filter,
+                                     shuffle_sample_filter_1_to_10k,
+                                     train_start_time = val_time_range_start,
+                                     train_end_time=val_time_range_end,
+                                     val_start_time=train_time_range_start,
+                                     val_end_time=train_time_range_end,
+                                     discretization=50,
+                                     )
 
 ffm_data_config_mock_test = ConfigScheme(False, False, True,shuffle_sample_filter_1_to_10,
                                          shuffle_sample_filter_1_to_10,shuffle_sample_filter_1_to_10k,
@@ -285,7 +295,7 @@ train_predict_filter_app_12_new_lgbm_params_config = \
                  lgbm_params=new_lgbm_params
                  )
 
-config_scheme_to_use = ffm_data_config_train
+config_scheme_to_use = ffm_data_config_train_discretization_50
 
 # In[2]:
 
