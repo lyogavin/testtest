@@ -135,6 +135,7 @@ base @20:
 49, 48 + r 0.01:
     1. aliyun: 0.9271
 50, use train/val split and 1/6 sample for ffm
+    1. aliyun: auc: 0.9637972262918038
 51, 38 + 1/6 train, 1/6 val, new lgbm parameters
     1. grid test: train's auc: 0.986087	valid's auc: 0.969878
 52, 51 + scale_pos_weight 200
@@ -144,9 +145,20 @@ base @20:
 54, 51 + new features: ip_day_hhcount:
     2. grid test 2: train's auc: 0.985928	valid's auc: 0.969962
 55, 51 + new features: ip_day_hhcount + remove some fts:
-    2. grid test : train's auc: 0.987025	valid's auc: 0.971098
+    1. grid test : train's auc: 0.987025	valid's auc: 0.971098
+    2. prediction: grid test 2: running
 56, 52 + scale_pos_weight 200
-    1. grid test: running
+    1. grid test: train's auc: 0.985561	valid's auc: 0.970922
+57, 52 + FFM hyper parameter grid search:
+    1. r 0.078, t 40: 0.9638428489959663
+    2. r 0.15, t40: 0.9640482258163178
+    3, r 0.078, t 30: 0.9635215841365019
+    4. r 0.11, t 40: 0.9640808501138804
+    5. r 0.11, t 30: 0.9638179245603409
+    6. r 0.11, t 100: 0.9638509291435216
+    7. r 0.11, t 70:0.9639892505480051
+58, use new fts to train FFM, r 0.11, t 40:
+    1. aliyun:
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature

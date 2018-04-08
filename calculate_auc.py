@@ -22,10 +22,10 @@ def calculate_auc(label, predict):
 print('reading label data:')
 
 
-label = pd.read_csv(args['label_path'], dtype='int', usecols=['is_attributed'])
+label = pd.read_csv(args['label_path'], dtype='float', usecols=['is_attributed'])
 print('label len:', len(label))
 
-predict = pd.read_csv(args['predict_path'], dtype='int', usecols=['is_attributed'])
+predict = pd.read_csv(args['predict_path'], dtype='float', usecols=['is_attributed'])
 print('label len:', len(label))
 
 
