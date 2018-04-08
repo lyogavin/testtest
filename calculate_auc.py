@@ -22,14 +22,11 @@ def calculate_auc(label, predict):
 print('reading label data:')
 
 
-label = pd.read_csv(args['label_path'], dtype='int', usecols=['click_id', 'is_attributed'])
+label = pd.read_csv(args['label_path'], dtype='int', usecols=['is_attributed'])
 print('label len:', len(label))
 
-predict = pd.read_csv(args['predict_path'], dtype='int', usecols=['click_id', 'is_attributed'])
+predict = pd.read_csv(args['predict_path'], dtype='int', usecols=['is_attributed'])
 print('label len:', len(label))
 
-data = predict.join(label, on='click_id', how='left', rsuffix='_r')
 
-print('joint len:', len(data))
-
-print('auc:', calculate_auc(data['is_attributed_r'].values, data['is_attributed'].values))
+print('auc:', calculate_auc(label.values, predict.values))
