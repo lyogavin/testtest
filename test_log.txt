@@ -120,6 +120,20 @@ base @20:
 44, ensemble of best FFM(submission_notebook.csv.04-07-2018_22-19-00) and
     best LGM(submission_notebook.csv.04-04-2018_15-08-53):
     1. aliyun: LB: 0.9686
+45, FFM of full training data, qcut 100, same qcut bins with training for val and test,
+    remove ip count to reduce overfitting, ffm iter:40, r 0.078
+    1. aliyun: LB:0.9614 submission_notebook.csv.04-08-2018_08-38-26
+46, FFM of full training data, qcut 300, same qcut bins with training for val and test,
+    remove ip count to reduce overfitting, ffm iter 40:
+    1. aliyun: LB: 0.9395
+47, ensemble 46 + 38
+    1. aliyun: LB: 0.9691
+48, 46 + downsample training negative labels to 1/5
+    1. aliyun: LB: 0.9557
+49, 48 + r 0.15:
+    1. aliyun: 0.9404
+49, 48 + r 0.01:
+    1. aliyun: running
 
 
 to do test:

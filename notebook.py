@@ -173,7 +173,12 @@ class ConfigScheme:
                test_filter = None,
                lgbm_params = default_lgbm_params,
                discretization = 0,
-               mock_test_with_val_data_to_test = False):
+               mock_test_with_val_data_to_test = False,
+               train_start_time = train_time_range_start,
+               train_end_time = train_time_range_start,
+               val_start_time = val_time_range_start,
+               val_end_time = val_time_range_end,
+               gen_ffm_test_data = False):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -183,11 +188,34 @@ class ConfigScheme:
         self.lgbm_params = lgbm_params
         self.discretization = discretization
         self.mock_test_with_val_data_to_test = mock_test_with_val_data_to_test
+        self.train_start_time = train_start_time
+        self.train_end_time = train_end_time
+        self.val_start_time = val_start_time
+        self.val_end_time = val_end_time
+        self.gen_ffm_test_data = gen_ffm_test_data
 
 
 train_predict_config = ConfigScheme(True, True, False)
-train_config = ConfigScheme(False, True, False)
-ffm_data_config = ConfigScheme(False, False, True,shuffle_sample_filter_1_to_10,shuffle_sample_filter_1_to_10,shuffle_sample_filter_1_to_10k,  discretization=100)
+train_config = ConfigScheme(False, True, False,
+                            train_filter=shuffle_sample_filter,
+                            train_start_time = val_time_range_start,
+                            train_end_time=val_time_range_end,
+                            val_start_time=train_time_range_start,
+                            val_end_time=train_time_range_end)
+ffm_data_config = ConfigScheme(False, False, True,shuffle_sample_filter_1_to_10,
+                               shuffle_sample_filter_1_to_10,shuffle_sample_filter_1_to_10k,  discretization=100,
+                               gen_ffm_test_data=True)
+ffm_data_config_train = ConfigScheme(False, False, True,
+                                     shuffle_sample_filter,
+                                     shuffle_sample_filter,
+                                     shuffle_sample_filter_1_to_10k,
+                                     train_start_time = val_time_range_start,
+                                     train_end_time=val_time_range_end,
+                                     val_start_time=train_time_range_start,
+                                     val_end_time=train_time_range_end,
+                                     discretization=100,
+                                     )
+
 
 ffm_data_config_mock_test = ConfigScheme(False, False, True,shuffle_sample_filter_1_to_10,
                                          shuffle_sample_filter_1_to_10,shuffle_sample_filter_1_to_10k,
@@ -223,7 +251,7 @@ train_predict_filter_app_12_new_lgbm_params_config = \
                  lgbm_params=new_lgbm_params
                  )
 
-config_scheme_to_use = ffm_data_config
+config_scheme_to_use = ffm_data_config_train
 
 # In[2]:
 
@@ -475,15 +503,16 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
 
     train_data, train_ip_contains_training_day, train_ip_contains_training_day_attributed =  \
         prepare_data(train, 8, 2, config_scheme_to_use.train_filter, with_hist_profile,
-                     start_time='2017-11-09 04:00:00',
-                     end_time='2017-11-09 15:00:00', start_hist_time='2017-11-06 0:00:00')
+                     start_time=config_scheme_to_use.train_start_time,
+                     end_time=config_scheme_to_use.train_end_time, start_hist_time='2017-11-06 0:00:00')
 
     train_data, new_features, discretization_bins_used = generate_counting_history_features(train_data, train_ip_contains_training_day,
                                                                   train_ip_contains_training_day_attributed,
                                                                   with_hist_profile,
                                                                   discretization=config_scheme_to_use.discretization)
 
-    train_data = train_data.set_index('click_time').ix['2017-11-09 04:00:00':'2017-11-09 15:00:00'].reset_index()
+    train_data = train_data.set_index('click_time'). \
+        ix[config_scheme_to_use.train_start_time:config_scheme_to_use.train_end_time].reset_index()
 
     print('train data:', train)
     print('new features:', new_features)
@@ -501,8 +530,9 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
 
 
     val, train_ip_contains_training_day, train_ip_contains_training_day_attributed =  \
-        prepare_data(train, 9, 2, config_scheme_to_use.val_filter, with_hist_profile, start_time='2017-11-08 04:00:00',
-                     end_time='2017-11-08 15:00:00', start_hist_time='2017-11-07 0:00:00')
+        prepare_data(train, 9, 2, config_scheme_to_use.val_filter, with_hist_profile,
+                     start_time=config_scheme_to_use.val_start_time,
+                     end_time=config_scheme_to_use.val_end_time, start_hist_time='2017-11-07 0:00:00')
 
     print('len val:', len(val))
     val, new_features1, _ = generate_counting_history_features(val, train_ip_contains_training_day,
@@ -511,7 +541,8 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
                                                            discretization=config_scheme_to_use.discretization,
                                                            discretization_bins=discretization_bins_used)
 
-    val = val.set_index('click_time').ix['2017-11-08 04:00:00':'2017-11-08 15:00:00'].reset_index()
+    val = val.set_index('click_time').\
+              ix[config_scheme_to_use.val_start_time:config_scheme_to_use.val_end_time].reset_index()
     train = train_data
 
     del train_ip_contains_training_day
@@ -719,8 +750,10 @@ def gen_ffm_data():
     train_len = len(train)
     val_len = len(val)
     gc.collect()
-    test, _ = gen_test_df(False, True, discretization_bins_used)
-    test_len= len(test)
+    test_len = 0
+    if config_scheme_to_use.gen_ffm_test_data:
+        test, _ = gen_test_df(False, True, discretization_bins_used)
+        test_len= len(test)
     gc.collect()
 
     print('train({}) val({}) test({}) generated'.format(train_len, val_len,test_len))
