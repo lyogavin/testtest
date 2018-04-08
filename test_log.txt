@@ -160,6 +160,10 @@ base @20:
 58, use new fts to train FFM, r 0.11, t 40:
     1. aliyun: 0.966384372004959
 59, 58 + discretization 50:
+    1. aliyun: 0.9677942031706754
+60. 55 + add app, os, device, channel,hour count features
+    1. grid tests: train's auc: 0.985089	valid's auc: 0.97119
+61. 58 + discretization 25:
     1. aliyun: running
 
 to do test:
