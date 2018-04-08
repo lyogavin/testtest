@@ -25,7 +25,7 @@ def get_dated_filename(filename):
 import os
 import pickle
 
-print('test log 43 gen ffm data with qcut 1000')
+print('test log 56 ')
 print(os.listdir("../input"))
 
 
@@ -53,7 +53,7 @@ import lightgbm as lgb
 import sys
 import gc
 
-use_sample = True
+use_sample = False
 persist_intermediate = False
 
 gen_test_input = True
@@ -142,6 +142,31 @@ new_lgbm_params = {
     'scale_pos_weight': 99.0
 }
 
+new_lgbm_params1 = {
+    'boosting_type': 'gbdt',
+    'objective': 'binary',
+    'metric': 'auc',
+    'learning_rate': 0.1,
+    'num_leaves': 9,
+    'max_depth': 5,
+    'min_child_samples': 100,
+    'max_bin': 150,
+    'subsample': 0.9,
+    'subsample_freq': 1,
+    'colsample_bytree': 0.7,
+    'min_child_weight': 0,
+    'subsample_for_bin': 200000,
+    'min_split_gain': 0,
+    'reg_alpha': 0,
+    'reg_lambda': 0,
+    'nthread': 5,
+    'verbose': 9,
+    'early_stopping_round': 20,
+    # 'is_unbalance': True,
+    'scale_pos_weight': 200.0
+}
+
+
 
 shuffle_sample_filter = {'filter_type': 'sample', 'sample_count': 6}
 shuffle_sample_filter_1_to_10 = {'filter_type': 'sample', 'sample_count': 1}
@@ -171,7 +196,7 @@ class ConfigScheme:
                train_filter = None,
                val_filter = shuffle_sample_filter,
                test_filter = None,
-               lgbm_params = default_lgbm_params,
+               lgbm_params = new_lgbm_params,
                discretization = 0,
                mock_test_with_val_data_to_test = False,
                train_start_time = train_time_range_start,
@@ -202,6 +227,15 @@ train_config = ConfigScheme(False, True, False,
                             train_end_time=val_time_range_end,
                             val_start_time=train_time_range_start,
                             val_end_time=train_time_range_end)
+
+train_config1 = ConfigScheme(False, True, False,
+                            train_filter=shuffle_sample_filter,
+                            train_start_time = val_time_range_start,
+                            train_end_time=val_time_range_end,
+                            val_start_time=train_time_range_start,
+                            val_end_time=train_time_range_end,
+                             lgbm_params=new_lgbm_params1
+                             )
 ffm_data_config = ConfigScheme(False, False, True,shuffle_sample_filter_1_to_10,
                                shuffle_sample_filter_1_to_10,shuffle_sample_filter_1_to_10k,  discretization=100,
                                gen_ffm_test_data=True)
@@ -251,7 +285,7 @@ train_predict_filter_app_12_new_lgbm_params_config = \
                  lgbm_params=new_lgbm_params
                  )
 
-config_scheme_to_use = ffm_data_config_train
+config_scheme_to_use = train_config1
 
 # In[2]:
 
@@ -262,12 +296,15 @@ def gen_categorical_features(data):
     data['hour'] = data["click_time"].dt.hour.astype('uint8')
     data['day'] = data["click_time"].dt.day.astype('uint8')
 
-    add_hh_feature = False
+    add_hh_feature = True
     if add_hh_feature:
         data['in_test_hh'] = (   3
                                - 2*data['hour'].isin(  most_freq_hours_in_test_data )
                                - 1*data['hour'].isin( least_freq_hours_in_test_data ) ).astype('uint8')
-        categorical.append('in_test_hh')
+        #categorical.append('in_test_hh')
+    return data
+
+def post_statistics_features(data):
     return data
 
 
@@ -439,16 +476,21 @@ def generate_counting_history_features(data, history, history_attribution,
 
     add_features_list = [
         {'group':['ip','day','hour'], 'with_hist': False, 'counting_col':'channel'},
-        {'group':['ip','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
-        {'group':['ip','os', 'app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+        {'group':['ip','day','hour', 'os'], 'with_hist': False, 'counting_col':'channel'},
+        {'group':['ip','day','hour','app'], 'with_hist': False, 'counting_col':'channel'},
+        {'group':['ip','day','hour','app','os'], 'with_hist': False, 'counting_col':'channel'},
+        {'group':['app','day','hour'], 'with_hist': False, 'counting_col':'channel'},
+        #{'group':['ip','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+        #{'group':['ip','os', 'app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
         #{'group':['ip'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
-        {'group':['ip','hour','channel'], 'with_hist': with_hist_profile, 'counting_col':'os'},
-        {'group':['ip','hour','os'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
-        {'group':['ip','hour','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
-        {'group':['channel','app'], 'with_hist': with_hist_profile, 'counting_col':'os'},
-        {'group':['channel','os'], 'with_hist': with_hist_profile, 'counting_col':'app'},
-        {'group':['channel','app','os'], 'with_hist': with_hist_profile, 'counting_col':'device'},
-        {'group':['os','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'}
+        #{'group':['ip','hour','channel'], 'with_hist': with_hist_profile, 'counting_col':'os'},
+        #{'group':['ip','hour','os'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+        #{'group':['ip','hour','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+        #{'group':['channel','app'], 'with_hist': with_hist_profile, 'counting_col':'os'},
+        #{'group':['channel','os'], 'with_hist': with_hist_profile, 'counting_col':'app'},
+        #{'group':['channel','app','os'], 'with_hist': with_hist_profile, 'counting_col':'device'},
+        #{'group':['os','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+        {'group': ['ip', 'in_test_hh'], 'with_hist': with_hist_profile, 'counting_col': 'channel'}
         ]
 
     new_features_data = []
@@ -481,6 +523,8 @@ def generate_counting_history_features(data, history, history_attribution,
         print('discretization bins used:',discretization_bins_used )
     else:
         print('discretizatoin bins passed in params, so no discretization_bins_used returned')
+
+    data = post_statistics_features(data)
     return data, new_features, discretization_bins_used
 
 #test['hour'] = test["click_time"].dt.hour.astype('uint8')

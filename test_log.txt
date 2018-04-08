@@ -124,7 +124,7 @@ base @20:
     remove ip count to reduce overfitting, ffm iter:40, r 0.078
     1. aliyun: LB:0.9614 submission_notebook.csv.04-08-2018_08-38-26
 46, FFM of full training data, qcut 300, same qcut bins with training for val and test,
-    remove ip count to reduce overfitting, ffm iter 40:
+    remove ip count to reduce overfitting, ffm iter 40, r 0.078:
     1. aliyun: LB: 0.9395
 47, ensemble 46 + 38
     1. aliyun: LB: 0.9691
@@ -133,8 +133,20 @@ base @20:
 49, 48 + r 0.15:
     1. aliyun: 0.9404
 49, 48 + r 0.01:
-    1. aliyun: running
-
+    1. aliyun: 0.9271
+50, use train/val split and 1/6 sample for ffm
+51, 38 + 1/6 train, 1/6 val, new lgbm parameters
+    1. grid test: train's auc: 0.986087	valid's auc: 0.969878
+52, 51 + scale_pos_weight 200
+    1. new val test: train's auc: 0.986333	valid's auc: 0.969725
+53, 52 + new features: ip_day_hhcount:
+    2. grid test 2:train's auc: 0.988149	valid's auc: 0.968851
+54, 51 + new features: ip_day_hhcount:
+    2. grid test 2: train's auc: 0.985928	valid's auc: 0.969962
+55, 51 + new features: ip_day_hhcount + remove some fts:
+    2. grid test : train's auc: 0.987025	valid's auc: 0.971098
+56, 52 + scale_pos_weight 200
+    1. grid test: running
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature
