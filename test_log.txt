@@ -163,8 +163,9 @@ base @20:
     1. aliyun: 0.9677942031706754
 60. 55 + add app, os, device, channel,hour count features
     1. grid tests: train's auc: 0.985089	valid's auc: 0.97119
-61. 58 + discretization 25:
-    1. aliyun: running
+61. 58 + discretization 25/75:
+    1. 25: aliyun: 0.9633614268965304
+    2. 75: aliyun: running
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature

@@ -250,6 +250,16 @@ ffm_data_config_train = ConfigScheme(False, False, True,
                                      discretization=100,
                                      )
 
+ffm_data_config_train_discretization_75 = ConfigScheme(False, False, True,
+                                     shuffle_sample_filter,
+                                     shuffle_sample_filter,
+                                     shuffle_sample_filter_1_to_10k,
+                                     train_start_time = val_time_range_start,
+                                     train_end_time=val_time_range_end,
+                                     val_start_time=train_time_range_start,
+                                     val_end_time=train_time_range_end,
+                                     discretization=75,
+                                     )
 ffm_data_config_train_discretization_50 = ConfigScheme(False, False, True,
                                      shuffle_sample_filter,
                                      shuffle_sample_filter,
@@ -328,7 +338,7 @@ train_predict_filter_app_12_new_lgbm_params_config = \
                  lgbm_params=new_lgbm_params
                  )
 
-config_scheme_to_use = ffm_data_config_train_discretization_25
+config_scheme_to_use = ffm_data_config_train_discretization_75
 
 # In[2]:
 
