@@ -177,7 +177,7 @@ base @20:
     submission_notebook.csv.csv.04-09-2018_02-36-33 LB: 0.9702
 66. 55+2 hist statis features:
     grid test 2: failed with mem
-    new val test: running testing per day version
+    new val test: testing per day version: train's auc: 0.984178	valid's auc: 0.97074
 67. 59 + no sample and predict
     aliyun: 0.976217, predict: LB: 0.9688
     submission_notebook.csv.04-09-2018_11-50-46
@@ -186,8 +186,17 @@ base @20:
         submission_notebook.csv.04-09-2018_12-03-29
     2. filter channel: grid test 2: train's auc: 0.870514	valid's auc: 0.796264
         submission_notebook.csv.04-09-2018_12-05-15
-    3. filter app 18 14: grid test 2: running
-    4. filter app 8 11: grid test: running
+    3. filter app 18 14: grid test 2: train's auc: 0.862989	valid's auc: 0.77133
+        submission_notebook.csv.09-04-2018_04-18-14
+    4. filter app 8 11: grid test: train's auc: 0.816762	valid's auc: 0.799485
+        submission_notebook.csv.09-04-2018_04-14-21
+69. ensemble of best so far FFM 67 and LGBM 65:
+    ensemble_submission.csv.09-04-2018_12-24-34 LB:0.9705
+70. ensemble of 69 + 68:
+    1. aliyun: running
+71. 66 + filter to only train and predict for data with hist features:
+    1.
+
 
 
 to do test:

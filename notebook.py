@@ -27,7 +27,7 @@ def get_dated_filename(filename):
 import os
 import pickle
 
-print('test log 68 filter app 8 11 ')
+print('test log 71')
 print(os.listdir("../input"))
 
 
@@ -175,6 +175,8 @@ new_lgbm_params1 = {
 shuffle_sample_filter = {'filter_type': 'sample', 'sample_count': 6}
 shuffle_sample_filter_1_to_10 = {'filter_type': 'sample', 'sample_count': 1}
 shuffle_sample_filter_1_to_10k = {'filter_type': 'sample', 'sample_count': 1}
+
+hist_ft_sample_filter = {'filter_type': 'hist_ft'}
 
 dtypes = {
         'ip'            : 'uint32',

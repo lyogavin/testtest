@@ -7,6 +7,8 @@ import pandas as pd
 import numpy as np
 
 train_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'is_attributed']
+test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
+
 
 dtypes = {
         'ip'            : 'uint32',
@@ -18,40 +20,46 @@ dtypes = {
         'click_id'      : 'uint32'
         }
         
+for_train = False
 
-data = pd.read_csv('../input/train.csv', header=0,usecols=train_cols,parse_dates=["click_time"], dtype=dtypes)
+data = None
+
+if for_train:
+    data = pd.read_csv('../input/train.csv', header=0,usecols=train_cols,parse_dates=["click_time"], dtype=dtypes)
+    print('added hour and day')
+
+    data['hour'] = data["click_time"].dt.hour.astype('uint8')
+    data['day'] = data["click_time"].dt.day.astype('uint8')
+
+    data.drop('click_time', inplace=True, axis=1)
+
+else:
+    data1 = pd.read_csv('../input/train.csv', header=0,usecols=train_cols,parse_dates=["click_time"], dtype=dtypes)
+    print('added hour and day')
+
+    data1['hour'] = data1["click_time"].dt.hour.astype('uint8')
+    data1['day'] = data1["click_time"].dt.day.astype('uint8')
+
+    data1.drop('click_time', inplace=True, axis=1)
+
+    print('sampling data')
+    data1 = data1.set_index('ip').loc[lambda x: (x.index + 401) % 10 == 0].reset_index()
+
+    data1.query('day == 9')
+
+    gc.collect()
+
+    print('loaded train data @9:',len(data1))
+
+    data = pd.read_csv('../input/test.csv', header=0,usecols=test_cols,parse_dates=["click_time"], dtype=dtypes)
+    print('loaded test data :',len(data))
+
+    data = pd.concat([data1, data])
 
 print('len read:',len(data))
 
+gc.collect()
 
-# In[2]:
-
-#attributed_data = data.query('is_attributed == 1')
-
-#print('len of attributed:',len(attributed_data))
-
-
-# In[3]:
-
-print(1.0 - 456846/184903890)
-
-
-# In[4]:
-
-print('sampling data')
-#data = data.set_index('ip').loc[lambda x: (x.index + 401) % 10 == 0].reset_index()
-
-data['hour'] = data["click_time"].dt.hour.astype('uint8')
-data['day'] = data["click_time"].dt.day.astype('uint8')
-
-data.drop('click_time', inplace=True, axis=1)
-
-
-# In[5]:
-
-#data.drop('click_time', inplace=True, axis=1)
-
-print('added hour and day')
 
 cvr_columns_lists = [['ip','device'],['app','channel']]
 
@@ -76,10 +84,17 @@ for cvr_columns in cvr_columns_lists:
     print(data.describe())
     data.info()
 
-data.to_csv('train_with_cvr.csv.gzip', index=False, compression='compression')
+if for_train:
+    data.to_csv('train_with_cvr.csv.gzip', index=False, compression='compression')
 
+else:
+    data.query('day == 10')
+    gc.collect()
+    data.to_csv('test_with_cvr.csv.gzip', index=False, compression='compression')
 
 # In[6]:
 
 print(data.describe())
+
+print('done')
 
