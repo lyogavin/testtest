@@ -24,7 +24,7 @@ import time
 def get_dated_filename(filename):
     return '{}.{}'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S"))
 
-print(os.listdir("../input"))
+#print(os.listdir("../input"))
 
 # Any results you write to the current directory are saved as output.
 
