@@ -43,8 +43,8 @@ else:
 
     data1.drop('click_time', inplace=True, axis=1)
 
-    print('sampling data')
-    data1 = data1.set_index('ip').loc[lambda x: (x.index + 401) % 10 == 0].reset_index()
+    #print('sampling data')
+    #data1 = data1.set_index('ip').loc[lambda x: (x.index + 401) % 10 == 0].reset_index()
 
     data1 = data1.query('day == 9')
     gc.collect()
@@ -59,8 +59,8 @@ else:
 
     data.drop('click_time', inplace=True, axis=1)
 
-    print('sampling data')
-    data = data.set_index('ip').loc[lambda x: (x.index + 401) % 10 == 0].reset_index()
+    #print('sampling data')
+    #data = data.set_index('ip').loc[lambda x: (x.index + 401) % 10 == 0].reset_index()
 
     data = pd.concat([data1, data])
 
@@ -96,7 +96,7 @@ if for_train:
     data.to_csv('train_with_cvr.csv.gzip', index=False, compression='gzip')
 
 else:
-    data.query('day == 10')
+    data = data.query('day == 10')
     gc.collect()
     data.to_csv('test_with_cvr.csv.gzip', index=False, compression='gzip')
 

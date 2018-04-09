@@ -75,10 +75,11 @@ path_train_with_cvr_sample = path_train_hist + 'train_with_cvr_sample.csv.gzip'
 path_test_with_cvr = path_test_hist + 'test_with_cvr.csv.gzip'
 path_test_with_cvr_sample = path_test_hist + 'test_with_cvr_sample.csv'
 
-train_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'is_attributed']
-test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
+train_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'is_attributed', 'ip_device_cvr', 'app_channel_cvr']
+test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id', 'ip_device_cvr', 'app_channel_cvr']
 
 categorical = ['app', 'device', 'os', 'channel', 'hour']
+hist_st = ['ip_device_cvr', 'app_channel_cvr']
 
 field_sample_filter_channel_filter = {'filter_type': 'filter_field',
                                       'filter_field': 'channel',
@@ -192,7 +193,9 @@ dtypes = {
         'os'            : 'uint16',
         'channel'       : 'uint16',
         'is_attributed' : 'uint8',
-        'click_id'      : 'uint32'
+        'click_id'      : 'uint32',
+        'ip_device_cvr' : 'float32',
+        'app_channel_cvr': 'float32'
         }
         
 skip = range(1, 140000000)
@@ -674,60 +677,14 @@ def generate_counting_history_features(data, history, history_attribution,
 
 
 def gen_train_df(with_hist_profile = True, persist_fe_data = False):
-    hist_st_fts = set()
-    train = None
 
-    add_hist_sta_fts_per_dayhour = False
 
-    if not config_scheme_to_use.add_hist_statis_fts:
-        train = pd.read_csv(path_train_sample if use_sample else path_train, dtype=dtypes,
-                header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
-        len_train = len(train)
-        print('The initial size of the train set is', len_train)
-        print('Binding the training and test set together...')
-        train = gen_categorical_features(train)
-    elif add_hist_sta_fts_per_dayhour:
-        # scales in kernel this way
-        days = [8,9]
-        hours = [4,5,9,10,13,14]
-        train_datas = []
-        for day in days:
-            for hour in hours:
-                train1 = pd.read_csv(path_train_sample if use_sample else path_train, dtype=dtypes,
-                        header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
-                train1 = gen_categorical_features(train1)
-
-                len_train = len(train1)
-                print('The initial size of the train set is', len_train)
-                print('Binding the training and test set together...')
-                train1 = train1.query('day == {} | day == {}'.format(day-1, day))
-
-                gc.collect()
-
-                train1 = train1.query('hour == {}'.format(hour))
-                gc.collect()
-
-                train1, new_hist_st_fts = add_historical_statistical_features(train1)
-                hist_st_fts |= set(new_hist_st_fts)
-                train1.query('day == ' + str(day))
-                gc.collect()
-                train_datas.append(train1)
-
-        train = pd.concat(train_datas)
-        del train_datas
-        gc.collect()
-    else:
-        train = pd.read_csv(path_train_with_cvr_sample if use_sample else path_train_with_cvr,
-                dtype=dtypes,compression='gzip',
-                header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
-        len_train = len(train)
-        print('The initial size of the train set is', len_train)
-        print('Binding the training and test set together...')
-        train = gen_categorical_features(train)
-
-        hist_st_fts.add('ip_device_cvr')
-        hist_st_fts.add('app_channel_cvr')
-
+    train = pd.read_csv(path_train_sample if use_sample else path_train, dtype=dtypes,
+            header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
+    len_train = len(train)
+    print('The initial size of the train set is', len_train)
+    print('Binding the training and test set together...')
+    train = gen_categorical_features(train)
 
 
     train_data, train_ip_contains_training_day, train_ip_contains_training_day_attributed =  \
@@ -802,10 +759,6 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
         #del y['Unnamed: 0']
         pickle.dump(y,open(get_dated_filename('fe_dtypes.pickle'),'wb'))
 
-    #sys.exit(0)
-    for ft in hist_st_fts:
-        new_features.append(ft)
-
     print('all new features: {}'.format('_'.join(new_features)))
     return train, val, new_features, discretization_bins_used
 
@@ -823,6 +776,9 @@ def train_lgbm(train, val, new_features):
                   "ip_hour_channelcount", "ip_hour_oscount", "ip_hour_appcount","ip_hour_devicecount"]
 
     predictors1 = categorical + new_features
+
+    if config_scheme_to_use.add_hist_statis_fts:
+        predictors1 = predictors1 + hist_st
     #for ii in new_features:
     #    predictors1 = predictors1 + ii
     #print(predictors1)
@@ -911,7 +867,6 @@ def gen_test_df(with_hist_profile = True, persist_fe_data = False,
     #gc.collect()
 
     train = None
-    hist_st_fts = set()
 
     #prepare test data:
     if with_hist_profile:
@@ -927,20 +882,10 @@ def gen_test_df(with_hist_profile = True, persist_fe_data = False,
         path_test_to_use = path_test if not use_sample else path_test_sample
         test_cols_to_use = test_cols
 
-    path_test_with_hist_to_use = path_test_with_cvr if not use_sample else path_test_with_cvr_sample
-    test_cols_with_hist_to_use = test_cols + ['ip_device_cvr', 'app_channel_cvr']
 
-    test = None
-    if not config_scheme_to_use.add_hist_statis_fts:
-        test = pd.read_csv(path_test_to_use, dtype=dtypes, header=0,
-                usecols=test_cols_to_use,parse_dates=["click_time"])#.sample(1000)
-    else:
-        test = pd.read_csv(path_test_with_hist_to_use,
-                dtype=dtypes,compression='gzip',
-                header=0,usecols=test_cols_with_hist_to_use,parse_dates=["click_time"])#.sample(1000)
+    test = pd.read_csv(path_test_to_use, dtype=dtypes, header=0,
+            usecols=test_cols_to_use,parse_dates=["click_time"])#.sample(1000)
 
-        hist_st_fts.add('ip_device_cvr')
-        hist_st_fts.add('app_channel_cvr')
 
     if train is not None:
         train=train.append(test)
@@ -970,7 +915,6 @@ def gen_test_df(with_hist_profile = True, persist_fe_data = False,
                                                              discretization=config_scheme_to_use.discretization,
                                                              discretization_bins=discretization_bins)
 
-    new_features.extend(hist_st_fts)
 
     if not config_scheme_to_use.mock_test_with_val_data_to_test:
         train = train.set_index('click_time').ix['2017-11-10 04:00:00':'2017-11-10 15:00:00'].reset_index()
@@ -982,6 +926,8 @@ def gen_test_df(with_hist_profile = True, persist_fe_data = False,
 
     if persist_fe_data:
         predictors1 = categorical + new_features+ ['is_attributed']
+        if config_scheme_to_use.add_hist_statis_fts:
+            predictors1 = predictors1 + hist_st
         if config_scheme_to_use.mock_test_with_val_data_to_test:
             if 'click_id' not in train.columns:
                 train['click_id'] = train.index
@@ -1070,6 +1016,8 @@ if config_scheme_to_use.predict:
     #submit = pd.read_csv(path_test if not use_sample else path_test_sample, dtype='int', usecols=['click_id'])
 
     predictors1 = categorical + new_test_features
+    if config_scheme_to_use.add_hist_statis_fts:
+        predictors1 = predictors1 + hist_st
     test['is_attributed'] = lgb_model.predict(test[predictors1], num_iteration=lgb_model.best_iteration)
 
     print("Writing the submission data into a csv file...")
