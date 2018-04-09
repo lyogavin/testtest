@@ -193,7 +193,7 @@ base @20:
 69. ensemble of best so far FFM 67 and LGBM 65:
     ensemble_submission.csv.09-04-2018_12-24-34 LB:0.9705
 70. ensemble of 69 + 68:
-    1. aliyun: running
+    1. aliyun: 0.9690
 71. 66 + filter to only train and predict for data with hist features:
     1.
 

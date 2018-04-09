@@ -62,11 +62,18 @@ gen_test_input = True
 
 #path = '../input/'
 path = '../input/talkingdata-adtracking-fraud-detection/'
+path_train_hist = '../input/train_with_hist/'
+path_test_hist = '../input/train_with_hist/'
 
 path_train = path + 'train.csv'
 path_train_sample = path + 'train_sample.csv'
 path_test = path + 'test.csv'
 path_test_sample = path + 'test_sample.csv'
+
+path_train_with_cvr = path_train_hist + 'train_with_cvr.csv.gzip'
+path_train_with_cvr_sample = path_train_hist + 'train_with_cvr_sample.csv.gzip'
+path_test_with_cvr = path_test_hist + 'test_with_cvr.csv.gzip'
+path_test_with_cvr_sample = path_test_hist + 'test_with_cvr_sample.csv'
 
 train_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'is_attributed']
 test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
@@ -236,13 +243,16 @@ train_config = ConfigScheme(False, True, False,
                             train_end_time=val_time_range_end,
                             val_start_time=train_time_range_start,
                             val_end_time=train_time_range_end)
-train_config_with_hist_st = ConfigScheme(False, True, False,
-                            train_filter=shuffle_sample_filter,
+train_config_with_hist_st_only_data_with_hist = ConfigScheme(False, True, False,
+                            train_filter=hist_ft_sample_filter,
+                            val_filter=hist_ft_sample_filter,
+                            test_filter=hist_ft_sample_filter,
                             train_start_time = val_time_range_start,
                             train_end_time=val_time_range_end,
                             val_start_time=train_time_range_start,
                             val_end_time=train_time_range_end,
                             add_hist_statis_fts=True)
+
 train_config1 = ConfigScheme(False, True, False,
                             train_filter=shuffle_sample_filter,
                             train_start_time = val_time_range_start,
@@ -440,9 +450,13 @@ def prepare_data(data, training_day, profile_days, filter_config=None,
             query_str = ' | '.join(['%s == \'%s\'' % (filter_config['filter_field'], value)
                                     for value in filter_config['filter_field_values']])
             data = data.query(query_str)
+        elif filter_config['filter_type'] == 'hist_ft':
+            data = data.loc[pd.notnull(data['ip_device_cvr']) | pd.notnull(data['app_channel_cvr'])]
 
         len_train = len(data)
         print('len after filter %s: %s', (filter_config['filter_type'], len_train))
+
+        gc.collect()
 
     train_ip_contains_training_day = None
     train_ip_contains_training_day_attributed = None
@@ -702,6 +716,17 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
         train = pd.concat(train_datas)
         del train_datas
         gc.collect()
+    else:
+        train = pd.read_csv(path_train_with_cvr_sample if use_sample else path_train_with_cvr,
+                dtype=dtypes,compression='gzip',
+                header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
+        len_train = len(train)
+        print('The initial size of the train set is', len_train)
+        print('Binding the training and test set together...')
+        train = gen_categorical_features(train)
+
+        hist_st_fts.add('ip_device_cvr')
+        hist_st_fts.add('app_channel_cvr')
 
 
 
@@ -886,6 +911,7 @@ def gen_test_df(with_hist_profile = True, persist_fe_data = False,
     #gc.collect()
 
     train = None
+    hist_st_fts = set()
 
     #prepare test data:
     if with_hist_profile:
@@ -901,8 +927,21 @@ def gen_test_df(with_hist_profile = True, persist_fe_data = False,
         path_test_to_use = path_test if not use_sample else path_test_sample
         test_cols_to_use = test_cols
 
-    test = pd.read_csv(path_test_to_use, dtype=dtypes, header=0,
-            usecols=test_cols_to_use,parse_dates=["click_time"])#.sample(1000)
+    path_test_with_hist_to_use = path_test_with_cvr if not use_sample else path_test_with_cvr_sample
+    test_cols_with_hist_to_use = test_cols + ['ip_device_cvr', 'app_channel_cvr']
+
+    test = None
+    if not config_scheme_to_use.add_hist_statis_fts:
+        test = pd.read_csv(path_test_to_use, dtype=dtypes, header=0,
+                usecols=test_cols_to_use,parse_dates=["click_time"])#.sample(1000)
+    else:
+        test = pd.read_csv(path_test_with_hist_to_use,
+                dtype=dtypes,compression='gzip',
+                header=0,usecols=test_cols_with_hist_to_use,parse_dates=["click_time"])#.sample(1000)
+
+        hist_st_fts.add('ip_device_cvr')
+        hist_st_fts.add('app_channel_cvr')
+
     if train is not None:
         train=train.append(test)
     else:
@@ -930,6 +969,8 @@ def gen_test_df(with_hist_profile = True, persist_fe_data = False,
                                                              with_hist_profile,
                                                              discretization=config_scheme_to_use.discretization,
                                                              discretization_bins=discretization_bins)
+
+    new_features.extend(hist_st_fts)
 
     if not config_scheme_to_use.mock_test_with_val_data_to_test:
         train = train.set_index('click_time').ix['2017-11-10 04:00:00':'2017-11-10 15:00:00'].reset_index()
