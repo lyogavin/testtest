@@ -12,11 +12,13 @@ import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import time
 from dateutil import parser
 import matplotlib
+from pprint import pprint
+
 matplotlib.use('Agg')
 
 def get_dated_filename(filename):
-    #return '{}.{}'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S"))
-    return filename
+    return '{}.{}'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S"))
+    #return filename
 
 
 # Input data files are available in the "../input/" directory.
@@ -25,7 +27,7 @@ def get_dated_filename(filename):
 import os
 import pickle
 
-print('test log 61 ')
+print('test log 68 filter app 8 11 ')
 print(os.listdir("../input"))
 
 
@@ -58,7 +60,9 @@ persist_intermediate = False
 
 gen_test_input = True
 
-path = '../input/' 
+#path = '../input/'
+path = '../input/talkingdata-adtracking-fraud-detection/'
+
 path_train = path + 'train.csv'
 path_train_sample = path + 'train_sample.csv'
 path_test = path + 'test.csv'
@@ -200,10 +204,11 @@ class ConfigScheme:
                discretization = 0,
                mock_test_with_val_data_to_test = False,
                train_start_time = train_time_range_start,
-               train_end_time = train_time_range_start,
+               train_end_time = train_time_range_end,
                val_start_time = val_time_range_start,
                val_end_time = val_time_range_end,
-               gen_ffm_test_data = False):
+               gen_ffm_test_data = False,
+               add_hist_statis_fts = False):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -218,16 +223,24 @@ class ConfigScheme:
         self.val_start_time = val_start_time
         self.val_end_time = val_end_time
         self.gen_ffm_test_data = gen_ffm_test_data
+        self.add_hist_statis_fts = add_hist_statis_fts
 
 
 train_predict_config = ConfigScheme(True, True, False)
+train_predict_config_without_val_sample = ConfigScheme(True, True, False, val_filter=None)
 train_config = ConfigScheme(False, True, False,
                             train_filter=shuffle_sample_filter,
                             train_start_time = val_time_range_start,
                             train_end_time=val_time_range_end,
                             val_start_time=train_time_range_start,
                             val_end_time=train_time_range_end)
-
+train_config_with_hist_st = ConfigScheme(False, True, False,
+                            train_filter=shuffle_sample_filter,
+                            train_start_time = val_time_range_start,
+                            train_end_time=val_time_range_end,
+                            val_start_time=train_time_range_start,
+                            val_end_time=train_time_range_end,
+                            add_hist_statis_fts=True)
 train_config1 = ConfigScheme(False, True, False,
                             train_filter=shuffle_sample_filter,
                             train_start_time = val_time_range_start,
@@ -239,6 +252,14 @@ train_config1 = ConfigScheme(False, True, False,
 ffm_data_config = ConfigScheme(False, False, True,shuffle_sample_filter_1_to_10,
                                shuffle_sample_filter_1_to_10,shuffle_sample_filter_1_to_10k,  discretization=100,
                                gen_ffm_test_data=True)
+
+ffm_data_config_no_filter_disc_50  = ConfigScheme(False, False, True,None,
+                               None,None,  discretization=50,
+                               gen_ffm_test_data=True)
+ffm_data_config_disc_50 = ConfigScheme(False, False, True,None,
+                               shuffle_sample_filter,None,  discretization=50,
+                               gen_ffm_test_data=True)
+
 ffm_data_config_train = ConfigScheme(False, False, True,
                                      shuffle_sample_filter,
                                      shuffle_sample_filter,
@@ -337,8 +358,21 @@ train_predict_filter_app_12_new_lgbm_params_config = \
                  test_filter=field_sample_filter_app_filter2,
                  lgbm_params=new_lgbm_params
                  )
+train_predict_filter_app_18_14_new_lgbm_params_config = \
+    ConfigScheme(True, True, False, train_filter=field_sample_filter_app_filter3,
+                 val_filter=field_sample_filter_app_filter3,
+                 test_filter=field_sample_filter_app_filter3,
+                 lgbm_params=new_lgbm_params
+                 )
+train_predict_filter_channel_new_lgbm_params_config = \
+    ConfigScheme(True, True, False, train_filter=field_sample_filter_channel_filter,
+                 val_filter=field_sample_filter_channel_filter,
+                 test_filter=field_sample_filter_channel_filter,
+                 lgbm_params=new_lgbm_params
+                 )
 
-config_scheme_to_use = ffm_data_config_train_discretization_75
+
+config_scheme_to_use = train_predict_filter_app_8_11_new_lgbm_params_config
 
 # In[2]:
 
@@ -360,6 +394,35 @@ def gen_categorical_features(data):
 def post_statistics_features(data):
     return data
 
+def add_historical_statistical_features(data):
+    print('adding historical statistic features...')
+    feature_names = []
+    cvr_columns_lists = [['ip', 'device'], ['app', 'channel']]
+
+    for cvr_columns in cvr_columns_lists:
+        sta_ft = data[cvr_columns + ['hour', 'day', 'is_attributed']].groupby(cvr_columns + ['day', 'hour'])[
+            ['is_attributed']].mean().reset_index()
+        #print(sta_ft.describe())
+        #sta_ft.info()
+
+        sta_ft['day'] = sta_ft['day'] + 1
+
+        new_col_name = '_'.join(cvr_columns + ['cvr'])
+        sta_ft = sta_ft.rename(columns={'is_attributed': new_col_name})
+        data = data.merge(sta_ft, on=cvr_columns + ['day', 'hour'], how='left')
+
+        data[new_col_name] = data[new_col_name].astype('float32')
+
+        import gc
+        del sta_ft
+        gc.collect()
+
+        #print(data)
+        #print(data.describe())
+        #data.info()
+        feature_names.append(new_col_name)
+        print('new feature {} added'.format(new_col_name))
+    return data, feature_names
 
 def prepare_data(data, training_day, profile_days, filter_config=None,
                  with_hist_profile=True, only_for_ip_with_hist = False, for_test = False,
@@ -412,7 +475,9 @@ def prepare_data(data, training_day, profile_days, filter_config=None,
         xx = parser.parse(start_time)
         yy = parser.parse(end_time)
 
+        print('filter time range: {} - {}, len before filter:{}'.format(start_time, end_time, len(data)))
         train = data.set_index('click_time').ix[start_time:end_time].reset_index()
+        print('filter time len after filter:{}'.format(len(train)))
     print('training data len:', len(train))
     print('train unique ips:', len(train['ip'].unique()))
     
@@ -533,11 +598,13 @@ def generate_counting_history_features(data, history, history_attribution,
         {'group':['ip','day','hour','app'], 'with_hist': False, 'counting_col':'channel'},
         {'group':['ip','day','hour','app','os'], 'with_hist': False, 'counting_col':'channel'},
         {'group':['app','day','hour'], 'with_hist': False, 'counting_col':'channel'},
+
         {'group':['app'], 'with_hist': False, 'counting_col':'channel'},
         {'group': ['os'], 'with_hist': False, 'counting_col': 'channel'},
         {'group': ['device'], 'with_hist': False, 'counting_col': 'channel'},
         {'group': ['channel'], 'with_hist': False, 'counting_col': 'os'},
         {'group': ['hour'], 'with_hist': False, 'counting_col': 'os'},
+
         #{'group':['ip','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
         #{'group':['ip','os', 'app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
         #{'group':['ip'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
@@ -591,16 +658,49 @@ def generate_counting_history_features(data, history, history_attribution,
 
 
 def gen_train_df(with_hist_profile = True, persist_fe_data = False):
-    train = pd.read_csv(path_train_sample if use_sample else path_train, dtype=dtypes,
-            header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
+    hist_st_fts = set()
+    train = None
 
+    add_hist_sta_fts_per_dayhour = False
 
-    len_train = len(train)
-    print('The initial size of the train set is', len_train)
-    print('Binding the training and test set together...')
+    if not config_scheme_to_use.add_hist_statis_fts:
+        train = pd.read_csv(path_train_sample if use_sample else path_train, dtype=dtypes,
+                header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
+        len_train = len(train)
+        print('The initial size of the train set is', len_train)
+        print('Binding the training and test set together...')
+        train = gen_categorical_features(train)
+    elif add_hist_sta_fts_per_dayhour:
+        # scales in kernel this way
+        days = [8,9]
+        hours = [4,5,9,10,13,14]
+        train_datas = []
+        for day in days:
+            for hour in hours:
+                train1 = pd.read_csv(path_train_sample if use_sample else path_train, dtype=dtypes,
+                        header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
+                train1 = gen_categorical_features(train1)
 
+                len_train = len(train1)
+                print('The initial size of the train set is', len_train)
+                print('Binding the training and test set together...')
+                train1 = train1.query('day == {} | day == {}'.format(day-1, day))
 
-    train = gen_categorical_features(train)
+                gc.collect()
+
+                train1 = train1.query('hour == {}'.format(hour))
+                gc.collect()
+
+                train1, new_hist_st_fts = add_historical_statistical_features(train1)
+                hist_st_fts |= set(new_hist_st_fts)
+                train1.query('day == ' + str(day))
+                gc.collect()
+                train_datas.append(train1)
+
+        train = pd.concat(train_datas)
+        del train_datas
+        gc.collect()
+
 
 
     train_data, train_ip_contains_training_day, train_ip_contains_training_day_attributed =  \
@@ -676,6 +776,10 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
         pickle.dump(y,open(get_dated_filename('fe_dtypes.pickle'),'wb'))
 
     #sys.exit(0)
+    for ft in hist_st_fts:
+        new_features.append(ft)
+
+    print('all new features: {}'.format('_'.join(new_features)))
     return train, val, new_features, discretization_bins_used
 
 
@@ -871,6 +975,7 @@ def gen_ffm_data():
 
     #print(test)
 
+pprint(vars(config_scheme_to_use))
 
 if config_scheme_to_use.train:
 

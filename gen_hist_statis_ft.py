@@ -1,0 +1,85 @@
+
+# coding: utf-8
+
+# In[1]:
+
+import pandas as pd
+import numpy as np
+
+train_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'is_attributed']
+
+dtypes = {
+        'ip'            : 'uint32',
+        'app'           : 'uint16',
+        'device'        : 'uint16',
+        'os'            : 'uint16',
+        'channel'       : 'uint16',
+        'is_attributed' : 'uint8',
+        'click_id'      : 'uint32'
+        }
+        
+
+data = pd.read_csv('../input/train.csv', header=0,usecols=train_cols,parse_dates=["click_time"], dtype=dtypes)
+
+print('len read:',len(data))
+
+
+# In[2]:
+
+#attributed_data = data.query('is_attributed == 1')
+
+#print('len of attributed:',len(attributed_data))
+
+
+# In[3]:
+
+print(1.0 - 456846/184903890)
+
+
+# In[4]:
+
+print('sampling data')
+#data = data.set_index('ip').loc[lambda x: (x.index + 401) % 10 == 0].reset_index()
+
+data['hour'] = data["click_time"].dt.hour.astype('uint8')
+data['day'] = data["click_time"].dt.day.astype('uint8')
+
+data.drop('click_time', inplace=True, axis=1)
+
+
+# In[5]:
+
+#data.drop('click_time', inplace=True, axis=1)
+
+print('added hour and day')
+
+cvr_columns_lists = [['ip','device'],['app','channel']]
+
+for cvr_columns in cvr_columns_lists:
+    sta_ft = data[cvr_columns + ['hour','day','is_attributed']].        groupby(cvr_columns + ['day','hour'])[['is_attributed']].mean().reset_index()
+    print(sta_ft.describe())
+    sta_ft.info()
+
+    sta_ft['day'] = sta_ft['day'] +1
+    
+    new_col_name = '_'.join(cvr_columns + ['cvr'])
+    sta_ft = sta_ft.rename(columns={'is_attributed':new_col_name})
+    data= data.merge(sta_ft, on=cvr_columns + ['day','hour'], how='left')
+
+    data[new_col_name] = data[new_col_name].astype('float32')
+
+    import gc
+    del sta_ft
+    gc.collect()
+
+    print(data)
+    print(data.describe())
+    data.info()
+
+data.to_csv('train_with_cvr.csv.gzip', index=False, compression='compression')
+
+
+# In[6]:
+
+print(data.describe())
+

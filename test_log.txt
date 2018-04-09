@@ -146,7 +146,6 @@ base @20:
     2. grid test 2: train's auc: 0.985928	valid's auc: 0.969962
 55, 51 + new features: ip_day_hhcount + remove some fts:
     1. grid test : train's auc: 0.987025	valid's auc: 0.971098
-    2. prediction: grid test 2: running
 56, 52 + scale_pos_weight 200
     1. grid test: train's auc: 0.985561	valid's auc: 0.970922
 57, 52 + FFM hyper parameter grid search:
@@ -165,7 +164,31 @@ base @20:
     1. grid tests: train's auc: 0.985089	valid's auc: 0.97119
 61. 58 + discretization 25/75:
     1. 25: aliyun: 0.9633614268965304
-    2. 75: aliyun: running
+    2. 75: aliyun: 0.9666321543464464
+62. 60 with no train/val sampling + predict
+    grid test 2: train's auc: 0.973703	valid's auc: 0.975377
+    submission_notebook.csv.04-09-2018_01-27-57 LB: 0.9696
+63. 58 + discr 75 + new counts features in 60
+    aliyun: 0.9607340860846558
+64. 58 + discr 50 + new counts features in 60
+    aliyun: 0.9607340860846558
+65. 55 + no sampling and predict:
+    grid test: train's auc: 0.977749	valid's auc: 0.978409
+    submission_notebook.csv.csv.04-09-2018_02-36-33 LB: 0.9702
+66. 55+2 hist statis features:
+    grid test 2: failed with mem
+    new val test: running testing per day version
+67. 59 + no sample and predict
+    aliyun: 0.976217, predict: LB: 0.9688
+    submission_notebook.csv.04-09-2018_11-50-46
+68. 65 + filter app/channel:
+    1. filter app 12: grid test runing:train's auc: 0.816762	valid's auc: 0.799485
+        submission_notebook.csv.04-09-2018_12-03-29
+    2. filter channel: grid test 2: train's auc: 0.870514	valid's auc: 0.796264
+        submission_notebook.csv.04-09-2018_12-05-15
+    3. filter app 18 14: grid test 2: running
+    4. filter app 8 11: grid test: running
+
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature
