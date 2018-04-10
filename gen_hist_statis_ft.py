@@ -32,7 +32,7 @@ if for_train:
     data['hour'] = data["click_time"].dt.hour.astype('uint8')
     data['day'] = data["click_time"].dt.day.astype('uint8')
 
-    data.drop('click_time', inplace=True, axis=1)
+    #data.drop('click_time', inplace=True, axis=1)
 
 else:
     data1 = pd.read_csv('../input/train.csv', header=0,usecols=train_cols,parse_dates=["click_time"], dtype=dtypes)
@@ -57,7 +57,7 @@ else:
     data['hour'] = data["click_time"].dt.hour.astype('uint8')
     data['day'] = data["click_time"].dt.day.astype('uint8')
 
-    data.drop('click_time', inplace=True, axis=1)
+    #data.drop('click_time', inplace=True, axis=1)
 
     #print('sampling data')
     #data = data.set_index('ip').loc[lambda x: (x.index + 401) % 10 == 0].reset_index()
@@ -93,10 +93,14 @@ for cvr_columns in cvr_columns_lists:
     data.info()
 
 if for_train:
+    data.drop('hour', inplace=True, axis=1)
+    data.drop('day', inplace=True, axis=1)
     data.to_csv('train_with_cvr.csv.gzip', index=False, compression='gzip')
 
 else:
     data = data.query('day == 10')
+    data.drop('hour', inplace=True, axis=1)
+    data.drop('day', inplace=True, axis=1)
     gc.collect()
     data.to_csv('test_with_cvr.csv.gzip', index=False, compression='gzip')
 

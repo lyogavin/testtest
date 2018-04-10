@@ -195,8 +195,31 @@ base @20:
 70. ensemble of 69 + 68:
     1. aliyun: 0.9690
 71. 66 + filter to only train and predict for data with hist features:
-    1.
-
+    1. aliyun: train's auc: 0.981938	valid's auc: 0.972096
+    2. aliyun: train's auc: 0.982728	valid's auc: 0.97217
+        submission_notebook.csv.10-04-2018_13-31-47
+72. 68 + hyper params tunning for channel filter:
+    1. old params no new fts: grid test: train's auc: 0.835371	valid's auc: 0.797188
+    2. new params no new fts: grid test2: 0.799837
+        submission_notebook.csv.09-04-2018_09-00-10
+73. 68 + new para, no new fts:
+    1. filter app 12: grid test 2: train's auc: 0.859417	valid's auc: 0.751798
+        submission_notebook.csv.09-04-2018_15-59-01
+    2. filter app 18 14: grid test: train's auc: 0.853057	valid's auc: 0.776124
+        submission_notebook.csv.09-04-2018_16-00-44
+    3. filter app 8 11: val test: train's auc: 0.825384	valid's auc: 0.806867
+        submission_notebook.csv.09-04-2018_15-56-33
+74. ensemble of 69 + 35+39+68.1 + 72.2
+75. ensemble of 69 + 35+39+68.1 + 72.2 + word batch FM FTRL
+76. 69 + next click feature ensemble:
+    grid test: 0.9731
+77. half data to train, andd next click feature: LB: 0.9724
+    mac: train's auc: 0.995599	valid's auc: 0.986938
+78. 77 + add click count later feature:
+    1/6 grid test2: running
+79.76 + historical feature(only hist data trained) ensemble
+    aliyun:
+80. 77 + ffm data gen
 
 
 to do test:
@@ -210,3 +233,5 @@ to do test:
 8. unbalance labels
 9. drop ip count feature, who's very overfitting according to ffm work
 10. looking at some channel only, performs badly, consider remove channel+ip count feature that over-fits
+11. cvr confidence smooth features
+12. feature engineering

@@ -26,8 +26,14 @@ def get_dated_filename(filename):
 
 import os
 import pickle
+from contextlib import contextmanager
+@contextmanager
+def timer(name):
+	t0 = time.time()
+	yield
+	print(f'[{name}] done in {time.time() - t0:.0f} s')
 
-print('test log 71')
+print('test log 80')
 print(os.listdir("../input"))
 
 
@@ -60,23 +66,21 @@ persist_intermediate = False
 
 gen_test_input = True
 
+read_path_with_hist = False
+
 #path = '../input/'
 path = '../input/talkingdata-adtracking-fraud-detection/'
-path_train_hist = '../input/train_with_hist/'
-path_test_hist = '../input/train_with_hist/'
+path_train_hist = '/mnt/test_dataset/'
+path_test_hist = '/mnt/test_dataset/'
 
 path_train = path + 'train.csv'
 path_train_sample = path + 'train_sample.csv'
 path_test = path + 'test.csv'
 path_test_sample = path + 'test_sample.csv'
 
-path_train_with_cvr = path_train_hist + 'train_with_cvr.csv.gzip'
-path_train_with_cvr_sample = path_train_hist + 'train_with_cvr_sample.csv.gzip'
-path_test_with_cvr = path_test_hist + 'test_with_cvr.csv.gzip'
-path_test_with_cvr_sample = path_test_hist + 'test_with_cvr_sample.csv'
+train_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'is_attributed']
+test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
 
-train_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'is_attributed', 'ip_device_cvr', 'app_channel_cvr']
-test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id', 'ip_device_cvr', 'app_channel_cvr']
 
 categorical = ['app', 'device', 'os', 'channel', 'hour']
 hist_st = ['ip_device_cvr', 'app_channel_cvr']
@@ -181,6 +185,8 @@ new_lgbm_params1 = {
 
 
 shuffle_sample_filter = {'filter_type': 'sample', 'sample_count': 6}
+shuffle_sample_filter_1_to_2 = {'filter_type': 'sample', 'sample_count': 2}
+
 shuffle_sample_filter_1_to_10 = {'filter_type': 'sample', 'sample_count': 1}
 shuffle_sample_filter_1_to_10k = {'filter_type': 'sample', 'sample_count': 1}
 
@@ -212,7 +218,7 @@ class ConfigScheme:
                train_filter = None,
                val_filter = shuffle_sample_filter,
                test_filter = None,
-               lgbm_params = new_lgbm_params,
+               lgbm_params = default_lgbm_params,
                discretization = 0,
                mock_test_with_val_data_to_test = False,
                train_start_time = train_time_range_start,
@@ -239,157 +245,24 @@ class ConfigScheme:
 
 
 train_predict_config = ConfigScheme(True, True, False)
-train_predict_config_without_val_sample = ConfigScheme(True, True, False, val_filter=None)
-train_config = ConfigScheme(False, True, False,
-                            train_filter=shuffle_sample_filter,
-                            train_start_time = val_time_range_start,
-                            train_end_time=val_time_range_end,
-                            val_start_time=train_time_range_start,
-                            val_end_time=train_time_range_end)
-train_config_with_hist_st_only_data_with_hist = ConfigScheme(False, True, False,
-                            train_filter=hist_ft_sample_filter,
-                            val_filter=hist_ft_sample_filter,
-                            test_filter=hist_ft_sample_filter,
-                            train_start_time = val_time_range_start,
-                            train_end_time=val_time_range_end,
-                            val_start_time=train_time_range_start,
-                            val_end_time=train_time_range_end,
-                            add_hist_statis_fts=True)
 
-train_config1 = ConfigScheme(False, True, False,
-                            train_filter=shuffle_sample_filter,
-                            train_start_time = val_time_range_start,
-                            train_end_time=val_time_range_end,
-                            val_start_time=train_time_range_start,
-                            val_end_time=train_time_range_end,
-                             lgbm_params=new_lgbm_params1
-                             )
-ffm_data_config = ConfigScheme(False, False, True,shuffle_sample_filter_1_to_10,
-                               shuffle_sample_filter_1_to_10,shuffle_sample_filter_1_to_10k,  discretization=100,
+ffm_data_config_80 = ConfigScheme(False, False, True,shuffle_sample_filter_1_to_2,
+                                  shuffle_sample_filter_1_to_2,None,  discretization=50,
                                gen_ffm_test_data=True)
 
-ffm_data_config_no_filter_disc_50  = ConfigScheme(False, False, True,None,
-                               None,None,  discretization=50,
-                               gen_ffm_test_data=True)
-ffm_data_config_disc_50 = ConfigScheme(False, False, True,None,
-                               shuffle_sample_filter,None,  discretization=50,
-                               gen_ffm_test_data=True)
 
-ffm_data_config_train = ConfigScheme(False, False, True,
-                                     shuffle_sample_filter,
-                                     shuffle_sample_filter,
-                                     shuffle_sample_filter_1_to_10k,
-                                     train_start_time = val_time_range_start,
-                                     train_end_time=val_time_range_end,
-                                     val_start_time=train_time_range_start,
-                                     val_end_time=train_time_range_end,
-                                     discretization=100,
-                                     )
-
-ffm_data_config_train_discretization_75 = ConfigScheme(False, False, True,
-                                     shuffle_sample_filter,
-                                     shuffle_sample_filter,
-                                     shuffle_sample_filter_1_to_10k,
-                                     train_start_time = val_time_range_start,
-                                     train_end_time=val_time_range_end,
-                                     val_start_time=train_time_range_start,
-                                     val_end_time=train_time_range_end,
-                                     discretization=75,
-                                     )
-ffm_data_config_train_discretization_50 = ConfigScheme(False, False, True,
-                                     shuffle_sample_filter,
-                                     shuffle_sample_filter,
-                                     shuffle_sample_filter_1_to_10k,
-                                     train_start_time = val_time_range_start,
-                                     train_end_time=val_time_range_end,
-                                     val_start_time=train_time_range_start,
-                                     val_end_time=train_time_range_end,
-                                     discretization=50,
-                                     )
-
-ffm_data_config_train_discretization_25 = ConfigScheme(False, False, True,
-                                     shuffle_sample_filter,
-                                     shuffle_sample_filter,
-                                     shuffle_sample_filter_1_to_10k,
-                                     train_start_time = val_time_range_start,
-                                     train_end_time=val_time_range_end,
-                                     val_start_time=train_time_range_start,
-                                     val_end_time=train_time_range_end,
-                                     discretization=25,
-                                     )
-
-ffm_data_config_train_discretization_30 = ConfigScheme(False, False, True,
-                                     shuffle_sample_filter,
-                                     shuffle_sample_filter,
-                                     shuffle_sample_filter_1_to_10k,
-                                     train_start_time = val_time_range_start,
-                                     train_end_time=val_time_range_end,
-                                     val_start_time=train_time_range_start,
-                                     val_end_time=train_time_range_end,
-                                     discretization=30,
-                                     )
-
-ffm_data_config_train_discretization_20 = ConfigScheme(False, False, True,
-                                     shuffle_sample_filter,
-                                     shuffle_sample_filter,
-                                     shuffle_sample_filter_1_to_10k,
-                                     train_start_time = val_time_range_start,
-                                     train_end_time=val_time_range_end,
-                                     val_start_time=train_time_range_start,
-                                     val_end_time=train_time_range_end,
-                                     discretization=20,
-                                     )
-
-ffm_data_config_mock_test = ConfigScheme(False, False, True,shuffle_sample_filter_1_to_10,
-                                         shuffle_sample_filter_1_to_10,shuffle_sample_filter_1_to_10k,
-                                         discretization=100,
-                                         mock_test_with_val_data_to_test=True)
+config_scheme_to_use = ffm_data_config_80
 
 
-train_predict_new_lgbm_params_config = ConfigScheme(True, True, False, lgbm_params=new_lgbm_params)
+if config_scheme_to_use.add_hist_statis_fts:
+    path_train = path_train_hist + 'train_with_cvr.csv.gzip'
+    path_train_sample = path_train_hist + 'train_with_cvr_sample.csv.gzip'
+    path_test = path_test_hist + 'test_with_cvr.csv.gzip'
+    path_test_sample = path_test_hist + 'test_with_cvr_sample.csv'
 
+    train_cols = train_cols + ['ip_device_cvr', 'app_channel_cvr']
+    test_cols = test_cols + ['ip_device_cvr', 'app_channel_cvr']
 
-train_predict_filter_app_12_config = ConfigScheme(True, True, False, train_filter=field_sample_filter_app_filter2,
-                                                  val_filter=field_sample_filter_app_filter2,
-                                                  test_filter=field_sample_filter_app_filter2)
-
-train_predict_filter_app_18_14_config = ConfigScheme(True, True, False, train_filter=field_sample_filter_app_filter3,
-                                                     val_filter=field_sample_filter_app_filter3,
-                                                     test_filter=field_sample_filter_app_filter3)
-
-train_predict_filter_app_8_11_config = ConfigScheme(True, True, False, train_filter=field_sample_filter_app_filter4,
-                                                    val_filter=field_sample_filter_app_filter4,
-                                                    test_filter=field_sample_filter_app_filter4)
-
-train_predict_filter_app_8_11_new_lgbm_params_config = \
-    ConfigScheme(True, True, False, train_filter=field_sample_filter_app_filter4,
-                 val_filter=field_sample_filter_app_filter4,
-                 test_filter=field_sample_filter_app_filter4,
-                 lgbm_params=new_lgbm_params
-                 )
-train_predict_filter_app_12_new_lgbm_params_config = \
-    ConfigScheme(True, True, False, train_filter=field_sample_filter_app_filter2,
-                 val_filter=field_sample_filter_app_filter2,
-                 test_filter=field_sample_filter_app_filter2,
-                 lgbm_params=new_lgbm_params
-                 )
-train_predict_filter_app_18_14_new_lgbm_params_config = \
-    ConfigScheme(True, True, False, train_filter=field_sample_filter_app_filter3,
-                 val_filter=field_sample_filter_app_filter3,
-                 test_filter=field_sample_filter_app_filter3,
-                 lgbm_params=new_lgbm_params
-                 )
-train_predict_filter_channel_new_lgbm_params_config = \
-    ConfigScheme(True, True, False, train_filter=field_sample_filter_channel_filter,
-                 val_filter=field_sample_filter_channel_filter,
-                 test_filter=field_sample_filter_channel_filter,
-                 lgbm_params=new_lgbm_params
-                 )
-
-
-config_scheme_to_use = train_predict_filter_app_8_11_new_lgbm_params_config
-
-# In[2]:
 
 def gen_categorical_features(data):
     most_freq_hours_in_test_data = [4, 5, 9, 10, 13, 14]
@@ -618,11 +491,11 @@ def generate_counting_history_features(data, history, history_attribution,
         {'group':['ip','day','hour','app','os'], 'with_hist': False, 'counting_col':'channel'},
         {'group':['app','day','hour'], 'with_hist': False, 'counting_col':'channel'},
 
-        {'group':['app'], 'with_hist': False, 'counting_col':'channel'},
-        {'group': ['os'], 'with_hist': False, 'counting_col': 'channel'},
-        {'group': ['device'], 'with_hist': False, 'counting_col': 'channel'},
-        {'group': ['channel'], 'with_hist': False, 'counting_col': 'os'},
-        {'group': ['hour'], 'with_hist': False, 'counting_col': 'os'},
+        #{'group':['app'], 'with_hist': False, 'counting_col':'channel'},
+        #{'group': ['os'], 'with_hist': False, 'counting_col': 'channel'},
+        #{'group': ['device'], 'with_hist': False, 'counting_col': 'channel'},
+        #{'group': ['channel'], 'with_hist': False, 'counting_col': 'os'},
+        #{'group': ['hour'], 'with_hist': False, 'counting_col': 'os'},
 
         #{'group':['ip','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
         #{'group':['ip','os', 'app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
@@ -669,6 +542,43 @@ def generate_counting_history_features(data, history, history_attribution,
         print('discretizatoin bins passed in params, so no discretization_bins_used returned')
 
     data = post_statistics_features(data)
+
+    # add next click feature:
+    with timer("Adding next click times"):
+        D = 2 ** 26
+        data['category'] = (data['ip'].astype(str) + "_" + data['app'].astype(str) + "_" + \
+                            data['device'].astype(str) \
+                          + "_" + data['os'].astype(str) + "_" + data['channel'].astype(str)).apply(hash) % D
+        click_buffer = np.full(D, 3000000000, dtype=np.uint32)
+        data['epochtime'] = data['click_time'].astype(np.int64) // 10 ** 9
+        next_clicks = []
+        for category, time in zip(reversed(data['category'].values), reversed(data['epochtime'].values)):
+            next_clicks.append(click_buffer[category] - time)
+            click_buffer[category] = time
+        del (click_buffer)
+        data['next_click'] = list(reversed(next_clicks))
+    new_features = new_features + ['next_click']
+
+    gc.collect()
+
+    click_count_later = False
+    if click_count_later:
+        # build current day profile features:
+        with timer("building current day profile features"):
+            D = 2 ** 26
+            data['category'] = (data['ip'].astype(str) + "_" + data['app'].astype(str) + "_" + \
+                                data['device'].astype(str) \
+                              + "_" + data['os'].astype(str) + "_" + data['channel'].astype(str)).apply(hash) % D
+            click_count_buffer = np.full(D, 0, dtype=np.uint16)
+            click_count_later  = []
+            for category in reversed(data['category'].values):
+                click_count_later.append(click_count_buffer[category])
+                click_count_buffer[category] += 1
+            del (click_count_buffer)
+            data['click_count_later'] = list(reversed(click_count_later))
+        gc.collect()
+        new_features = new_features + ['click_count_later']
+
     return data, new_features, discretization_bins_used
 
 #test['hour'] = test["click_time"].dt.hour.astype('uint8')
@@ -680,6 +590,7 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
 
 
     train = pd.read_csv(path_train_sample if use_sample else path_train, dtype=dtypes,
+                        compression='gzip' if config_scheme_to_use.add_hist_statis_fts else None,
             header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
     len_train = len(train)
     print('The initial size of the train set is', len_train)
@@ -871,7 +782,8 @@ def gen_test_df(with_hist_profile = True, persist_fe_data = False,
     #prepare test data:
     if with_hist_profile:
         train = pd.read_csv(path_train if not use_sample else path_train_sample, dtype=dtypes,
-                header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
+                            compression='gzip' if config_scheme_to_use.add_hist_statis_fts else None,
+                            header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
     #train = pd.read_csv(path_train if not use_sample else path_train_sample, dtype=dtypes,
     #        header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
 
@@ -884,7 +796,8 @@ def gen_test_df(with_hist_profile = True, persist_fe_data = False,
 
 
     test = pd.read_csv(path_test_to_use, dtype=dtypes, header=0,
-            usecols=test_cols_to_use,parse_dates=["click_time"])#.sample(1000)
+                       compression='gzip' if read_path_with_hist else None,
+                       usecols=test_cols_to_use,parse_dates=["click_time"])#.sample(1000)
 
 
     if train is not None:
