@@ -41,7 +41,7 @@ else:
     data1['hour'] = data1["click_time"].dt.hour.astype('uint8')
     data1['day'] = data1["click_time"].dt.day.astype('uint8')
 
-    data1.drop('click_time', inplace=True, axis=1)
+    #data1.drop('click_time', inplace=True, axis=1)
 
     #print('sampling data')
     #data1 = data1.set_index('ip').loc[lambda x: (x.index + 401) % 10 == 0].reset_index()

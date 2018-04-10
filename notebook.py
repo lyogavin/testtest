@@ -557,6 +557,9 @@ def generate_counting_history_features(data, history, history_attribution,
             click_buffer[category] = time
         del (click_buffer)
         data['next_click'] = list(reversed(next_clicks))
+
+        if discretization!=0:
+            data['next_click'] = np.log2(1 + data['next_click'].values).astype(int)
     new_features = new_features + ['next_click']
 
     gc.collect()
