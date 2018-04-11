@@ -33,7 +33,7 @@ def timer(name):
     yield
     print('[{}] done in {} s'.format(name, time.time() - t0))
 
-print('test log 80')
+print('test log 82')
 print(os.listdir("../input"))
 
 
@@ -85,25 +85,16 @@ test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
 categorical = ['app', 'device', 'os', 'channel', 'hour']
 
 cvr_columns_lists = [
-    ['ip','device'],
-    ['ip', 'app', 'device', 'os', 'channel'],
-    ['app','channel'],
-    ['ip'], ['app'], ['device'], ['os'], ['channel'],
+    ['ip','device', 'hour'],
+    #['ip', 'app', 'device', 'os', 'channel'],
+    #['app','channel'],
+    #['app'], ['device']
+    ['ip', 'hour'], ['os', 'hour'], ['channel', 'hour']
 
     # V2 Features #
     ###############
-    ['app', 'os'],
-    ['app', 'device'],
-
-    #['ip', 'device', 'hour'],
-    #['app', 'channel', 'hour'],
-    #['ip', 'hour'], ['app', 'hour'], ['device', 'hour'], ['os', 'hour'], ['channel', 'hour'],
-    #['ip', 'app', 'device', 'os', 'channel', 'hour'],
-
-    # V2 Features #
-    ###############
-    #['app', 'os', 'hour'],
-    #['app', 'device', 'hour'],
+    #['app', 'os'],
+    #['app', 'device'],
 ]
 
 hist_st = []
@@ -261,7 +252,7 @@ class ConfigScheme:
         self.seperate_hist_files = seperate_hist_files
 
 
-train_config_81 = ConfigScheme(False, True, False,
+train_config_82 = ConfigScheme(False, True, False,
                                shuffle_sample_filter,
                                shuffle_sample_filter,
                                None,
@@ -274,7 +265,7 @@ train_config_81 = ConfigScheme(False, True, False,
                                )
 
 
-config_scheme_to_use = train_predict_config
+config_scheme_to_use = train_config_82
 
 dtypes = {
     'ip': 'uint32',
@@ -641,6 +632,11 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
                             not config_scheme_to_use.seperate_hist_files else None,
             header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
     lentrain = len(train)
+
+    # filter first before join cvr cols
+    train = train.set_index('ip').loc[lambda x: (x.index + 401) % 6 == 0].reset_index()
+    print('len after filter',len(train))
+
     if config_scheme_to_use.seperate_hist_files:
         for ft in hist_st:
             ft_data = next(pd.read_csv(path_train_hist +ft+ '.train.csv', dtype={ft:'float32'},

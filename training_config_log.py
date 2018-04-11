@@ -160,3 +160,26 @@ train_predict_filter_channel_new_lgbm_params_config = \
 ffm_data_config_80 = ConfigScheme(False, False, True,shuffle_sample_filter_1_to_2,
                                   shuffle_sample_filter_1_to_2,None,  discretization=50,
                                gen_ffm_test_data=True)
+
+train_config_81 = ConfigScheme(False, True, False,
+                               shuffle_sample_filter,
+                               shuffle_sample_filter,
+                               None,
+                               seperate_hist_files=True, add_hist_statis_fts=True,
+                               train_start_time=val_time_range_start,
+                               train_end_time=val_time_range_end,
+                               val_start_time=train_time_range_start,
+                               val_end_time=train_time_range_end,
+                               lgbm_params=new_lgbm_params
+                               )
+train_config_81 = ConfigScheme(False, True, False,
+                               shuffle_sample_filter,
+                               shuffle_sample_filter,
+                               None,
+                               seperate_hist_files=True, add_hist_statis_fts=True,
+                               train_start_time=val_time_range_start,
+                               train_end_time=val_time_range_end,
+                               val_start_time=train_time_range_start,
+                               val_end_time=train_time_range_end,
+                               lgbm_params=new_lgbm_params
+                               )

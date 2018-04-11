@@ -223,7 +223,16 @@ base @20:
 80. 77 + ffm data gen
     ensemble_submission.csv.10-04-2018_18-49-00 LB:0.9715
 81. add historical cvr features:
-    aliyun:
+    mac: old params: bug
+    aliyun: new params: train's auc: 0.985981   valid's auc: 0.974437
+    Feature names: ['app', 'device', 'os', 'channel', 'hour', 'ip_day_hourcount', 'ip_day_hour_oscount', 'ip_day_hour_appcount', 'ip_day_hour_app_oscount', 'app_day_hourcount', 'ip_in_t
+est_hhcount', 'next_click', 'ip_device_cvr', 'ip_app_device_os_channel_cvr', 'app_channel_cvr', 'ip_cvr', 'app_cvr', 'device_cvr', 'os_cvr', 'channel_cvr', 'app_os_cvr', 'app_device
+_cvr']
+    Feature importances: [194, 27, 151, 280, 32, 71, 18, 16, 39, 30, 89, 120, 8, 2, 1, 6, 1, 2, 11, 7, 5, 2]
+    aliyun: comparing without crv features: train's auc: 0.987447	valid's auc: 0.974464
+    grid test:
+82. according to feature importance, only keep: ip_device_cvr, ip_cvr, os_cvr, channel_cvr
+    adding hour
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature
