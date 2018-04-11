@@ -70,8 +70,8 @@ read_path_with_hist = False
 
 #path = '../input/'
 path = '../input/talkingdata-adtracking-fraud-detection/'
-path_train_hist = '/mnt/test_dataset/'
-path_test_hist = '/mnt/test_dataset/'
+path_train_hist = '../input/data_with_hist/'
+path_test_hist = '../input/data_with_hist/'
 
 path_train = path + 'train.csv'
 path_train_sample = path + 'train_sample.csv'
@@ -83,7 +83,34 @@ test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
 
 
 categorical = ['app', 'device', 'os', 'channel', 'hour']
-hist_st = ['ip_device_cvr', 'app_channel_cvr']
+
+cvr_columns_lists = [
+    ['ip','device'],
+    ['ip', 'app', 'device', 'os', 'channel'],
+    ['app','channel'],
+    ['ip'], ['app'], ['device'], ['os'], ['channel'],
+
+    # V2 Features #
+    ###############
+    ['app', 'os'],
+    ['app', 'device'],
+
+    #['ip', 'device', 'hour'],
+    #['app', 'channel', 'hour'],
+    #['ip', 'hour'], ['app', 'hour'], ['device', 'hour'], ['os', 'hour'], ['channel', 'hour'],
+    #['ip', 'app', 'device', 'os', 'channel', 'hour'],
+
+    # V2 Features #
+    ###############
+    #['app', 'os', 'hour'],
+    #['app', 'device', 'hour'],
+]
+
+hist_st = []
+
+for cvr_columns in cvr_columns_lists:
+    new_col_name = '_'.join(cvr_columns + ['cvr'])
+    hist_st.append(new_col_name)
 
 field_sample_filter_channel_filter = {'filter_type': 'filter_field',
                                       'filter_field': 'channel',
@@ -192,18 +219,6 @@ shuffle_sample_filter_1_to_10k = {'filter_type': 'sample', 'sample_count': 1}
 
 hist_ft_sample_filter = {'filter_type': 'hist_ft'}
 
-dtypes = {
-        'ip'            : 'uint32',
-        'app'           : 'uint16',
-        'device'        : 'uint16',
-        'os'            : 'uint16',
-        'channel'       : 'uint16',
-        'is_attributed' : 'uint8',
-        'click_id'      : 'uint32',
-        'ip_device_cvr' : 'float32',
-        'app_channel_cvr': 'float32'
-        }
-        
 skip = range(1, 140000000)
 print("Loading Data")
 #skiprows=skip,
@@ -226,7 +241,8 @@ class ConfigScheme:
                val_start_time = val_time_range_start,
                val_end_time = val_time_range_end,
                gen_ffm_test_data = False,
-               add_hist_statis_fts = False):
+               add_hist_statis_fts = False,
+               seperate_hist_files = False):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -242,26 +258,45 @@ class ConfigScheme:
         self.val_end_time = val_end_time
         self.gen_ffm_test_data = gen_ffm_test_data
         self.add_hist_statis_fts = add_hist_statis_fts
+        self.seperate_hist_files = seperate_hist_files
 
 
-train_predict_config = ConfigScheme(True, True, False)
+train_predict_config = ConfigScheme(False, True, False, seperate_hist_files=True, add_hist_statis_fts=True,
+                                    train_start_time=val_time_range_start,
+                                    train_end_time=val_time_range_end,
+                                    val_start_time=train_time_range_start,
+                                    val_end_time=train_time_range_end
+                                    )
 
-ffm_data_config_80 = ConfigScheme(False, False, True,shuffle_sample_filter_1_to_2,
-                                  shuffle_sample_filter_1_to_2,None,  discretization=50,
-                               gen_ffm_test_data=True)
+ffm_data_config_80 = ConfigScheme(False, False, True,shuffle_sample_filter,
+                                  shuffle_sample_filter,None,  discretization=50,
+
+                               gen_ffm_test_data=True, add_hist_statis_fts=True)
 
 
-config_scheme_to_use = ffm_data_config_80
+config_scheme_to_use = train_predict_config
 
-
+dtypes = {
+    'ip': 'uint32',
+    'app': 'uint16',
+    'device': 'uint16',
+    'os': 'uint16',
+    'channel': 'uint16',
+    'is_attributed': 'uint8',
+    'click_id': 'uint32'
+}
 if config_scheme_to_use.add_hist_statis_fts:
+    for ft in hist_st:
+        dtypes[ft]= 'float32'
+
+if config_scheme_to_use.add_hist_statis_fts and not config_scheme_to_use.seperate_hist_files:
     path_train = path_train_hist + 'train_with_cvr.csv.gzip'
     path_train_sample = path_train_hist + 'train_with_cvr_sample.csv.gzip'
     path_test = path_test_hist + 'test_with_cvr.csv.gzip'
     path_test_sample = path_test_hist + 'test_with_cvr_sample.csv'
 
-    train_cols = train_cols + ['ip_device_cvr', 'app_channel_cvr']
-    test_cols = test_cols + ['ip_device_cvr', 'app_channel_cvr']
+    train_cols = train_cols + hist_st
+    test_cols = test_cols + hist_st
 
 
 def gen_categorical_features(data):
@@ -327,7 +362,12 @@ def prepare_data(data, training_day, profile_days, filter_config=None,
                                     for value in filter_config['filter_field_values']])
             data = data.query(query_str)
         elif filter_config['filter_type'] == 'hist_ft':
-            data = data.loc[pd.notnull(data['ip_device_cvr']) | pd.notnull(data['app_channel_cvr'])]
+            for ft in hist_st:
+                if aa is None:
+                    aa = pd.notnull(data[ft])
+                else:
+                    aa = aa | pd.notnull(data[ft])
+            data = data.loc[aa]
 
         len_train = len(data)
         print('len after filter %s: %s', (filter_config['filter_type'], len_train))
@@ -560,6 +600,9 @@ def generate_counting_history_features(data, history, history_attribution,
 
         if discretization!=0:
             data['next_click'] = np.log2(1 + data['next_click'].values).astype(int)
+        data.drop('epochtime',inplace=True,axis=1)
+        data.drop('category',inplace=True,axis=1)
+
     new_features = new_features + ['next_click']
 
     gc.collect()
@@ -593,8 +636,20 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
 
 
     train = pd.read_csv(path_train_sample if use_sample else path_train, dtype=dtypes,
-                        compression='gzip' if config_scheme_to_use.add_hist_statis_fts else None,
+                        compression='gzip' if \
+                            config_scheme_to_use.add_hist_statis_fts and \
+                            not config_scheme_to_use.seperate_hist_files else None,
             header=0,usecols=train_cols,parse_dates=["click_time"])#.sample(1000)
+    lentrain = len(train)
+    if config_scheme_to_use.seperate_hist_files:
+        for ft in hist_st:
+            ft_data = next(pd.read_csv(path_train_hist +ft+ '.train.csv', dtype={ft:'float32'},
+                                header=0, usecols=[ft],engine='c',
+                                chunksize = lentrain))  # .sample(1000)
+            train[ft] = ft_data
+            del ft_data
+            gc.collect()
+
     len_train = len(train)
     print('The initial size of the train set is', len_train)
     print('Binding the training and test set together...')

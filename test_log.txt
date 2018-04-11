@@ -215,11 +215,13 @@ base @20:
     grid test: 0.9731
 77. half data to train, andd next click feature: LB: 0.9724
     mac: train's auc: 0.995599	valid's auc: 0.986938
+        submission_notebook.csv.10-04-2018_13-06-17
 78. 77 + add click count later feature:
     1/6 grid test2: running
 79.76 + historical feature(only hist data trained) ensemble
     aliyun:
 80. 77 + ffm data gen
+    ensemble_submission.csv.10-04-2018_18-49-00 LB:0.9715
 
 
 to do test:
