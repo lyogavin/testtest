@@ -123,11 +123,14 @@ def rate_calculation(x):
     return rate * conf
 
 cvr_columns_lists = [
-    ['ip','device'],
-    #['ip', 'app', 'device', 'os', 'channel'],
+
+    ['ip', 'app', 'device', 'os', 'channel']
+
+    # best cvr tested:
+    #['ip','device'],
+    #['ip'], ['os'], ['channel']
     #['app','channel'],
     #['app'], ['device']
-    ['ip'], ['os'], ['channel']
 
     #['ip', 'device', 'hour'],
     #['app', 'channel', 'hour'],

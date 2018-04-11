@@ -33,7 +33,7 @@ def timer(name):
     yield
     print('[{}] done in {} s'.format(name, time.time() - t0))
 
-print('test log 82')
+print('test log 84')
 print(os.listdir("../input"))
 
 
@@ -85,11 +85,14 @@ test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
 categorical = ['app', 'device', 'os', 'channel', 'hour']
 
 cvr_columns_lists = [
-    ['ip','device'],
-    #['ip', 'app', 'device', 'os', 'channel'],
+    # best cvr sofar:
+    #['ip','device'],
+    #['ip'], ['os'], ['channel']
+
+
+    ['ip', 'app', 'device', 'os', 'channel']
     #['app','channel'],
     #['app'], ['device']
-    ['ip'], ['os'], ['channel']
 
     # V2 Features #
     ###############
