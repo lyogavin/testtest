@@ -63,7 +63,7 @@ if for_train:
 
         if chunk_read is None and use_sample:
             print('sampling data')
-            data = data.set_index('ip').loc[lambda x: (x.index + 401) % 6 == 0].reset_index()
+            data = data.set_index('ip').loc[lambda x: (x.index + 401) % 2 == 0].reset_index()
         #data.drop('click_time', inplace=True, axis=1)
 
 else:
@@ -83,7 +83,7 @@ else:
 
         if chunk_read is None and use_sample:
             print('sampling data')
-            data1 = data1.set_index('ip').loc[lambda x: (x.index + 401) % 6 == 0].reset_index()
+            data1 = data1.set_index('ip').loc[lambda x: (x.index + 401) % 2 == 0].reset_index()
 
     with timer("filter to only keep 9th data"):
         data1 = data1.query('day == 9')
@@ -124,11 +124,15 @@ def rate_calculation(x):
 
 cvr_columns_lists = [
 
-    ['ip', 'app', 'device', 'os', 'channel']
+    #['ip', 'app', 'device', 'os', 'channel']
 
     # best cvr tested:
-    #['ip','device'],
-    #['ip'], ['os'], ['channel']
+    ['ip','device'],
+    ['ip'], ['os'], ['channel']
+
+
+
+
     #['app','channel'],
     #['app'], ['device']
 

@@ -241,7 +241,12 @@ _cvr']
     Feature importances: [232, 28, 186, 361, 55, 98, 27, 29, 68, 36, 115, 140, 4, 15, 4, 2]
     train's auc: 0.987176	valid's auc: 0.974488
 84. ip_device_os_app_channel_cvr: click count when no attribution
-    aliyun:running:
+    aliyun:running:train's auc: 0.986444   valid's auc: 0.974269
+    Feature names: ['app', 'device', 'os', 'channel', 'hour', 'ip_day_hourcount', 'ip_day_hour_oscount', 'ip_day_hour_appcount', 'ip_day_hour_app_oscount', 'app_day_hourcount', 'ip_in_test_hhcount', 'next_click', 'ip_app_device_os_channel_cvr']
+    Feature importances: [214, 29, 153, 319, 44, 74, 13, 23, 45, 25, 95, 133, 17]
+85. use ip_device_cvr, ip_cvr, os_cvr, channel_cvr: click count when no attribution features
+    1/2 to train, 1/6 to val,
+    aliyun:
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature

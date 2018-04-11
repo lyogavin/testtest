@@ -33,7 +33,7 @@ def timer(name):
     yield
     print('[{}] done in {} s'.format(name, time.time() - t0))
 
-print('test log 84')
+print('test log 85')
 print(os.listdir("../input"))
 
 
@@ -86,11 +86,11 @@ categorical = ['app', 'device', 'os', 'channel', 'hour']
 
 cvr_columns_lists = [
     # best cvr sofar:
-    #['ip','device'],
-    #['ip'], ['os'], ['channel']
+    ['ip','device'],
+    ['ip'], ['os'], ['channel']
 
 
-    ['ip', 'app', 'device', 'os', 'channel']
+    #['ip', 'app', 'device', 'os', 'channel']
     #['app','channel'],
     #['app'], ['device']
 
@@ -255,20 +255,16 @@ class ConfigScheme:
         self.seperate_hist_files = seperate_hist_files
 
 
-train_config_82 = ConfigScheme(False, True, False,
-                               shuffle_sample_filter,
+train_config_85 = ConfigScheme(True, True, False,
+                               shuffle_sample_filter_1_to_2,
                                shuffle_sample_filter,
                                None,
                                seperate_hist_files=True, add_hist_statis_fts=True,
-                               train_start_time=val_time_range_start,
-                               train_end_time=val_time_range_end,
-                               val_start_time=train_time_range_start,
-                               val_end_time=train_time_range_end,
                                lgbm_params=new_lgbm_params
                                )
 
 
-config_scheme_to_use = train_config_82
+config_scheme_to_use = train_config_85
 
 dtypes = {
     'ip': 'uint32',
