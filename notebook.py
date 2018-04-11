@@ -85,11 +85,11 @@ test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
 categorical = ['app', 'device', 'os', 'channel', 'hour']
 
 cvr_columns_lists = [
-    ['ip','device', 'hour'],
+    ['ip','device'],
     #['ip', 'app', 'device', 'os', 'channel'],
     #['app','channel'],
     #['app'], ['device']
-    ['ip', 'hour'], ['os', 'hour'], ['channel', 'hour']
+    ['ip'], ['os'], ['channel']
 
     # V2 Features #
     ###############

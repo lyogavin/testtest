@@ -31,6 +31,9 @@ test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
 
 chunk_read = None
 use_sample = True
+
+count_without_attribution = True
+
 dtypes = {
         'ip'            : 'uint32',
         'app'           : 'uint16',
@@ -120,11 +123,11 @@ def rate_calculation(x):
     return rate * conf
 
 cvr_columns_lists = [
-    ['ip','device', 'hour'],
+    ['ip','device'],
     #['ip', 'app', 'device', 'os', 'channel'],
     #['app','channel'],
     #['app'], ['device']
-    ['ip', 'hour'], ['os', 'hour'], ['channel', 'hour']
+    ['ip'], ['os'], ['channel']
 
     #['ip', 'device', 'hour'],
     #['app', 'channel', 'hour'],
@@ -161,6 +164,12 @@ print('done')
 log_group = 100000
 # Aggregation function
 def rate_calculation(sum, count):
+    if count_without_attribution:
+        if sum == 0:
+            return count
+        else:
+            return 0
+
     if count ==0:
         return 0
     """Calculate the attributed rate. Scale by confidence"""
