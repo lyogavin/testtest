@@ -216,10 +216,16 @@ for cvr_columns in cvr_columns_lists:
 
         y = (data['day'] - 1).astype(str)
 
+        gc.collect()
+
         print('gen category and previous_category in data...')
         with timer("gen category and previous_category in data... " + new_col_name):
-            data['category'] = (x + "_" + data['day'].astype(str)).apply(hash) % D
             data['previous_category'] = (x + "_" + y).apply(hash) % D
+            del y
+            gc.collect()
+            data['category'] = (x + "_" + data['day'].astype(str)).apply(hash) % D
+            del x
+            gc.collect()
 
 
         click_buffer = np.full(D, 0, dtype=np.uint32)

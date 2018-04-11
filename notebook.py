@@ -13,6 +13,7 @@ import time
 from dateutil import parser
 import matplotlib
 from pprint import pprint
+import wordbatch
 
 matplotlib.use('Agg')
 
@@ -725,6 +726,109 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
 
     print('all new features: {}'.format('_'.join(new_features)))
     return train, val, new_features, discretization_bins_used
+
+
+def convert_features_to_text(data, predictors):
+
+    i = 0
+    str_array = None
+    for feature in predictors:
+        if str_array is None:
+            str_array = str(i) + data(feature).astype(str)
+        else:
+            str_array = " " + str(i) + data(feature).astype(str)
+        i += 1
+
+    str_array = str_array.values
+    return str_array
+
+mean_auc= 0
+
+def fit_batch(clf, X, y, w):  clf.partial_fit(X, y, sample_weight=w)
+
+def predict_batch(clf, X):  return clf.predict(X)
+
+def evaluate_batch(clf, X, y, rcount):
+	auc= roc_auc_score(y, predict_batch(clf, X))
+	global mean_auc
+	if mean_auc==0:
+		mean_auc= auc
+	else: mean_auc= 0.2*(mean_auc*4 + auc)
+	print(rcount, "ROC AUC:", auc, "Running Mean:", mean_auc)
+	return auc
+
+class ThreadWithReturnValue(threading.Thread):
+	def __init__(self, group=None, target=None, name=None, args=(), kwargs=None, *, daemon=None):
+		threading.Thread.__init__(self, group, target, name, args, kwargs, daemon=daemon)
+		self._return = None
+	def run(self):
+		if self._target is not None:
+			self._return = self._target(*self._args, **self._kwargs)
+	def join(self):
+		threading.Thread.join(self)
+		return self._return
+
+
+wb = wordbatch.WordBatch(None, extractor=(WordHash, {"ngram_range": (1, 1), "analyzer": "word",
+                                                     "lowercase": False, "n_features": D,
+                                                     "norm": None, "binary": True})
+                         , minibatch_size=batchsize // 80, procs=8, freeze=True, timeout=1800, verbose=0)
+clf = FM_FTRL(alpha=0.05, beta=0.1, L1=0.0, L2=0.0, D=D, alpha_fm=0.02, L2_fm=0.0, init_fm=0.01, weight_fm=1.0,
+              D_fm=8, e_noise=0.0, iters=3, inv_link="sigmoid", e_clip=1.0, threads=4, use_avx=1, verbose=0)
+
+batchsize = 10000000
+
+def chunker(seq, size):
+    return (seq[pos:pos + size] for pos in xrange(0, len(seq), size))
+
+
+pick_hours = {4, 5, 10, 13, 14}
+
+
+def train_wordbatch_model(train, val, new_features):
+    target = 'is_attributed'
+    predictors1 = categorical + new_features
+
+    if config_scheme_to_use.add_hist_statis_fts:
+        predictors1 = predictors1 + hist_st
+
+    batch_count = len(train) // batchsize
+
+    p = None
+    rcount = 0
+
+    for chunk in chunker(train, batch_count):
+        rcount += batchsize
+
+        # convert features to text:
+        str_array = convert_features_to_text(chunk, predictors1)
+        del(chunk)
+        print('mem:', cpuStats())
+
+        labels = []
+        weights = []
+        if target in train.columns:
+            labels = train['is_attributed'].values
+            weights = np.multiply([1.0 if x == 1 else 0.2 for x in train['is_attributed'].values],
+                                  train['hour'].apply(lambda x: 1.0 if x in pick_hours else 0.5))
+
+        if p != None:
+            p.join()
+            del (X)
+        gc.collect()
+
+        X = wb.transform(str_array)
+        del (str_array)
+        p = threading.Thread(target=fit_batch, args=(clf, X, labels, weights))
+        p.start()
+
+
+
+
+
+    batchsize = 10000000
+    D = 2 ** 22
+
 
 
 train_lgbm = False
