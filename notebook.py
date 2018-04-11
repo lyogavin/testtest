@@ -29,9 +29,9 @@ import pickle
 from contextlib import contextmanager
 @contextmanager
 def timer(name):
-	t0 = time.time()
-	yield
-	print(f'[{name}] done in {time.time() - t0:.0f} s')
+    t0 = time.time()
+    yield
+    print('[{}] done in {} s'.format(name, time.time() - t0))
 
 print('test log 80')
 print(os.listdir("../input"))
@@ -261,17 +261,17 @@ class ConfigScheme:
         self.seperate_hist_files = seperate_hist_files
 
 
-train_predict_config = ConfigScheme(False, True, False, seperate_hist_files=True, add_hist_statis_fts=True,
-                                    train_start_time=val_time_range_start,
-                                    train_end_time=val_time_range_end,
-                                    val_start_time=train_time_range_start,
-                                    val_end_time=train_time_range_end
-                                    )
-
-ffm_data_config_80 = ConfigScheme(False, False, True,shuffle_sample_filter,
-                                  shuffle_sample_filter,None,  discretization=50,
-
-                               gen_ffm_test_data=True, add_hist_statis_fts=True)
+train_config_81 = ConfigScheme(False, True, False,
+                               shuffle_sample_filter,
+                               shuffle_sample_filter,
+                               None,
+                               seperate_hist_files=True, add_hist_statis_fts=True,
+                               train_start_time=val_time_range_start,
+                               train_end_time=val_time_range_end,
+                               val_start_time=train_time_range_start,
+                               val_end_time=train_time_range_end,
+                               lgbm_params=new_lgbm_params
+                               )
 
 
 config_scheme_to_use = train_predict_config
@@ -644,7 +644,7 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
     if config_scheme_to_use.seperate_hist_files:
         for ft in hist_st:
             ft_data = next(pd.read_csv(path_train_hist +ft+ '.train.csv', dtype={ft:'float32'},
-                                header=0, usecols=[ft],engine='c',
+                                header=0, engine='c',
                                 chunksize = lentrain))  # .sample(1000)
             train[ft] = ft_data
             del ft_data

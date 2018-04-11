@@ -222,7 +222,8 @@ base @20:
     aliyun:
 80. 77 + ffm data gen
     ensemble_submission.csv.10-04-2018_18-49-00 LB:0.9715
-
+81. add historical cvr features:
+    aliyun:
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature
