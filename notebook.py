@@ -14,6 +14,11 @@ from dateutil import parser
 import matplotlib
 from pprint import pprint
 import wordbatch
+from wordbatch.extractors import WordHash
+from wordbatch.models import FM_FTRL
+#from wordbatch.data_utils import *
+import threading
+from sklearn.metrics import roc_auc_score
 
 matplotlib.use('Agg')
 
@@ -34,10 +39,17 @@ def timer(name):
     yield
     print('[{}] done in {} s'.format(name, time.time() - t0))
 
-print('test log 85')
+print('test log 86')
 print(os.listdir("../input"))
 
 
+import os, psutil
+def cpuStats():
+    pid = os.getpid()
+    py = psutil.Process(pid)
+    memoryUse = py.memory_info()[0] / 2. ** 30
+    gc.collect()
+    return memoryUse
 
 # Any results you write to the current directory are saved as output.
 
@@ -237,7 +249,8 @@ class ConfigScheme:
                val_end_time = val_time_range_end,
                gen_ffm_test_data = False,
                add_hist_statis_fts = False,
-               seperate_hist_files = False):
+               seperate_hist_files = False,
+               train_wordbatch = False):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -254,18 +267,24 @@ class ConfigScheme:
         self.gen_ffm_test_data = gen_ffm_test_data
         self.add_hist_statis_fts = add_hist_statis_fts
         self.seperate_hist_files = seperate_hist_files
+        self.train_wordbatch = train_wordbatch
 
 
-train_config_85 = ConfigScheme(True, True, False,
-                               shuffle_sample_filter_1_to_2,
+train_config_86 = ConfigScheme(False, False, False,
+                               shuffle_sample_filter,
                                shuffle_sample_filter,
                                None,
-                               seperate_hist_files=True, add_hist_statis_fts=True,
-                               lgbm_params=new_lgbm_params
+                               seperate_hist_files=False, add_hist_statis_fts=False,
+                               train_start_time=val_time_range_start,
+                               train_end_time=val_time_range_end,
+                               val_start_time=train_time_range_start,
+                               val_end_time=train_time_range_end,
+                               train_wordbatch=True
                                )
 
 
-config_scheme_to_use = train_config_85
+
+config_scheme_to_use = train_config_86
 
 dtypes = {
     'ip': 'uint32',
@@ -734,27 +753,23 @@ def convert_features_to_text(data, predictors):
     str_array = None
     for feature in predictors:
         if str_array is None:
-            str_array = str(i) + data(feature).astype(str)
+            str_array = str(i) + data[feature].astype(str)
         else:
-            str_array = " " + str(i) + data(feature).astype(str)
+            str_array = str_array + " " + str(i) + data[feature].astype(str)
         i += 1
 
     str_array = str_array.values
     return str_array
 
-mean_auc= 0
 
 def fit_batch(clf, X, y, w):  clf.partial_fit(X, y, sample_weight=w)
 
 def predict_batch(clf, X):  return clf.predict(X)
 
-def evaluate_batch(clf, X, y, rcount):
+def evaluate_batch(clf, X, y):
 	auc= roc_auc_score(y, predict_batch(clf, X))
-	global mean_auc
-	if mean_auc==0:
-		mean_auc= auc
-	else: mean_auc= 0.2*(mean_auc*4 + auc)
-	print(rcount, "ROC AUC:", auc, "Running Mean:", mean_auc)
+
+	print( "ROC AUC:", auc)
 	return auc
 
 class ThreadWithReturnValue(threading.Thread):
@@ -769,65 +784,84 @@ class ThreadWithReturnValue(threading.Thread):
 		return self._return
 
 
-wb = wordbatch.WordBatch(None, extractor=(WordHash, {"ngram_range": (1, 1), "analyzer": "word",
-                                                     "lowercase": False, "n_features": D,
-                                                     "norm": None, "binary": True})
-                         , minibatch_size=batchsize // 80, procs=8, freeze=True, timeout=1800, verbose=0)
-clf = FM_FTRL(alpha=0.05, beta=0.1, L1=0.0, L2=0.0, D=D, alpha_fm=0.02, L2_fm=0.0, init_fm=0.01, weight_fm=1.0,
-              D_fm=8, e_noise=0.0, iters=3, inv_link="sigmoid", e_clip=1.0, threads=4, use_avx=1, verbose=0)
 
-batchsize = 10000000
 
 def chunker(seq, size):
-    return (seq[pos:pos + size] for pos in xrange(0, len(seq), size))
+    return (seq[pos:pos + size] for pos in range(0, len(seq), size))
 
 
-pick_hours = {4, 5, 10, 13, 14}
 
 
 def train_wordbatch_model(train, val, new_features):
+    pick_hours = {4, 5, 10, 13, 14}
+    batchsize = 10000000
+    D = 2 ** 22
+
+    if use_sample:
+        batchsize = len(train) // 5
+
+    wb = None
+    clf = None
+
+    wb = wordbatch.WordBatch(None, extractor=(WordHash, {"ngram_range": (1, 1), "analyzer": "word",
+                                                         "lowercase": False, "n_features": D,
+                                                         "norm": None, "binary": True})
+                             , minibatch_size=batchsize // 80, procs=8, freeze=True, timeout=1800, verbose=0)
+    clf = FM_FTRL(alpha=0.05, beta=0.1, L1=0.0, L2=0.0, D=D, alpha_fm=0.02, L2_fm=0.0, init_fm=0.01, weight_fm=1.0,
+                  D_fm=8, e_noise=0.0, iters=3, inv_link="sigmoid", e_clip=1.0, threads=4, use_avx=1, verbose=0)
+
     target = 'is_attributed'
     predictors1 = categorical + new_features
 
     if config_scheme_to_use.add_hist_statis_fts:
         predictors1 = predictors1 + hist_st
 
-    batch_count = len(train) // batchsize
-
     p = None
-    rcount = 0
 
-    for chunk in chunker(train, batch_count):
-        rcount += batchsize
+    with timer('train wordbatch model...'):
+        for chunk in chunker(train, batchsize):
+            # convert features to text:
 
-        # convert features to text:
-        str_array = convert_features_to_text(chunk, predictors1)
-        del(chunk)
-        print('mem:', cpuStats())
+            print('converting chunk {} with features {}: '.format(chunk, predictors1))
+            str_array = convert_features_to_text(chunk, predictors1)
+            print('converted to str array: ', str_array)
+            del(chunk)
+            print('mem:', cpuStats())
 
-        labels = []
-        weights = []
-        if target in train.columns:
-            labels = train['is_attributed'].values
-            weights = np.multiply([1.0 if x == 1 else 0.2 for x in train['is_attributed'].values],
-                                  train['hour'].apply(lambda x: 1.0 if x in pick_hours else 0.5))
+            labels = []
+            weights = []
+            if target in train.columns:
+                labels = train['is_attributed'].values
+                weights = np.multiply([1.0 if x == 1 else 0.2 for x in train['is_attributed'].values],
+                                      train['hour'].apply(lambda x: 1.0 if x in pick_hours else 0.5))
 
-        if p != None:
-            p.join()
-            del (X)
-        gc.collect()
+            if p != None:
+                del (X)
+            gc.collect()
 
-        X = wb.transform(str_array)
-        del (str_array)
-        p = threading.Thread(target=fit_batch, args=(clf, X, labels, weights))
-        p.start()
+            X = wb.transform(str_array)
+            del (str_array)
+
+            if p != None:
+                p.join()
+
+            p = threading.Thread(target=fit_batch, args=(clf, X, labels, weights))
+            p.start()
 
 
+    # convert features to text:
+    str_array = convert_features_to_text(val, predictors1)
+    print('mem:', cpuStats())
+    labels = val['is_attributed'].values
+
+    del (X)
+    gc.collect()
+
+    X = wb.transform(str_array)
+
+    evaluate_batch(clf, X, labels)
 
 
-
-    batchsize = 10000000
-    D = 2 ** 22
 
 
 
@@ -1041,6 +1075,16 @@ if config_scheme_to_use.train:
     train, val, new_features, discretization_bins_used = gen_train_df(False)
 
     lgb_model, val_prediction = train_lgbm(train, val, new_features)
+    # In[ ]:
+    del train
+    del val
+    gc.collect()
+
+if config_scheme_to_use.train_wordbatch:
+
+    train, val, new_features, discretization_bins_used = gen_train_df(False)
+
+    train_wordbatch_model(train, val, new_features)
     # In[ ]:
     del train
     del val

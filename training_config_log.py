@@ -192,3 +192,18 @@ train_config_85 = ConfigScheme(True, True, False,
                                seperate_hist_files=True, add_hist_statis_fts=True,
                                lgbm_params=new_lgbm_params
                                )
+
+
+
+
+train_config_86 = ConfigScheme(False, False, False,
+                               shuffle_sample_filter,
+                               shuffle_sample_filter,
+                               None,
+                               seperate_hist_files=False, add_hist_statis_fts=False,
+                               train_start_time=val_time_range_start,
+                               train_end_time=val_time_range_end,
+                               val_start_time=train_time_range_start,
+                               val_end_time=train_time_range_end,
+                               train_wordbatch=True
+                               )

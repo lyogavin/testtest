@@ -247,6 +247,12 @@ _cvr']
 85. use ip_device_cvr, ip_cvr, os_cvr, channel_cvr: click count when no attribution features
     1/2 to train, 1/6 to val,
     aliyun:
+        [166]	train's auc: 0.983734	valid's auc: 0.977309
+        Feature names: ['app', 'device', 'os', 'channel', 'hour', 'ip_day_hourcount', 'ip_day_hour_oscount', 'ip_day_hour_appcount', 'ip_day_hour_app_oscount', 'app_day_hourcount', 'ip_in_test_hhcount', 'next_click', 'ip_device_cvr', 'ip_cvr', 'os_cvr', 'channel_cvr']
+        Feature importances: [209, 37, 167, 363, 61, 66, 35, 31, 58, 42, 85, 148, 13, 9, 4, 0]
+86. word_batch model
+    1/6 train, 1/6 val,
+87. calculate cvr with all days data
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature

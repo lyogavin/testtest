@@ -9,6 +9,7 @@ import gc
 import math
 import time
 
+
 import os, psutil
 def cpuStats():
     pid = os.getpid()
@@ -29,7 +30,9 @@ def timer(name):
 train_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'is_attributed']
 test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
 
-chunk_read = None
+chunk_size = 10000
+sample_count = 1
+
 use_sample = True
 
 count_without_attribution = True
@@ -46,34 +49,47 @@ dtypes = {
         
 for_train = True
 
-data = None
 
-if for_train:
-    with timer("load training data and gen hour/day"):
+def get_next_batch_for_train(iter, chunk_size):
+    with timer("load training data chunk and gen hour/day"):
         print('loading data')
-        data = pd.read_csv('../input/talkingdata-adtracking-fraud-detection/train.csv',
-                           chunksize = chunk_read, header=0,usecols=train_cols,
-                           parse_dates=["click_time"], dtype=dtypes)
-        if chunk_read is not None:
-            data = next(data)
+        if iter is None:
+            iter = pd.read_csv(
+                '../input/talkingdata-adtracking-fraud-detection/train_sample.csv' if use_sample \
+                    else '../input/talkingdata-adtracking-fraud-detection/train.csv',
+                chunksize = chunk_size,
+                header=0,
+                usecols=train_cols,
+                parse_dates=["click_time"], dtype=dtypes)
+        data = next(iter, None)
+
+        if data is None:
+            return iter, None
+
         print('added hour and day')
 
         data['hour'] = data["click_time"].dt.hour.astype('uint8')
         data['day'] = data["click_time"].dt.day.astype('uint8')
 
-        if chunk_read is None and use_sample:
+        if sample_count != 0:
             print('sampling data')
-            data = data.set_index('ip').loc[lambda x: (x.index + 401) % 2 == 0].reset_index()
-        #data.drop('click_time', inplace=True, axis=1)
+            data = data.set_index('ip').loc[lambda x: (x.index + 401) % sample_count == 0].reset_index()
+        data.drop('click_time', inplace=True, axis=1)
+        print('len read:', len(data))
 
-else:
+        gc.collect()
+
+        return iter, data
+
+def next_batch_test():
     with timer("load training data and gen hour/day"):
         print('loading data')
-        data1 = pd.read_csv('../input/talkingdata-adtracking-fraud-detection/train.csv',
-                            chunksize=chunk_read, header=0,usecols=train_cols,
-                            parse_dates=["click_time"], dtype=dtypes)
-        if chunk_read is not None:
-            data = next(data)
+        data1 = pd.read_csv('../input/talkingdata-adtracking-fraud-detection/train_sample.csv' if use_sample
+            else '../input/talkingdata-adtracking-fraud-detection/train.csv',
+            chunksize=chunk_size, header=0,usecols=train_cols,
+            parse_dates=["click_time"], dtype=dtypes)
+        #if chunk_read is not None:
+        #    data = next(data)
         print('added hour and day')
 
         data1['hour'] = data1["click_time"].dt.hour.astype('uint8')
@@ -81,38 +97,37 @@ else:
 
          #data1.drop('click_time', inplace=True, axis=1)
 
-        if chunk_read is None and use_sample:
+        if sample_count != 0:
             print('sampling data')
-            data1 = data1.set_index('ip').loc[lambda x: (x.index + 401) % 2 == 0].reset_index()
+            data1 = data1.set_index('ip').loc[lambda x: (x.index + 401) % sample_count == 0].reset_index()
 
-    with timer("filter to only keep 9th data"):
-        data1 = data1.query('day == 9')
-        gc.collect()
+        with timer("filter to only keep 9th data"):
+            data1 = data1.query('day == 9')
+            gc.collect()
 
-        print('loaded train data @9:',len(data1))
+            print('loaded train data @9:',len(data1))
 
-    with timer("load test data and gen hour/day"):
-        data = pd.read_csv('../input/talkingdata-adtracking-fraud-detection/test.csv',
-                           chunksize=chunk_read, header=0,usecols=test_cols,
-                           parse_dates=["click_time"], dtype=dtypes)
-        if chunk_read is not None:
+        with timer("load test data and gen hour/day"):
+            data = pd.read_csv('../input/talkingdata-adtracking-fraud-detection/test.csv',
+                               chunksize=chunk_size, header=0,usecols=test_cols,
+                               parse_dates=["click_time"], dtype=dtypes)
             data = next(data)
-        print('loaded test data :',len(data))
+            print('loaded test data :',len(data))
 
-        data['hour'] = data["click_time"].dt.hour.astype('uint8')
-        data['day'] = data["click_time"].dt.day.astype('uint8')
+            data['hour'] = data["click_time"].dt.hour.astype('uint8')
+            data['day'] = data["click_time"].dt.day.astype('uint8')
 
-        #data.drop('click_time', inplace=True, axis=1)
-        if chunk_read is None and use_sample:
-            print('sampling data')
-            data = data.set_index('ip').loc[lambda x: (x.index + 401) % 6 == 0].reset_index()
+            #data.drop('click_time', inplace=True, axis=1)
+            if sample_count != 0:
+                print('sampling data')
+                data = data.set_index('ip').loc[lambda x: (x.index + 401) % sample_count == 0].reset_index()
 
-    with timer("concat test and train"):
-        data = pd.concat([data1, data])
+        with timer("concat test and train"):
+            data = pd.concat([data1, data])
 
-print('len read:',len(data))
+    print('len read:',len(data))
 
-gc.collect()
+    gc.collect()
 log_group = 100000  # 1000 views -> 60% confidence, 100 views -> 40% confidence
 
 
@@ -169,111 +184,125 @@ def persist(data, name):
 print('done')
 
 log_group = 100000
+
+agg_types = ['non_attr_count', 'cvr']
+
 # Aggregation function
-def rate_calculation(sum, count):
-    if count_without_attribution:
+def rate_calculation(sum, count, type):
+    if type == 'non_attr_count':
         if sum == 0:
             return count
         else:
             return 0
+    else:
+        if count ==0:
+            return 0
+        """Calculate the attributed rate. Scale by confidence"""
+        rate = sum / float(count)
+        conf = min(1, math.log(count) / log_group)
+        return rate * conf
 
-    if count ==0:
-        return 0
-    """Calculate the attributed rate. Scale by confidence"""
-    rate = sum / float(count)
-    conf = min(1, math.log(count) / log_group)
-    return rate * conf
 
-for cvr_columns in cvr_columns_lists:
-    new_col_name = '_'.join(cvr_columns + ['cvr'])
+def add_category_columns(data):
+    x = None
+    for col in cvr_columns:
+        if x is None:
+            x = data[col].astype(str)
+        else:
+            x = x + "_" + data[col].astype(str)
 
-    with timer("gen cvr for " + new_col_name):
-        old_way = False
-        if old_way:
-            sta_ft = data[cvr_columns + ['day','is_attributed']].\
-                groupby(cvr_columns + ['day'])[['is_attributed']].apply(rate_calculation).reset_index()
-
-            sta_ft['day'] = sta_ft['day'] + (1 if chunk_read == 0 else 0)
-
-            sta_ft = sta_ft.rename(columns={'is_attributed':new_col_name})
-            data= data.merge(sta_ft, on=cvr_columns + ['day'], how='left')
-
-            data[new_col_name] = data[new_col_name].astype('float32')
-
-            import gc
-            del sta_ft
-            #gc.collect()
-
-            #print(data)
-
-        D = 2 ** 26
-        x = None
-        for col in cvr_columns:
-            if x is None:
-                x = data[col].astype(str)
-            else:
-                x = x + "_" + data[col].astype(str)
-
+    if previous_day:
         y = (data['day'] - 1).astype(str)
 
-        gc.collect()
+    gc.collect()
 
-        print('gen category and previous_category in data...')
-        with timer("gen category and previous_category in data... " + new_col_name):
+    print('gen category and previous_category in data...')
+    with timer("gen category and previous_category in data... " + new_col_name):
+        if previous_day:
             data['previous_category'] = (x + "_" + y).apply(hash) % D
             del y
             gc.collect()
-            data['category'] = (x + "_" + data['day'].astype(str)).apply(hash) % D
-            del x
-            gc.collect()
+        data['category'] = (x + "_" + data['day'].astype(str)).apply(hash) % D
+        del x
+        gc.collect()
+    return data
+D = 2 ** 26
 
+previous_day = False
+for cvr_columns in cvr_columns_lists:
+    new_col_name = '_'.join(cvr_columns)  + ['_']
+    iter = None
+    rates = {type: [] for type in agg_types}
+
+    with timer("gen cvr for " + new_col_name):
 
         click_buffer = np.full(D, 0, dtype=np.uint32)
         attribution_buffer = np.full(D, 0, dtype=np.uint32)
 
-        #data['epochtime'] = data['click_time'].astype(np.int64) // 10 ** 9
-        rates = []
-        i=0
-        for category, is_attributed in zip(data['category'].values, data['is_attributed'].values):
-            if i %10000 == 0:
-                print("processing {} line in first round of loop".format(i))
-            click_buffer[category] += 1
-            attribution_buffer[category] += is_attributed
-            i+=1
+        print('1st round of chunk iteration...')
+        iter, data = get_next_batch_for_train(None, chunk_size)
 
-        i=0
-        for category in data['previous_category'].values:
-            if i %10000 == 0:
-                print("processing {} line in 2nd round of loop".format(i))
-            rates.append(rate_calculation(attribution_buffer[category], click_buffer[category]))
-            i+=1
+        while(data is not None):
+            print('processing chunk:', len(data))
+            data = add_category_columns(data)
+
+            i=0
+            for category, is_attributed in zip(data['category'].values, data['is_attributed'].values):
+                if i %10000 == 0:
+                    print("processing {} line in first round of loop".format(i))
+                click_buffer[category] += 1
+                attribution_buffer[category] += is_attributed
+                i+=1
+
+            iter, data = get_next_batch_for_train(iter, chunk_size)
+            gc.collect()
+
+        del data
+        del iter
+        gc.collect()
+
+        iter, data = get_next_batch_for_train(None, chunk_size)
+
+        print('2nd chunk iteration:')
+        while (data is not None):
+            print('processing chunk:', len(data))
+
+            data = add_category_columns(data)
+
+            for type in agg_types:
+                print('itering type:',type)
+                i=0
+                for category in data['previous_category'].values if previous_day else data['category'].values:
+                    if i %10000 == 0:
+                        print("processing {} line in 2nd round of loop".format(i))
+                    rates[type].append(rate_calculation(attribution_buffer[category], click_buffer[category], type))
+                    i+=1
+
+                #gc.collect()
+                #data[new_col_name + type] = list(rates)
+                #data[new_col_name + type] = data[new_col_name + type].astype('float16')
+                #del rates
+                gc.collect()
+
+                print('describe of the new col:', new_col_name)
+                #print(data[new_col_name + type].describe())
+            iter, data = get_next_batch_for_train(iter, chunk_size)
+            gc.collect()
+            print('rate len so far %d for type %s.' %(len(rates[type]), type))
 
         del (click_buffer)
         del (attribution_buffer)
-        data.drop('category', inplace=True, axis=1)
-        data.drop('previous_category', inplace=True, axis=1)
-
         gc.collect()
-        data[new_col_name] = list(rates)
-        data[new_col_name] = data[new_col_name].astype('float32')
-        del rates
-        gc.collect()
-
-        print('describe of the new col:', new_col_name)
-        print(data[new_col_name].describe())
-
-
-
-
-        #data.info()
 
     print('persisting ', new_col_name)
 
-    persist(data[new_col_name] if for_train else data.query('day == 10')[new_col_name],
-            new_col_name + '.train.csv' if for_train else new_col_name + '.test.csv')
+    for type in agg_types:
+        to_persist = pd.DataFrame(rates[type], dtype='float16')
+        persist(to_persist,
+                new_col_name + type + '.train.csv' if for_train else new_col_name + type + '.test.csv')
 
-    with timer("dropping  " + new_col_name):
-        data.drop(new_col_name, axis=1, inplace=True)
+    with timer("dropping  " + new_col_name + type):
+        del rates
         gc.collect()
 
 
