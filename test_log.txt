@@ -252,7 +252,32 @@ _cvr']
         Feature importances: [209, 37, 167, 363, 61, 66, 35, 31, 58, 42, 85, 148, 13, 9, 4, 0]
 86. word_batch model
     1/6 train, 1/6 val,
-87. calculate cvr with all days data
+    Grid test: val auc: 0.9639021425045405
+87. 85 + calculate cvr with all days data,
+    cvr + non attribution count features.
+
+88. 86 + count feature discretization 50:
+    1. grid test:0.9655061249593924
+    2. use full day to train and predict:
+        grid test: AUC: 0.9725078983872897
+        0.9724989484846307
+        0.9727059746066206
+    3. log discretization full with na/qcut fix
+        grid test: 0.9734831898601476
+        wordbatch_fm_ftrl.csv.12-04-2018_17-34-12
+    4. log dis 1/6
+        val test:0.9727262372348875
+        fix na, fix qcut : val test: 0.9734974236780696
+
+89. 86 + log discretization:
+    grid test:0.964113908432143
+90. 88.4 + NN H1:
+    1 .grid test2: 0.93233640757455
+    2. full predict: running
+91. 88.4+FTRL:
+    1. val test: 0.9589079351648598
+    2. full predict: running
+
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature

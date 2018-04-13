@@ -6,7 +6,13 @@
 # This Python 3 environment comes with many helpful analytics libraries installed
 # It is defined by the kaggle/python docker image: https://github.com/kaggle/docker-python
 # For example, here's several helpful packages to load in 
+import sys
 
+on_kernel = False
+
+if on_kernel:
+    sys.path.insert(0, '../input/wordbatch-133/wordbatch/')
+    sys.path.insert(0, '../input/randomstate/randomstate/')
 import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import time
@@ -16,6 +22,10 @@ from pprint import pprint
 import wordbatch
 from wordbatch.extractors import WordHash
 from wordbatch.models import FM_FTRL
+from wordbatch.models import FTRL
+from wordbatch.models import NN_ReLU_H1
+from pathlib import Path
+
 #from wordbatch.data_utils import *
 import threading
 from sklearn.metrics import roc_auc_score
@@ -39,7 +49,7 @@ def timer(name):
     yield
     print('[{}] done in {} s'.format(name, time.time() - t0))
 
-print('test log 86')
+print('test log 87')
 print(os.listdir("../input"))
 
 
@@ -98,26 +108,20 @@ test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
 categorical = ['app', 'device', 'os', 'channel', 'hour']
 
 cvr_columns_lists = [
-    # best cvr sofar:
-    ['ip','device'],
-    ['ip'], ['os'], ['channel']
-
-
-    #['ip', 'app', 'device', 'os', 'channel']
-    #['app','channel'],
-    #['app'], ['device']
-
-    # V2 Features #
-    ###############
-    #['app', 'os'],
-    #['app', 'device'],
+    ['ip', 'app', 'device', 'os', 'channel'],
+    ['app', 'os'],
+    ['app','channel'],
+    ['app', 'device']
 ]
+agg_types = ['non_attr_count', 'cvr']
 
 hist_st = []
+iii = 0
+for type in agg_types:
+    for cvr_columns in cvr_columns_lists:
+        new_col_name = '_'.join(cvr_columns)  + '_' + type
+        hist_st.append(new_col_name)
 
-for cvr_columns in cvr_columns_lists:
-    new_col_name = '_'.join(cvr_columns + ['cvr'])
-    hist_st.append(new_col_name)
 
 field_sample_filter_channel_filter = {'filter_type': 'filter_field',
                                       'filter_field': 'channel',
@@ -250,7 +254,9 @@ class ConfigScheme:
                gen_ffm_test_data = False,
                add_hist_statis_fts = False,
                seperate_hist_files = False,
-               train_wordbatch = False):
+               train_wordbatch = False,
+               log_discretization = False,
+               predict_wordbatch = False):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -268,23 +274,34 @@ class ConfigScheme:
         self.add_hist_statis_fts = add_hist_statis_fts
         self.seperate_hist_files = seperate_hist_files
         self.train_wordbatch = train_wordbatch
+        self.log_discretization = log_discretization
+        self.predict_wordbatch = predict_wordbatch
 
 
-train_config_86 = ConfigScheme(False, False, False,
-                               shuffle_sample_filter,
+train_config_88_4 = ConfigScheme(False, False, False,
+                                 shuffle_sample_filter,
                                shuffle_sample_filter,
                                None,
                                seperate_hist_files=False, add_hist_statis_fts=False,
+                               train_wordbatch=True,
+                               predict_wordbatch = True,
+                               log_discretization=True,
+                               discretization=0
+                               )
+
+train_config_87 = ConfigScheme(False, True, False,
+                               shuffle_sample_filter,
+                               shuffle_sample_filter,
+                               None,
                                train_start_time=val_time_range_start,
                                train_end_time=val_time_range_end,
                                val_start_time=train_time_range_start,
                                val_end_time=train_time_range_end,
-                               train_wordbatch=True
+                               seperate_hist_files=True, add_hist_statis_fts=True,
+                               lgbm_params=new_lgbm_params
                                )
 
-
-
-config_scheme_to_use = train_config_86
+config_scheme_to_use = train_config_87
 
 dtypes = {
     'ip': 'uint32',
@@ -427,9 +444,16 @@ def prepare_data(data, training_day, profile_days, filter_config=None,
            train_ip_contains_training_day, train_ip_contains_training_day_attributed
 
 
+def df_get_counts(df, cols):
+    arr_slice = df[cols].values
+    unq, unqtags, counts = np.unique(np.ravel_multi_index(arr_slice.T, arr_slice.max(0) + 1),
+                                     return_inverse=True, return_counts=True)
+    return counts[unqtags]
+
 def add_statistic_feature(group_by_cols, training, training_hist, training_hist_attribution,
                           with_hist, counting_col='channel', cast_type=True, qcut_count=0.98,
-                          discretization=0, discretization_bins = None):
+                          discretization=0, discretization_bins = None,
+                          log_discretization = False):
     features_added = []
     feature_name_added = '_'.join(group_by_cols) + 'count'
     discretization_bins_used = {}
@@ -438,15 +462,30 @@ def add_statistic_feature(group_by_cols, training, training_hist, training_hist_
         .count().reset_index().rename(columns={counting_col: feature_name_added})
     training = training.merge(n_chans, on=group_by_cols, how='left')
     del n_chans
+
+    #training[feature_name_added] = df_get_counts(training,group_by_cols )
     gc.collect()
-    training[feature_name_added] = training[feature_name_added].astype('uint16')
-    if qcut_count != 0 and  discretization==0:
+    if not log_discretization and discretization == 0:
+        if training[feature_name_added].max() <= 65535:
+            training[feature_name_added] = training[feature_name_added].astype('uint16')
+
+    if not log_discretization and qcut_count != 0 and  discretization==0:
+        colmax = training[feature_name_added].max()
         #print('before qcut', feature_name_added, training[feature_name_added].describe())
         quantile_cut = training[feature_name_added].quantile(qcut_count)
         training[feature_name_added] = training[feature_name_added].apply(
-            lambda x: x if x < quantile_cut else 65535).astype('uint16')
+            lambda x: x if x < quantile_cut else colmax)
         #print('after qcut', feature_name_added, training[feature_name_added].describe())
-    if discretization != 0:
+
+    if log_discretization:
+        #print('feature: {}:{}'.format(feature_name_added, training[feature_name_added]))
+        #print('feature: {} describe:{}'.format(feature_name_added, training[feature_name_added].describe()))
+        if training[feature_name_added].min() < 0:
+            print('!!!! invalid time in {}, fix it.....'.format(feature_name_added))
+            training[feature_name_added] = training[feature_name_added].apply(lambda x: np.max([0, x]))
+        training[feature_name_added] = np.log2(1 + training[feature_name_added].values).astype(int)
+        print('log dicretizing feature:', feature_name_added)
+    elif discretization != 0:
         print('before qcut', feature_name_added, training[feature_name_added].describe())
         if discretization_bins is None:
             ret, discretization_bins_used[feature_name_added]= pd.qcut(training[feature_name_added], discretization,
@@ -569,7 +608,8 @@ def generate_counting_history_features(data, history, history_attribution,
                                                      history, history_attribution, add_feature['with_hist'],
                                                      counting_col=add_feature['counting_col'],
                                                      discretization=discretization,
-                                                     discretization_bins=discretization_bins)
+                                                     discretization_bins=discretization_bins,
+                                                     log_discretization=config_scheme_to_use.log_discretization)
         new_features = new_features + features_added
         if discretization_bins_used_current_feature is not None:
             if discretization_bins_used is None:
@@ -609,6 +649,10 @@ def generate_counting_history_features(data, history, history_attribution,
         data['next_click'] = list(reversed(next_clicks))
 
         if discretization!=0:
+            print('min of next click: {}, max: {}'.format(data['next_click'].min(), data['next_click'].max()))
+            if data['next_click'].min() < 0:
+                print('!!!! invalid time in next click, fix it.....')
+                data['next_click'] = data['next_click'].apply(lambda x: np.max([0, x]))
             data['next_click'] = np.log2(1 + data['next_click'].values).astype(int)
         data.drop('epochtime',inplace=True,axis=1)
         data.drop('category',inplace=True,axis=1)
@@ -658,12 +702,26 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
 
     if config_scheme_to_use.seperate_hist_files:
         for ft in hist_st:
-            ft_data = next(pd.read_csv(path_train_hist +ft+ '.train.csv', dtype={ft:'float32'},
-                                header=0, engine='c',
-                                chunksize = lentrain))  # .sample(1000)
+            csv_file = Path(path_train_hist +ft+ '.train.csv')
+            csv_gzip_file = Path(path_train_hist + ft + '.train.csv.gzip')
+            ft_data = None
+            if csv_file.is_file():
+                ft_data = next(pd.read_csv(path_train_hist +ft+ '.train.csv', dtype={ft:'float32'},
+                                    header=0, engine='c',
+                                    chunksize = lentrain))  # .sample(1000)
+            elif csv_gzip_file.is_file():
+                ft_data = next(pd.read_csv(path_train_hist +ft+ '.train.csv.gzip', dtype={ft:'float32'},
+                                    header=0, engine='c',compression='gzip',
+                                    chunksize = lentrain))  # .sample(1000)
+            else:
+                print('{} not found!!!'.format(ft))
+                exit(-1)
+
             train[ft] = ft_data
             del ft_data
             gc.collect()
+
+
 
     len_train = len(train)
     print('The initial size of the train set is', len_train)
@@ -684,7 +742,7 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
     train_data = train_data.set_index('click_time'). \
         ix[config_scheme_to_use.train_start_time:config_scheme_to_use.train_end_time].reset_index()
 
-    print('train data:', train)
+    print('train data:', train_data)
     print('new features:', new_features)
     #print('train data ip count in hist:', train_data['ipcount_in_hist'].describe())
     #print('train data min ', train_ip_contains_training_day.groupby('ip')['day'].min())
@@ -753,35 +811,39 @@ def convert_features_to_text(data, predictors):
     str_array = None
     for feature in predictors:
         if str_array is None:
-            str_array = str(i) + data[feature].astype(str)
+            str_array = str(i) + "_" + data[feature].astype(str)
         else:
-            str_array = str_array + " " + str(i) + data[feature].astype(str)
+            str_array = str_array + " " + str(i) + "_" + data[feature].astype(str)
         i += 1
 
     str_array = str_array.values
     return str_array
 
 
-def fit_batch(clf, X, y, w):  clf.partial_fit(X, y, sample_weight=w)
+def fit_batch(clf, X, y, w):
+    if not isinstance(clf, FM_FTRL):
+        clf.partial_fit(X, y)
+    else:
+        clf.partial_fit(X, y, sample_weight=w)
 
 def predict_batch(clf, X):  return clf.predict(X)
 
 def evaluate_batch(clf, X, y):
-	auc= roc_auc_score(y, predict_batch(clf, X))
+    auc= roc_auc_score(y, predict_batch(clf, X))
 
-	print( "ROC AUC:", auc)
-	return auc
+    print( "ROC AUC:", auc)
+    return auc
 
 class ThreadWithReturnValue(threading.Thread):
-	def __init__(self, group=None, target=None, name=None, args=(), kwargs=None, *, daemon=None):
-		threading.Thread.__init__(self, group, target, name, args, kwargs, daemon=daemon)
-		self._return = None
-	def run(self):
-		if self._target is not None:
-			self._return = self._target(*self._args, **self._kwargs)
-	def join(self):
-		threading.Thread.join(self)
-		return self._return
+    def __init__(self, group=None, target=None, name=None, args=(), kwargs=None, *, daemon=None):
+        threading.Thread.__init__(self, group, target, name, args, kwargs, daemon=daemon)
+        self._return = None
+    def run(self):
+        if self._target is not None:
+            self._return = self._target(*self._args, **self._kwargs)
+    def join(self):
+        threading.Thread.join(self)
+        return self._return
 
 
 
@@ -792,7 +854,7 @@ def chunker(seq, size):
 
 
 
-def train_wordbatch_model(train, val, new_features):
+def train_wordbatch_model(train, val, test_data, new_features):
     pick_hours = {4, 5, 10, 13, 14}
     batchsize = 10000000
     D = 2 ** 22
@@ -803,12 +865,17 @@ def train_wordbatch_model(train, val, new_features):
     wb = None
     clf = None
 
-    wb = wordbatch.WordBatch(None, extractor=(WordHash, {"ngram_range": (1, 1), "analyzer": "word",
-                                                         "lowercase": False, "n_features": D,
-                                                         "norm": None, "binary": True})
-                             , minibatch_size=batchsize // 80, procs=8, freeze=True, timeout=1800, verbose=0)
-    clf = FM_FTRL(alpha=0.05, beta=0.1, L1=0.0, L2=0.0, D=D, alpha_fm=0.02, L2_fm=0.0, init_fm=0.01, weight_fm=1.0,
-                  D_fm=8, e_noise=0.0, iters=3, inv_link="sigmoid", e_clip=1.0, threads=4, use_avx=1, verbose=0)
+    print('creating model...')
+    with timer('creating model'):
+        wb = wordbatch.WordBatch(None, extractor=(WordHash, {"ngram_range": (1, 1), "analyzer": "word",
+                                                             "lowercase": False, "n_features": D,
+                                                             "norm": None, "binary": True})
+                                 , minibatch_size=batchsize // 80, procs=8, freeze=True, timeout=1800, verbose=0)
+        clf = FM_FTRL(alpha=0.05, beta=0.1, L1=0.0, L2=0.0, D=D, alpha_fm=0.02, L2_fm=0.0, init_fm=0.01, weight_fm=1.0,
+                      D_fm=8, e_noise=0.0, iters=3, inv_link="sigmoid", e_clip=1.0, threads=4, use_avx=1, verbose=0)
+
+        #clf = NN_ReLU_H1(alpha=0.05, D = D, verbose=9, e_noise=0.0, threads=4, inv_link="sigmoid")
+        #clf = FTRL(alpha=0.05, beta=0.1, L1=0.0, L2=0.0, D=D, iters=3, threads=4, verbose=9)
 
     target = 'is_attributed'
     predictors1 = categorical + new_features
@@ -861,8 +928,38 @@ def train_wordbatch_model(train, val, new_features):
 
     evaluate_batch(clf, X, labels)
 
+    del X
+    del str_array
 
+    gc.collect()
 
+    print('predicting...')
+    p = None
+    click_ids = []
+    test_preds = []
+
+    if test_data is not None:
+        with timer('predict wordbatch model...'):
+            for chunk in chunker(test_data, batchsize):
+                # convert features to text:
+                str_array = convert_features_to_text(chunk, predictors1)
+                print('mem:', cpuStats())
+                labels = val['is_attributed'].values
+                click_ids += chunk['click_id'].tolist()
+
+                if p != None:
+                    test_preds += list(p.join())
+                    del (X)
+                gc.collect()
+
+                X = wb.transform(str_array)
+                del (str_array)
+                p = ThreadWithReturnValue(target=predict_batch, args=(clf, X))
+                p.start()
+        if p != None:  test_preds += list(p.join())
+
+        df_sub = pd.DataFrame({"click_id": click_ids, 'is_attributed': test_preds})
+        df_sub.to_csv(get_dated_filename("wordbatch_fm_ftrl.csv"), index=False)
 
 
 train_lgbm = False
@@ -1020,10 +1117,13 @@ def gen_test_df(with_hist_profile = True, persist_fe_data = False,
                                                              discretization_bins=discretization_bins)
 
 
-    if not config_scheme_to_use.mock_test_with_val_data_to_test:
-        train = train.set_index('click_time').ix['2017-11-10 04:00:00':'2017-11-10 15:00:00'].reset_index()
-    else:
-        train = train.set_index('click_time').ix[val_time_range_start:val_time_range_end].reset_index()
+    print('filtering testing data:')
+
+    with timer('filtering testing data'):
+        if not config_scheme_to_use.mock_test_with_val_data_to_test:
+            train = train.set_index('click_time').ix['2017-11-10 04:00:00':'2017-11-10 15:00:00'].reset_index()
+        else:
+            train = train.set_index('click_time').ix[val_time_range_start:val_time_range_end].reset_index()
 
     if not config_scheme_to_use.mock_test_with_val_data_to_test:
         train['is_attributed'] = 0
@@ -1084,11 +1184,14 @@ if config_scheme_to_use.train_wordbatch:
 
     train, val, new_features, discretization_bins_used = gen_train_df(False)
 
-    train_wordbatch_model(train, val, new_features)
-    # In[ ]:
-    del train
-    del val
+    test = None
+
+    if config_scheme_to_use.predict_wordbatch:
+        test, _ = gen_test_df(False, False, discretization_bins_used)
+        test_len= len(test)
     gc.collect()
+
+    train_wordbatch_model(train, val, test, new_features)
 
 to_submit = False
 

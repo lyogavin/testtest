@@ -30,7 +30,7 @@ def timer(name):
 train_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'is_attributed']
 test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
 
-chunk_size = 10000
+chunk_size = 1000000
 sample_count = 1
 
 use_sample = True
@@ -139,16 +139,18 @@ def rate_calculation(x):
 
 cvr_columns_lists = [
 
-    #['ip', 'app', 'device', 'os', 'channel']
+    ['ip', 'app', 'device', 'os', 'channel'],
 
     # best cvr tested:
-    ['ip','device'],
-    ['ip'], ['os'], ['channel']
+    #['ip','device'],
+    #['ip'], ['os'], ['channel']
 
 
 
 
-    #['app','channel'],
+    ['app', 'os'],
+    ['app','channel'],
+    ['app', 'device']
     #['app'], ['device']
 
     #['ip', 'device', 'hour'],
@@ -167,7 +169,7 @@ def persist(data, name):
 
             #data.drop('hour', inplace=True, axis=1)
             #data.drop('day', inplace=True, axis=1)
-            data.to_csv(name, index=False)
+            data.to_csv(name + '.gzip', index=False,compression='gzip')
 
     else:
         with timer("store data:"+ name):
@@ -175,7 +177,7 @@ def persist(data, name):
             #data.drop('hour', inplace=True, axis=1)
             #data.drop('day', inplace=True, axis=1)
             gc.collect()
-            data.to_csv(name, index=False)
+            data.to_csv(name+".gzip", index=False,compression='gzip')
 
     # In[6]:
 
@@ -230,7 +232,7 @@ D = 2 ** 26
 
 previous_day = False
 for cvr_columns in cvr_columns_lists:
-    new_col_name = '_'.join(cvr_columns)  + ['_']
+    new_col_name = '_'.join(cvr_columns)  + '_'
     iter = None
     rates = {type: [] for type in agg_types}
 
@@ -248,7 +250,7 @@ for cvr_columns in cvr_columns_lists:
 
             i=0
             for category, is_attributed in zip(data['category'].values, data['is_attributed'].values):
-                if i %10000 == 0:
+                if i %100000 == 0:
                     print("processing {} line in first round of loop".format(i))
                 click_buffer[category] += 1
                 attribution_buffer[category] += is_attributed
@@ -273,7 +275,7 @@ for cvr_columns in cvr_columns_lists:
                 print('itering type:',type)
                 i=0
                 for category in data['previous_category'].values if previous_day else data['category'].values:
-                    if i %10000 == 0:
+                    if i %100000 == 0:
                         print("processing {} line in 2nd round of loop".format(i))
                     rates[type].append(rate_calculation(attribution_buffer[category], click_buffer[category], type))
                     i+=1

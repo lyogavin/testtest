@@ -207,3 +207,52 @@ train_config_86 = ConfigScheme(False, False, False,
                                val_end_time=train_time_range_end,
                                train_wordbatch=True
                                )
+
+
+train_config_88 = ConfigScheme(False, False, False,
+                               shuffle_sample_filter,
+                               shuffle_sample_filter,
+                               None,
+                               seperate_hist_files=False, add_hist_statis_fts=False,
+                               train_start_time=val_time_range_start,
+                               train_end_time=val_time_range_end,
+                               val_start_time=train_time_range_start,
+                               val_end_time=train_time_range_end,
+                               train_wordbatch=True,
+                               discretization=50
+                               )
+
+train_config_88_2 = ConfigScheme(False, False, False,
+                               None,
+                               shuffle_sample_filter,
+                               None,
+                               seperate_hist_files=False, add_hist_statis_fts=False,
+                               train_wordbatch=True,
+                               predict_wordbatch = True,
+                               log_discretization=False,
+                               discretization=50
+                               )
+
+
+train_config_88_3 = ConfigScheme(False, False, False,
+                               None,
+                               shuffle_sample_filter,
+                               None,
+                               seperate_hist_files=False, add_hist_statis_fts=False,
+                               train_wordbatch=True,
+                               predict_wordbatch = True,
+                               log_discretization=True,
+                               discretization=0
+                               )
+train_config_89 = ConfigScheme(False, False, False,
+                               shuffle_sample_filter,
+                               shuffle_sample_filter,
+                               None,
+                               seperate_hist_files=False, add_hist_statis_fts=False,
+                               train_start_time=val_time_range_start,
+                               train_end_time=val_time_range_end,
+                               val_start_time=train_time_range_start,
+                               val_end_time=train_time_range_end,
+                               train_wordbatch=True,
+                               log_discretization=True
+                               )
