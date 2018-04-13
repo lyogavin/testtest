@@ -338,16 +338,13 @@ train_config_89 = ConfigScheme(False, False, False,
                                train_wordbatch=True,
                                log_discretization=True
                                )
-train_config_89_3 = ConfigScheme(False, False, False,
-                               shuffle_sample_filter,
+train_config_89_4 = ConfigScheme(False, False, False,
+                               None,
                                shuffle_sample_filter,
                                None,
                                seperate_hist_files=False, add_hist_statis_fts=False,
-                               train_start_time=val_time_range_start,
-                               train_end_time=val_time_range_end,
-                               val_start_time=train_time_range_start,
-                               val_end_time=train_time_range_end,
                                train_wordbatch=True,
+                               predict_wordbatch = True,
                                log_discretization=True,
                                use_interactive_features=True
                                )
@@ -357,9 +354,9 @@ def use_config_scheme(str):
     print('using config var name: ', str)
     return eval(str)
 
-config_scheme_to_use = use_config_scheme('train_config_89_3')
+config_scheme_to_use = use_config_scheme('train_config_89_4')
 
-print('test log 89_3')
+print('test log 89_4')
 
 
 dtypes = {
@@ -1024,7 +1021,7 @@ def train_wordbatch_model(train, val, test_data, new_features):
             p = threading.Thread(target=fit_batch, args=(clf, X, labels, weights))
             p.start()
 
-
+    print('mem:', cpuStats())
     # convert features to text:
     if config_scheme_to_use.use_interactive_features:
         val = gen_iteractive_categorical_features(val)
@@ -1039,7 +1036,10 @@ def train_wordbatch_model(train, val, test_data, new_features):
     labels = val['is_attributed'].values
 
     del (X)
+    del (val)
     gc.collect()
+
+    print('mem:', cpuStats())
 
     X = wb.transform(str_array)
 
@@ -1049,6 +1049,8 @@ def train_wordbatch_model(train, val, test_data, new_features):
     del str_array
 
     gc.collect()
+
+    print('mem:', cpuStats())
 
     print('predicting...')
     p = None
