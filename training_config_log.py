@@ -232,7 +232,16 @@ train_config_88_2 = ConfigScheme(False, False, False,
                                log_discretization=False,
                                discretization=50
                                )
-
+train_config_89_4 = ConfigScheme(False, False, False,
+                               None,
+                               shuffle_sample_filter,
+                               None,
+                               seperate_hist_files=False, add_hist_statis_fts=False,
+                               train_wordbatch=True,
+                               predict_wordbatch = True,
+                               log_discretization=True,
+                               use_interactive_features=True
+                               )
 
 train_config_88_3 = ConfigScheme(False, False, False,
                                None,
@@ -255,4 +264,13 @@ train_config_89 = ConfigScheme(False, False, False,
                                val_end_time=train_time_range_end,
                                train_wordbatch=True,
                                log_discretization=True
+                               )
+
+
+train_config_87_3 = ConfigScheme(True, True, False,
+                               None,
+                               shuffle_sample_filter,
+                               None,
+                               seperate_hist_files=True, add_hist_statis_fts=True,
+                               lgbm_params=new_lgbm_params
                                )

@@ -254,7 +254,16 @@ _cvr']
     1/6 train, 1/6 val,
     Grid test: val auc: 0.9639021425045405
 87. 85 + calculate cvr with all days data,
-    cvr + non attribution count features.
+    cvr + non attribution count features, 1/6 train
+    1. aliyun part of features: train's auc: 0.987661	valid's auc: 0.974383
+    Feature names: ['app', 'device', 'os', 'channel', 'hour', 'ip_day_hourcount', 'ip_day_hour_oscount', 'ip_day_hour_appcount', 'ip_day_hour_app_oscount', 'app_day_hourcount', 'ip_in_test_hhcount', 'next_click', 'ip_app_device_os_channel_non_attr_count', 'app_os_non_attr_count', 'app_channel_non_attr_count', 'app_device_non_attr_count', 'ip_app_device_os_channel_cvr', 'app_os_cvr', 'app_channel_cvr', 'app_device_cvr']
+    Feature importances: [219, 30, 182, 396, 52, 88, 22, 29, 53, 31, 114, 130, 17, 4, 3, 0, 19, 21, 6, 8]
+    2. all counting features:
+    aliyun: train's auc: 0.986582	valid's auc: 0.974614
+        Feature names: ['app', 'device', 'os', 'channel', 'hour', 'ip_day_hourcount', 'ip_day_hour_oscount', 'ip_day_hour_appcount', 'ip_day_hour_app_oscount', 'app_day_hourcount', 'ip_in_test_hhcount', 'next_click', 'ip_app_device_os_channel_non_attr_count', 'app_os_non_attr_count', 'app_channel_non_attr_count', 'app_device_non_attr_count', 'ip_device_non_attr_count', 'ip_non_attr_count', 'os_non_attr_count', 'channel_non_attr_count', 'ip_app_device_os_channel_cvr', 'app_os_cvr', 'app_channel_cvr', 'app_device_cvr', 'ip_device_cvr', 'ip_cvr', 'os_cvr', 'channel_cvr']
+        Feature importances: [201, 30, 161, 293, 38, 75, 16, 19, 49, 24, 99, 118, 5, 1, 1, 0, 5, 2, 2, 0, 12, 4, 6, 6, 2, 2, 1, 4]
+    3. 87.2 -> full day train 1/6 val and predict:
+        aliyun: running
 
 88. 86 + count feature discretization 50:
     1. grid test:0.9655061249593924
@@ -265,18 +274,26 @@ _cvr']
     3. log discretization full with na/qcut fix
         grid test: 0.9734831898601476
         wordbatch_fm_ftrl.csv.12-04-2018_17-34-12
+        LB:0.9544
     4. log dis 1/6
         val test:0.9727262372348875
         fix na, fix qcut : val test: 0.9734974236780696
 
 89. 86 + log discretization:
-    grid test:0.964113908432143
+    1. grid test:0.964113908432143
+    2. use feature acronyms as prefix:
+        grid test: 0.966414
+    3. add interactive features:
+        grid test 2: 0.9672690870802338
+    4. full to train
+        grid test2: running, 0.9733642574137581
+
 90. 88.4 + NN H1:
     1 .grid test2: 0.93233640757455
-    2. full predict: running
+    2. full predict: 0.9506551726083916
 91. 88.4+FTRL:
     1. val test: 0.9589079351648598
-    2. full predict: running
+    2. full predict: 0.9686807551924094
 
 
 to do test:

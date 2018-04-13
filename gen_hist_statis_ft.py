@@ -50,13 +50,19 @@ dtypes = {
 for_train = True
 
 
-def get_next_batch_for_train(iter, chunk_size):
+def get_next_batch_for_train(iter, chunk_size, get_train_data=True):
     with timer("load training data chunk and gen hour/day"):
         print('loading data')
         if iter is None:
+            file_path = ''
+            if get_train_data:
+                file_path = '../input/talkingdata-adtracking-fraud-detection/train_sample.csv' if use_sample \
+                    else '../input/talkingdata-adtracking-fraud-detection/train.csv'
+            else:
+                file_path = '../input/talkingdata-adtracking-fraud-detection/test_sample.csv' if use_sample \
+                    else '../input/talkingdata-adtracking-fraud-detection/test.csv'
             iter = pd.read_csv(
-                '../input/talkingdata-adtracking-fraud-detection/train_sample.csv' if use_sample \
-                    else '../input/talkingdata-adtracking-fraud-detection/train.csv',
+                file_path,
                 chunksize = chunk_size,
                 header=0,
                 usecols=train_cols,
@@ -81,8 +87,8 @@ def get_next_batch_for_train(iter, chunk_size):
 
         return iter, data
 
-def next_batch_test():
-    with timer("load training data and gen hour/day"):
+def get_next_batch_test():
+    with timer("load test data and gen hour/day"):
         print('loading data')
         data1 = pd.read_csv('../input/talkingdata-adtracking-fraud-detection/train_sample.csv' if use_sample
             else '../input/talkingdata-adtracking-fraud-detection/train.csv',
@@ -142,8 +148,8 @@ cvr_columns_lists = [
     ['ip', 'app', 'device', 'os', 'channel'],
 
     # best cvr tested:
-    #['ip','device'],
-    #['ip'], ['os'], ['channel']
+    ['ip','device'],
+    ['ip'], ['os'], ['channel'],
 
 
 
@@ -169,7 +175,7 @@ def persist(data, name):
 
             #data.drop('hour', inplace=True, axis=1)
             #data.drop('day', inplace=True, axis=1)
-            data.to_csv(name + '.gzip', index=False,compression='gzip')
+            data.to_csv(name + '.bz2', index=False,compression='bz2')
 
     else:
         with timer("store data:"+ name):
@@ -177,7 +183,7 @@ def persist(data, name):
             #data.drop('hour', inplace=True, axis=1)
             #data.drop('day', inplace=True, axis=1)
             gc.collect()
-            data.to_csv(name+".gzip", index=False,compression='gzip')
+            data.to_csv(name+".bz2", index=False,compression='bz2')
 
     # In[6]:
 
@@ -234,7 +240,8 @@ previous_day = False
 for cvr_columns in cvr_columns_lists:
     new_col_name = '_'.join(cvr_columns)  + '_'
     iter = None
-    rates = {type: [] for type in agg_types}
+    rates = {type: np.full(chunk_size, -float('inf'), dtype=np.float16) for type in agg_types}
+    rates_idx = {type: 0 for type in agg_types}
 
     with timer("gen cvr for " + new_col_name):
 
@@ -263,7 +270,7 @@ for cvr_columns in cvr_columns_lists:
         del iter
         gc.collect()
 
-        iter, data = get_next_batch_for_train(None, chunk_size)
+        iter, data = get_next_batch_for_train(None, chunk_size, for_train)
 
         print('2nd chunk iteration:')
         while (data is not None):
@@ -272,12 +279,15 @@ for cvr_columns in cvr_columns_lists:
             data = add_category_columns(data)
 
             for type in agg_types:
+                rates_idx[type] = 0
                 print('itering type:',type)
                 i=0
                 for category in data['previous_category'].values if previous_day else data['category'].values:
                     if i %100000 == 0:
                         print("processing {} line in 2nd round of loop".format(i))
-                    rates[type].append(rate_calculation(attribution_buffer[category], click_buffer[category], type))
+                    rates[type][rates_idx[type]] = rate_calculation(attribution_buffer[category],
+                                                              click_buffer[category], type)
+                    rates_idx[type] +=1
                     i+=1
 
                 #gc.collect()
@@ -288,9 +298,9 @@ for cvr_columns in cvr_columns_lists:
 
                 print('describe of the new col:', new_col_name)
                 #print(data[new_col_name + type].describe())
-            iter, data = get_next_batch_for_train(iter, chunk_size)
+            iter, data = get_next_batch_for_train(iter, chunk_size, for_train)
             gc.collect()
-            print('rate len so far %d for type %s.' %(len(rates[type]), type))
+            print('rate len so far %d for type %s.' %(rates_idx[type], type))
 
         del (click_buffer)
         del (attribution_buffer)
@@ -299,12 +309,13 @@ for cvr_columns in cvr_columns_lists:
     print('persisting ', new_col_name)
 
     for type in agg_types:
-        to_persist = pd.DataFrame(rates[type], dtype='float16')
+        to_persist = pd.DataFrame(rates[type][:rates_idx[type]], dtype='float16')
         persist(to_persist,
                 new_col_name + type + '.train.csv' if for_train else new_col_name + type + '.test.csv')
 
     with timer("dropping  " + new_col_name + type):
         del rates
+        del rates_idx
         gc.collect()
 
 

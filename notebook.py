@@ -8,7 +8,7 @@
 # For example, here's several helpful packages to load in 
 import sys
 
-on_kernel = False
+on_kernel = True
 
 if on_kernel:
     sys.path.insert(0, '../input/wordbatch-133/wordbatch/')
@@ -49,7 +49,6 @@ def timer(name):
     yield
     print('[{}] done in {} s'.format(name, time.time() - t0))
 
-print('test log 87')
 print(os.listdir("../input"))
 
 
@@ -111,9 +110,32 @@ cvr_columns_lists = [
     ['ip', 'app', 'device', 'os', 'channel'],
     ['app', 'os'],
     ['app','channel'],
-    ['app', 'device']
+    ['app', 'device'],
+    ['ip','device'],
+    ['ip'], ['os'], ['channel']
 ]
 agg_types = ['non_attr_count', 'cvr']
+
+acro_names = {
+                 'app':'A',
+                 'device':'D',
+                 'os': 'O',
+                 'channel' : 'C',
+                 'hour' :'H',
+                 'ip_day_hourcount' : 'IDH',
+                 'ip_day_hour_oscount' : 'IDHO',
+                 'ip_day_hour_appcount' : 'IDHA',
+                 'ip_day_hour_app_oscount': 'IDHAO',
+                 'app_day_hourcount' : 'ADH',
+                 'ip_in_test_hhcount' : "IITH",
+                 'next_click' : 'NC',
+                 'app_channel': 'AC',
+                 'os_channel': 'OC',
+                 'app_device': 'AD',
+                 'app_os_channel' :'AOC',
+                 'ip_app': 'IA',
+                 'app_os':'AO'
+              }
 
 hist_st = []
 iii = 0
@@ -256,7 +278,9 @@ class ConfigScheme:
                seperate_hist_files = False,
                train_wordbatch = False,
                log_discretization = False,
-               predict_wordbatch = False):
+               predict_wordbatch = False,
+               use_interactive_features = False,
+               wordbatch_model = 'FM_FTRL'):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -276,6 +300,8 @@ class ConfigScheme:
         self.train_wordbatch = train_wordbatch
         self.log_discretization = log_discretization
         self.predict_wordbatch = predict_wordbatch
+        self.use_interactive_features = use_interactive_features
+        self.wordbatch_model = wordbatch_model
 
 
 train_config_88_4 = ConfigScheme(False, False, False,
@@ -300,8 +326,41 @@ train_config_87 = ConfigScheme(False, True, False,
                                seperate_hist_files=True, add_hist_statis_fts=True,
                                lgbm_params=new_lgbm_params
                                )
+train_config_89 = ConfigScheme(False, False, False,
+                               shuffle_sample_filter,
+                               shuffle_sample_filter,
+                               None,
+                               seperate_hist_files=False, add_hist_statis_fts=False,
+                               train_start_time=val_time_range_start,
+                               train_end_time=val_time_range_end,
+                               val_start_time=train_time_range_start,
+                               val_end_time=train_time_range_end,
+                               train_wordbatch=True,
+                               log_discretization=True
+                               )
+train_config_89_3 = ConfigScheme(False, False, False,
+                               shuffle_sample_filter,
+                               shuffle_sample_filter,
+                               None,
+                               seperate_hist_files=False, add_hist_statis_fts=False,
+                               train_start_time=val_time_range_start,
+                               train_end_time=val_time_range_end,
+                               val_start_time=train_time_range_start,
+                               val_end_time=train_time_range_end,
+                               train_wordbatch=True,
+                               log_discretization=True,
+                               use_interactive_features=True
+                               )
+def use_config_scheme(str):
+    print('config values: ')
+    pprint(vars(eval(str)))
+    print('using config var name: ', str)
+    return eval(str)
 
-config_scheme_to_use = train_config_87
+config_scheme_to_use = use_config_scheme('train_config_89_3')
+
+print('test log 89_3')
+
 
 dtypes = {
     'ip': 'uint32',
@@ -340,6 +399,32 @@ def gen_categorical_features(data):
                                - 1*data['hour'].isin( least_freq_hours_in_test_data ) ).astype('uint8')
         #categorical.append('in_test_hh')
     return data
+
+def gen_iteractive_categorical_features(data):
+    if config_scheme_to_use.use_interactive_features:
+        interactive_features_list = [
+            ['app','channel'],
+            ['os','channel'],
+            ['app','device'],
+            ['app','os','channel'],
+            ['ip','app'],
+            ['app','os']
+        ]
+
+        for interactive_feature_items in interactive_features_list:
+            interactive_features_name = '_'.join(interactive_feature_items)
+            first_setting = True
+            for interactive_feature_item in interactive_feature_items:
+                if first_setting:
+                    data[interactive_features_name] = data[interactive_feature_item].astype(str)
+                    first_setting = False
+                else:
+                    data[interactive_features_name] = data[interactive_features_name] + \
+                                                      '_' + data[interactive_feature_item].astype(str)
+            if not interactive_features_name in categorical:
+                categorical.append(interactive_features_name)
+    return data
+
 
 def post_statistics_features(data):
     return data
@@ -704,6 +789,7 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
         for ft in hist_st:
             csv_file = Path(path_train_hist +ft+ '.train.csv')
             csv_gzip_file = Path(path_train_hist + ft + '.train.csv.gzip')
+            csv_bz2_file = Path(path_train_hist + ft + '.train.csv.bz2')
             ft_data = None
             if csv_file.is_file():
                 ft_data = next(pd.read_csv(path_train_hist +ft+ '.train.csv', dtype={ft:'float32'},
@@ -712,6 +798,10 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
             elif csv_gzip_file.is_file():
                 ft_data = next(pd.read_csv(path_train_hist +ft+ '.train.csv.gzip', dtype={ft:'float32'},
                                     header=0, engine='c',compression='gzip',
+                                    chunksize = lentrain))  # .sample(1000)
+            elif csv_bz2_file.is_file():
+                ft_data = next(pd.read_csv(path_train_hist +ft+ '.train.csv.bz2', dtype={ft:'float32'},
+                                    header=0, engine='c',compression='bz2',
                                     chunksize = lentrain))  # .sample(1000)
             else:
                 print('{} not found!!!'.format(ft))
@@ -810,10 +900,13 @@ def convert_features_to_text(data, predictors):
     i = 0
     str_array = None
     for feature in predictors:
+        if not feature in acro_names:
+            print('{} missing acronym'.format(feature))
+            exit(-1)
         if str_array is None:
-            str_array = str(i) + "_" + data[feature].astype(str)
+            str_array = acro_names[feature] + "_" + data[feature].astype(str)
         else:
-            str_array = str_array + " " + str(i) + "_" + data[feature].astype(str)
+            str_array = str_array + " " + acro_names[feature] + "_" + data[feature].astype(str)
         i += 1
 
     str_array = str_array.values
@@ -871,23 +964,39 @@ def train_wordbatch_model(train, val, test_data, new_features):
                                                              "lowercase": False, "n_features": D,
                                                              "norm": None, "binary": True})
                                  , minibatch_size=batchsize // 80, procs=8, freeze=True, timeout=1800, verbose=0)
-        clf = FM_FTRL(alpha=0.05, beta=0.1, L1=0.0, L2=0.0, D=D, alpha_fm=0.02, L2_fm=0.0, init_fm=0.01, weight_fm=1.0,
-                      D_fm=8, e_noise=0.0, iters=3, inv_link="sigmoid", e_clip=1.0, threads=4, use_avx=1, verbose=0)
 
-        #clf = NN_ReLU_H1(alpha=0.05, D = D, verbose=9, e_noise=0.0, threads=4, inv_link="sigmoid")
-        #clf = FTRL(alpha=0.05, beta=0.1, L1=0.0, L2=0.0, D=D, iters=3, threads=4, verbose=9)
+        clf = None
+        if config_scheme_to_use.wordbatch_model == 'FM_FTRL':
+            clf = FM_FTRL(alpha=0.05, beta=0.1, L1=0.0, L2=0.0, D=D, alpha_fm=0.02, L2_fm=0.0, init_fm=0.01,
+                          weight_fm=1.0,D_fm=8, e_noise=0.0, iters=3, inv_link="sigmoid", e_clip=1.0,
+                          threads=4, use_avx=1, verbose=0)
+        elif config_scheme_to_use.wordbatch_model == 'NN_ReLU_H1':
+            clf = NN_ReLU_H1(alpha=0.05, D = D, verbose=9, e_noise=0.0, threads=4, inv_link="sigmoid")
+        elif config_scheme_to_use.wordbatch_model == 'FTRL':
+            clf = FTRL(alpha=0.05, beta=0.1, L1=0.0, L2=0.0, D=D, iters=3, threads=4, verbose=9)
+        else:
+            print('invalid wordbatch_model param:', config_scheme_to_use.wordbatch_model)
+            exit(-1)
 
     target = 'is_attributed'
-    predictors1 = categorical + new_features
+    #predictors1 = categorical + new_features
 
-    if config_scheme_to_use.add_hist_statis_fts:
-        predictors1 = predictors1 + hist_st
+    #if config_scheme_to_use.add_hist_statis_fts:
+    #    predictors1 = predictors1 + hist_st
 
     p = None
 
     with timer('train wordbatch model...'):
         for chunk in chunker(train, batchsize):
             # convert features to text:
+
+            if config_scheme_to_use.use_interactive_features:
+                chunk = gen_iteractive_categorical_features(chunk)
+
+            predictors1 = categorical + new_features
+
+            if config_scheme_to_use.add_hist_statis_fts:
+                predictors1 = predictors1 + hist_st
 
             print('converting chunk {} with features {}: '.format(chunk, predictors1))
             str_array = convert_features_to_text(chunk, predictors1)
@@ -917,6 +1026,14 @@ def train_wordbatch_model(train, val, test_data, new_features):
 
 
     # convert features to text:
+    if config_scheme_to_use.use_interactive_features:
+        val = gen_iteractive_categorical_features(val)
+
+    predictors1 = categorical + new_features
+
+    if config_scheme_to_use.add_hist_statis_fts:
+        predictors1 = predictors1 + hist_st
+
     str_array = convert_features_to_text(val, predictors1)
     print('mem:', cpuStats())
     labels = val['is_attributed'].values
@@ -942,6 +1059,14 @@ def train_wordbatch_model(train, val, test_data, new_features):
         with timer('predict wordbatch model...'):
             for chunk in chunker(test_data, batchsize):
                 # convert features to text:
+                if config_scheme_to_use.use_interactive_features:
+                    chunk = gen_iteractive_categorical_features(chunk)
+
+                predictors1 = categorical + new_features
+
+                if config_scheme_to_use.add_hist_statis_fts:
+                    predictors1 = predictors1 + hist_st
+
                 str_array = convert_features_to_text(chunk, predictors1)
                 print('mem:', cpuStats())
                 labels = val['is_attributed'].values
@@ -1168,7 +1293,6 @@ def gen_ffm_data():
 
     #print(test)
 
-pprint(vars(config_scheme_to_use))
 
 if config_scheme_to_use.train:
 
