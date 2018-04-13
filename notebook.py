@@ -1037,6 +1037,7 @@ def train_wordbatch_model(train, val, test_data, new_features):
 
     del (X)
     del (val)
+    del (train)
     gc.collect()
 
     print('mem:', cpuStats())
@@ -1047,6 +1048,7 @@ def train_wordbatch_model(train, val, test_data, new_features):
 
     del X
     del str_array
+    del labels
 
     gc.collect()
 
@@ -1058,6 +1060,7 @@ def train_wordbatch_model(train, val, test_data, new_features):
     test_preds = []
 
     if test_data is not None:
+        batchsize = batchsize // 10
         with timer('predict wordbatch model...'):
             for chunk in chunker(test_data, batchsize):
                 # convert features to text:

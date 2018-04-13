@@ -186,7 +186,7 @@ previous_day = False
 for cvr_columns in cvr_columns_lists:
     new_col_name = '_'.join(cvr_columns)  + '_'
     iter = None
-    rates = {type: np.full(chunk_size, -float('inf'), dtype=np.float16) for type in agg_types}
+    rates = {type: np.full(184903892, -float('inf'), dtype=np.float16) for type in agg_types}
     rates_idx = {type: 0 for type in agg_types}
 
     with timer("gen cvr for " + new_col_name):
@@ -222,8 +222,6 @@ for cvr_columns in cvr_columns_lists:
 
         marks = ['for_train', 'for_test']
         for mark in marks:
-            for type in agg_types:
-                rates_idx[type] = 0
             if not eval(mark):
                 continue
 
@@ -270,6 +268,7 @@ for cvr_columns in cvr_columns_lists:
                 persist(to_persist,
                         new_col_name + type + '.train.csv' if mark == 'for_train' \
                             else new_col_name + type + '.test.csv')
+                rates_idx[type] = 0
 
         del (click_buffer)
         del (attribution_buffer)
