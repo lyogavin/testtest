@@ -33,7 +33,7 @@ test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
 chunk_size = 1000000
 sample_count = 1
 
-use_sample = False
+use_sample = True
 
 count_without_attribution = True
 

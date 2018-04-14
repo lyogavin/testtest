@@ -91,7 +91,7 @@ import gc
 from pympler import muppy
 from pympler import summary
 
-use_sample = False
+use_sample = True
 persist_intermediate = False
 
 gen_test_input = True
@@ -1515,6 +1515,31 @@ def gen_test_df(with_hist_profile = True, persist_fe_data = False,
     test = pd.read_csv(path_test_to_use, dtype=dtypes, header=0,
                        compression='gzip' if read_path_with_hist else None,
                        usecols=test_cols_to_use,parse_dates=["click_time"])#.sample(1000)
+
+    if config_scheme_to_use.seperate_hist_files:
+        for ft in hist_st:
+            csv_file = Path(path_train_hist +ft+ '.test.csv')
+            csv_gzip_file = Path(path_train_hist + ft + '.test.csv.gzip')
+            csv_bz2_file = Path(path_train_hist + ft + '.test.csv.bz2')
+            ft_data = None
+            if csv_file.is_file():
+                ft_data = pd.read_csv(path_train_hist +ft+ '.test.csv', dtype={ft:'float32'},
+                                    header=0, engine='c')  # .sample(1000)
+            elif csv_gzip_file.is_file():
+                ft_data = pd.read_csv(path_train_hist +ft+ '.test.csv.gzip', dtype={ft:'float32'},
+                                    header=0, engine='c',compression='gzip') # .sample(1000)
+            elif csv_bz2_file.is_file():
+                ft_data = pd.read_csv(path_train_hist +ft+ '.test.csv.bz2', dtype={ft:'float32'},
+                                    header=0, engine='c',compression='bz2') # .sample(1000)
+                print(path_train_hist +ft+ '.test.csv.bz2' + ' loaded')
+            else:
+                print('{} not found!!!'.format(ft))
+                exit(-1)
+
+            test[ft] = ft_data
+            del ft_data
+            gc.collect()
+
 
 
     if train is not None:
