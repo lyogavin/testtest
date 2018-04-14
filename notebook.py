@@ -114,7 +114,10 @@ train_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'is_attribut
 test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
 
 
+#categorical = ['app', 'device', 'os', 'channel', 'hour']
+#with ip:
 categorical = ['app', 'device', 'os', 'channel', 'hour']
+
 
 cvr_columns_lists = [
     ['ip', 'app', 'device', 'os', 'channel'],
@@ -372,15 +375,37 @@ train_config_89_5 = ConfigScheme(False, False, False,
                                train_wordbatch_streaming=True,
                                train_start_time=None
                                )
+
+train_config_89_6 = ConfigScheme(False, False, False,
+                               shuffle_sample_filter,
+                               shuffle_sample_filter,
+                               None,
+                               seperate_hist_files=False, add_hist_statis_fts=False,
+                               train_start_time=val_time_range_start,
+                               train_end_time=val_time_range_end,
+                               val_start_time=train_time_range_start,
+                               val_end_time=train_time_range_end,
+                               train_wordbatch=True,
+                               log_discretization=True,
+                               use_interactive_features=True
+                               )
+train_config_87_3 = ConfigScheme(True, True, False,
+                               None,
+                               shuffle_sample_filter,
+                               None,
+                               seperate_hist_files=True, add_hist_statis_fts=True,
+                               lgbm_params=new_lgbm_params
+                               )
+
 def use_config_scheme(str):
     print('config values: ')
     pprint(vars(eval(str)))
     print('using config var name: ', str)
     return eval(str)
 
-config_scheme_to_use = use_config_scheme('train_config_87')
+config_scheme_to_use = use_config_scheme('train_config_87_3')
 
-print('test log 87_2')
+print('test log 87_3')
 
 
 dtypes = {
@@ -921,36 +946,38 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
 
 def convert_features_to_text(data, predictors):
 
-    i = 0
+    with timer('convert_features_to_text'):
+        i = 0
 
-    lendata = len(data)
-    #str_array = np.zeros(lendata, dtype=np.dtype('U'))
-    str_array = []
+        lendata = len(data)
+        #str_array = np.zeros(lendata, dtype=np.dtype('U'))
+        str_array = []
 
+        for ix, row in data.iterrows():
+            row_str = None
+            for feature in predictors:
+                if not feature in acro_names:
+                    print('{} missing acronym'.format(feature))
+                    exit(-1)
+                if row_str is None:
+                    row_str = acro_names[feature] + "_" + str(row[feature])
+                else:
+                    row_str = row_str + " " + acro_names[feature] + "_" + str(row[feature])
 
-    for ix, row in data.iterrows():
-        row_str = None
-        for feature in predictors:
-            if not feature in acro_names:
-                print('{} missing acronym'.format(feature))
-                exit(-1)
-            if row_str is None:
-                row_str = acro_names[feature] + "_" + str(row[feature])
-            else:
-                row_str = row_str + " " + acro_names[feature] + "_" + str(row[feature])
+            #str_array[i] = row_str
+            str_array.append(row_str)
 
-        #str_array[i] = row_str
-        str_array.append(row_str)
-            #gc.collect()
-            #print('mem after gc:', cpuStats())
-        i += 1
+            del row_str
+                #gc.collect()
+                #print('mem after gc:', cpuStats())
+            i += 1
 
-    gc.collect()
-    print('mem after gc:', cpuStats())
-    ret = np.array(str_array)
-    del str_array
+        gc.collect()
+        print('mem after gc:', cpuStats())
+        ret = np.array(str_array)
+        del str_array
 
-    return ret
+        return ret
 
 
 def fit_batch(clf, X, y, w):
