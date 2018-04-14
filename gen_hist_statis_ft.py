@@ -186,7 +186,7 @@ previous_day = False
 for cvr_columns in cvr_columns_lists:
     new_col_name = '_'.join(cvr_columns)  + '_'
     iter = None
-    rates = {type: np.full(184903892, -float('inf'), dtype=np.float16) for type in agg_types}
+    rates = {type: np.full(184903892, -float('inf'), dtype=np.float64) for type in agg_types}
     rates_idx = {type: 0 for type in agg_types}
 
     with timer("gen cvr for " + new_col_name):
@@ -238,6 +238,7 @@ for cvr_columns in cvr_columns_lists:
                 for type in agg_types:
                     print('itering type:',type)
                     i=0
+                    rates_idx[type]=0
                     for category in data['previous_category'].values if previous_day else data['category'].values:
                         if i %100000 == 0:
                             print("processing {} line in 2nd round of loop".format(i))
@@ -246,6 +247,12 @@ for cvr_columns in cvr_columns_lists:
                             #                                      click_buffer[category]))
                         rates[type][rates_idx[type]] = rate_calculation(attribution_buffer[category],
                                                                   click_buffer[category], type)
+                        print('{}_#{}. count:{}, attr:{}, rate:{}, type:{}, mark:{}'.format(new_col_name, i,
+                                                                  click_buffer[category],
+                                                                  attribution_buffer[category],
+                                                                  rates[type][rates_idx[type]],
+                                                                  type,
+                                                                  mark))
                         rates_idx[type] +=1
                         i+=1
 
@@ -264,7 +271,7 @@ for cvr_columns in cvr_columns_lists:
                 print('rate len so far %d for type %s.' %(rates_idx[type], type))
 
             for type in agg_types:
-                to_persist = pd.DataFrame(rates[type][:rates_idx[type]], dtype='float16')
+                to_persist = pd.DataFrame(rates[type][:rates_idx[type]], dtype='float64')
                 persist(to_persist,
                         new_col_name + type + '.train.csv' if mark == 'for_train' \
                             else new_col_name + type + '.test.csv')

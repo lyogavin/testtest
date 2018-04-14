@@ -294,10 +294,13 @@ _cvr']
     4. full to train with interactive
         grid test2: running, 0.9733642574137581, LB: 0.9611
             wordbatch_fm_ftrl.csv.13-04-2018_09-05-32
+        Aliyun: fixed bug: LB: 0.9670
     5. use all days data to train in streaming:
         grid test2: running
     6. add ip feature:
-        grid test: running
+        grid test: 0.967267704435634(0.9672534709722984)(0.9677147448307044)
+    7. try public wordbatch kernel combination features:
+        val test: 0.9648907667401769
 
 90. 88.4 + NN H1:
     1 .grid test2: 0.93233640757455
@@ -307,6 +310,7 @@ _cvr']
     2. full predict: 0.9686807551924094
 
 92. ensemble of public wordbatch + 80 + 77 + 87.3
+    LB: 0.9741
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature

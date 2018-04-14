@@ -8,7 +8,7 @@
 # For example, here's several helpful packages to load in 
 import sys
 
-on_kernel = False
+on_kernel = True
 
 if on_kernel:
     sys.path.insert(0, '../input/wordbatch-133/wordbatch/')
@@ -114,9 +114,9 @@ train_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'is_attribut
 test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
 
 
-categorical = ['app', 'device', 'os', 'channel', 'hour']
+#categorical = ['app', 'device', 'os', 'channel', 'hour']
 #with ip:
-#categorical = ['app', 'device', 'os', 'channel', 'hour', 'ip']
+categorical = ['app', 'device', 'os', 'channel', 'hour', 'ip']
 
 
 cvr_columns_lists = [
@@ -136,12 +136,16 @@ acro_names = {
                  'os': 'O',
                  'channel' : 'C',
                  'hour' :'H',
-                 'ip_day_hourcount' : 'IDH',
-                 'ip_day_hour_oscount' : 'IDHO',
-                 'ip_day_hour_appcount' : 'IDHA',
-                 'ip_day_hour_app_oscount': 'IDHAO',
-                 'app_day_hourcount' : 'ADH',
-                 'ip_in_test_hhcount' : "IITH",
+                 'ip_day_hourcount' : 'IDH-',
+                 'ip_day_hour_oscount' : 'IDHO-',
+                 'ip_day_hour_appcount' : 'IDHA-',
+                 'ip_day_hour_app_oscount': 'IDHAO-',
+                 'ip_app_oscount':"IAO-",
+                 'ip_appcount':"IA-",
+                 'ip_devicecount':"ID-",
+                 'app_channelcount':"AC-",
+                 'app_day_hourcount' : 'ADH-',
+                 'ip_in_test_hhcount' : "IITH-",
                  'next_click' : 'NC',
                  'app_channel': 'AC',
                  'os_channel': 'OC',
@@ -404,9 +408,9 @@ def use_config_scheme(str):
     print('using config var name: ', str)
     return eval(str)
 
-config_scheme_to_use = use_config_scheme('train_config_89_5')
+config_scheme_to_use = use_config_scheme('train_config_89_6')
 
-print('test log 89_5')
+print('test log 89_7')
 
 
 dtypes = {
@@ -631,69 +635,9 @@ def add_statistic_feature(group_by_cols, training, training_hist, training_hist_
 
     features_added.append(feature_name_added)
 
-    if with_hist:
-        print('count ip with group by in hist data:', group_by_cols)
-        feature_name_added = '_'.join(group_by_cols) + "count_in_hist"
-        n_chans = training_hist[group_by_cols + [counting_col]].groupby(by=group_by_cols)[[counting_col]] \
-            .count().reset_index().rename(columns={counting_col: feature_name_added})
-        training = training.merge(n_chans, on=group_by_cols, how='left')
-        del n_chans
-        gc.collect()
-        print('count ip attribution with group by in hist data:', group_by_cols)
-        feature_name_added1 = '_'.join(group_by_cols) + "count_attribution_in_hist"
-        n_chans = training_hist_attribution[group_by_cols + [counting_col]] \
-            .groupby(by=group_by_cols)[[counting_col]] \
-            .count().reset_index().rename(columns={counting_col: feature_name_added1})
-        training = training.merge(n_chans, on=group_by_cols, how='left')
-        del n_chans
-        gc.collect()
-
-        feature_name_added2 = '_'.join(group_by_cols) + "count_attribution_rate_in_hist"
-        training[feature_name_added2] = \
-            training[feature_name_added1] / training[feature_name_added] * 1000.0
-
-        if qcut_count != 0:
-            print('before qcut', feature_name_added, training[feature_name_added].describe())
-            quantile_cut = training[feature_name_added].quantile(qcut_count)
-            training[feature_name_added] = training[feature_name_added].apply(lambda x: x if x < quantile_cut else -1)
-            print('after qcut', feature_name_added, training[feature_name_added].describe())
-
-        if cast_type:
-            training[feature_name_added] = training[feature_name_added].fillna(0).astype('uint16')
-        if discretization != 0:
-            print('before qcut', feature_name_added, training[feature_name_added].describe())
-            training[feature_name_added] = pd.qcut(training[feature_name_added], discretization, labels=False,
-                                                   duplicates='drop').fillna(0).astype('uint16')
-            print('after qcut', feature_name_added, training[feature_name_added].describe())
-
-
-
-        if qcut_count != 0:
-            print('before qcut', feature_name_added1, training[feature_name_added1].describe())
-            quantile_cut = training[feature_name_added1].quantile(qcut_count)
-            training[feature_name_added1] = training[feature_name_added1].apply(lambda x: x if x < quantile_cut else -1)
-            print('after qcut', feature_name_added1, training[feature_name_added1].describe())
-
-        if cast_type:
-            training[feature_name_added1] = training[feature_name_added1].fillna(0).astype('uint16')
-            #training = training.astype({feature_name_added1:'uint16'})
-            print(training[feature_name_added1])
-        if discretization != 0:
-            print('before qcut', feature_name_added1, training[feature_name_added1].describe())
-            training[feature_name_added1] = pd.qcut(training[feature_name_added1], discretization, labels=False,
-                                                    duplicates='drop').fillna(0).astype('uint16')
-            print('after qcut', feature_name_added1, training[feature_name_added1].describe())
-        # training[feature_name_added1] = training[feature_name_added1].astype('uint16')
-
-
-        if cast_type:
-            training[feature_name_added2] = training[feature_name_added2].fillna(0).astype('uint16')
-
-        features_added.append(feature_name_added)
-        features_added.append(feature_name_added1)
-        features_added.append(feature_name_added2)
-
     print('added features:', features_added)
+    print(training[feature_name_added].describe())
+    print('nan count: ', training[feature_name_added].isnull().sum())
 
     return training, features_added, discretization_bins_used
 
@@ -705,11 +649,28 @@ def generate_counting_history_features(data, history, history_attribution,
     new_features = []
 
     add_features_list = [
+
+        #====================
+        # my best features
         {'group':['ip','day','hour'], 'with_hist': False, 'counting_col':'channel'},
         {'group':['ip','day','hour', 'os'], 'with_hist': False, 'counting_col':'channel'},
         {'group':['ip','day','hour','app'], 'with_hist': False, 'counting_col':'channel'},
         {'group':['ip','day','hour','app','os'], 'with_hist': False, 'counting_col':'channel'},
         {'group':['app','day','hour'], 'with_hist': False, 'counting_col':'channel'},
+        {'group': ['ip', 'in_test_hh'], 'with_hist': with_hist_profile, 'counting_col': 'channel'}
+        #=====================
+
+
+        # try word batch featuers:
+        #=====================
+        #{'group': ['ip', 'day', 'hour'], 'with_hist': False, 'counting_col': 'channel'},
+        #{'group': ['ip', 'app'], 'with_hist': False, 'counting_col': 'channel'},
+        #{'group': ['ip', 'app', 'os'], 'with_hist': False, 'counting_col': 'channel'},
+        #{'group': ['ip', 'device'], 'with_hist': False, 'counting_col': 'channel'},
+        #{'group': ['app', 'channel'], 'with_hist': False, 'counting_col': 'os'},
+        #======================
+
+
 
         #{'group':['app'], 'with_hist': False, 'counting_col':'channel'},
         #{'group': ['os'], 'with_hist': False, 'counting_col': 'channel'},
@@ -727,32 +688,28 @@ def generate_counting_history_features(data, history, history_attribution,
         #{'group':['channel','os'], 'with_hist': with_hist_profile, 'counting_col':'app'},
         #{'group':['channel','app','os'], 'with_hist': with_hist_profile, 'counting_col':'device'},
         #{'group':['os','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
-        {'group': ['ip', 'in_test_hh'], 'with_hist': with_hist_profile, 'counting_col': 'channel'}
         ]
 
-    new_features_data = []
     discretization_bins_used = None
 
     for add_feature in add_features_list:
-        new_data, features_added, discretization_bins_used_current_feature = add_statistic_feature(add_feature['group'],
-                                                     data[add_feature['group'] + [add_feature['counting_col']]],
-                                                     history, history_attribution, add_feature['with_hist'],
-                                                     counting_col=add_feature['counting_col'],
-                                                     discretization=discretization,
-                                                     discretization_bins=discretization_bins,
-                                                     log_discretization=config_scheme_to_use.log_discretization)
+        data, features_added, discretization_bins_used_current_feature = add_statistic_feature(
+            add_feature['group'],
+            #data[add_feature['group'] + [add_feature['counting_col']]],
+            data,
+            history, history_attribution, add_feature['with_hist'],
+            counting_col=add_feature['counting_col'],
+            discretization=discretization,
+            discretization_bins=discretization_bins,
+            log_discretization=config_scheme_to_use.log_discretization)
         new_features = new_features + features_added
         if discretization_bins_used_current_feature is not None:
             if discretization_bins_used is None:
                 discretization_bins_used = {}
             discretization_bins_used = \
                 dict(list(discretization_bins_used.items()) + list(discretization_bins_used_current_feature.items()))
-        new_features_data.append({'data':new_data[features_added], 'features':features_added})
         gc.collect()
 
-    for new_data in new_features_data:
-        for feature in new_data['features']:
-            data[feature] = new_data['data'][feature]
 
     if remove_hist_profile_count != 0:
         data = data.query('ipcount_in_hist > {}'.format(remove_hist_profile_count))
@@ -1072,6 +1029,10 @@ def train_wordbatch_model_streaming():
 
     p = None
 
+    file_read_chunk_id = -1
+
+    mini_chunk_id = -1
+
     with timer('train wordbatch model...'):
         train_chunks = pd.read_csv(path_train_sample if use_sample else path_train, dtype=dtypes,
                                    chunksize = batchsize,
@@ -1079,6 +1040,8 @@ def train_wordbatch_model_streaming():
                                    usecols=train_cols,
                                    parse_dates=["click_time"])
         for chunk in train_chunks:
+            file_read_chunk_id += 1
+            print('procssing chunk #{} in file'.format(file_read_chunk_id))
             # convert features to text:
             if config_scheme_to_use.train_filter is not None and \
                             config_scheme_to_use.train_filter['filter_type'] == 'sample':
@@ -1105,6 +1068,11 @@ def train_wordbatch_model_streaming():
                                                    None,
                                                    False,
                                                    discretization=config_scheme_to_use.discretization)
+
+            print('debug: ip_day_hour_app_oscount nan count: ')
+            print(chunk['ip_day_hour_app_oscount'].isnull().sum())
+
+
             print('mem after gen ft:', cpuStats())
             chunk.drop('click_time', inplace=True, axis=1)
             print('mem after drop clk time:', cpuStats())
@@ -1112,20 +1080,23 @@ def train_wordbatch_model_streaming():
             print('mem after gc:', cpuStats())
             chunk.info()
 
+            if config_scheme_to_use.use_interactive_features:
+                print('gen_iteractive_categorical_features...')
+                chunk = gen_iteractive_categorical_features(chunk)
+
+            gc.collect()
+            print('mem after iter fts:', cpuStats())
+
             if p != None:
                 p.join()
                 del (X)
                 print('mem: after del X', cpuStats())
 
             chunker_iter = chunker(chunk, batchsize//3)
-
+            mini_chunk_id = 0
             for minichunk in chunker_iter:
-                if config_scheme_to_use.use_interactive_features:
-                    print('gen_iteractive_categorical_features...')
-                    minichunk = gen_iteractive_categorical_features(minichunk)
-
-                gc.collect()
-                print('mem after iter fts:', cpuStats())
+                mini_chunk_id +=1
+                print('procssing minichunk #{}/{}'.format(mini_chunk_id, file_read_chunk_id))
 
                 predictors1 = categorical + new_features
 
@@ -1161,6 +1132,10 @@ def train_wordbatch_model_streaming():
 
                 p = threading.Thread(target=fit_batch, args=(clf, X, labels, weights))
                 p.start()
+            del chunk
+            gc.collect()
+        #for chunk in train_chunks:
+
 
         if p != None:
             p.join()
@@ -1234,14 +1209,14 @@ def train_wordbatch_model_streaming():
         test_data, _ = gen_test_df(False, False, None)
         test_len= len(test_data)
     gc.collect()
+    if config_scheme_to_use.use_interactive_features:
+        test_data = gen_iteractive_categorical_features(test_data)
 
     if test_data is not None:
         batchsize = batchsize // 10
         with timer('predict wordbatch model...'):
             for chunk in chunker(test_data, batchsize):
                 # convert features to text:
-                if config_scheme_to_use.use_interactive_features:
-                    chunk = gen_iteractive_categorical_features(chunk)
 
                 predictors1 = categorical + new_features
 
@@ -1305,14 +1280,14 @@ def train_wordbatch_model(train, val, test_data, new_features):
     #if config_scheme_to_use.add_hist_statis_fts:
     #    predictors1 = predictors1 + hist_st
 
+    if config_scheme_to_use.use_interactive_features:
+        train = gen_iteractive_categorical_features(train)
     p = None
 
     with timer('train wordbatch model...'):
         for chunk in chunker(train, batchsize):
             # convert features to text:
 
-            if config_scheme_to_use.use_interactive_features:
-                chunk = gen_iteractive_categorical_features(chunk)
 
             predictors1 = categorical + new_features
 
