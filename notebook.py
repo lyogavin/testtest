@@ -91,7 +91,7 @@ import gc
 from pympler import muppy
 from pympler import summary
 
-use_sample = True
+use_sample = False
 persist_intermediate = False
 
 gen_test_input = True
@@ -114,9 +114,9 @@ train_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'is_attribut
 test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
 
 
-#categorical = ['app', 'device', 'os', 'channel', 'hour']
-#with ip:
 categorical = ['app', 'device', 'os', 'channel', 'hour']
+#with ip:
+#categorical = ['app', 'device', 'os', 'channel', 'hour', 'ip']
 
 
 cvr_columns_lists = [
@@ -130,6 +130,7 @@ cvr_columns_lists = [
 agg_types = ['non_attr_count', 'cvr']
 
 acro_names = {
+                 'ip':'I',
                  'app':'A',
                  'device':'D',
                  'os': 'O',
@@ -403,9 +404,9 @@ def use_config_scheme(str):
     print('using config var name: ', str)
     return eval(str)
 
-config_scheme_to_use = use_config_scheme('train_config_87_3')
+config_scheme_to_use = use_config_scheme('train_config_89_5')
 
-print('test log 87_3')
+print('test log 89_5')
 
 
 dtypes = {
@@ -945,6 +946,26 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
 
 
 def convert_features_to_text(data, predictors):
+    with timer('convert_features_to_text'):
+        i = 0
+        str_array = None
+        for feature in predictors:
+            if not feature in acro_names:
+                print('{} missing acronym'.format(feature))
+                exit(-1)
+            if str_array is None:
+                str_array = acro_names[feature] + "_" + data[feature].astype(str)
+            else:
+                str_array = str_array + " " + acro_names[feature] + "_" + data[feature].astype(str)
+
+            gc.collect()
+            print('mem after gc:', cpuStats())
+            i += 1
+
+        str_array = str_array.values
+        return str_array
+
+def convert_features_to_text_iter(data, predictors):
 
     with timer('convert_features_to_text'):
         i = 0
@@ -1096,47 +1117,50 @@ def train_wordbatch_model_streaming():
                 del (X)
                 print('mem: after del X', cpuStats())
 
-            if config_scheme_to_use.use_interactive_features:
-                print('gen_iteractive_categorical_features...')
-                chunk = gen_iteractive_categorical_features(chunk)
+            chunker_iter = chunker(chunk, batchsize//3)
 
-            gc.collect()
-            print('mem after iter fts:', cpuStats())
+            for minichunk in chunker_iter:
+                if config_scheme_to_use.use_interactive_features:
+                    print('gen_iteractive_categorical_features...')
+                    minichunk = gen_iteractive_categorical_features(minichunk)
 
-            predictors1 = categorical + new_features
+                gc.collect()
+                print('mem after iter fts:', cpuStats())
 
-            if config_scheme_to_use.add_hist_statis_fts:
-                predictors1 = predictors1 + hist_st
+                predictors1 = categorical + new_features
 
-            print('converting chunk {} with features {}: '.format(chunk, predictors1))
-            str_array = convert_features_to_text(chunk, predictors1)
-            print('converted to str array: ', str_array)
+                if config_scheme_to_use.add_hist_statis_fts:
+                    predictors1 = predictors1 + hist_st
 
-
-            labels = []
-            weights = []
-            if target in chunk.columns:
-                labels = chunk['is_attributed'].values
-                weights = np.multiply([1.0 if x == 1 else 0.2 for x in chunk['is_attributed'].values],
-                                      chunk['hour'].apply(lambda x: 1.0 if x in pick_hours else 0.5))
-            del (chunk)
-            gc.collect()
-            print('mem:', cpuStats())
+                print('converting minichunk {} with features {}: '.format(minichunk, predictors1))
+                str_array = convert_features_to_text(minichunk, predictors1)
+                print('converted to str array: ', str_array)
 
 
-            if p != None:
-                p.join()
+                labels = []
+                weights = []
+                if target in minichunk.columns:
+                    labels = minichunk['is_attributed'].values
+                    weights = np.multiply([1.0 if x == 1 else 0.2 for x in minichunk['is_attributed'].values],
+                                          minichunk['hour'].apply(lambda x: 1.0 if x in pick_hours else 0.5))
+                del (minichunk)
+                gc.collect()
+                print('mem:', cpuStats())
 
-            gc.collect()
 
-            X = wb.transform(str_array)
-            del (str_array)
-            gc.collect()
-            print('mem:', cpuStats())
+                if p != None:
+                    p.join()
+
+                gc.collect()
+
+                X = wb.transform(str_array)
+                del (str_array)
+                gc.collect()
+                print('mem:', cpuStats())
 
 
-            p = threading.Thread(target=fit_batch, args=(clf, X, labels, weights))
-            p.start()
+                p = threading.Thread(target=fit_batch, args=(clf, X, labels, weights))
+                p.start()
 
         if p != None:
             p.join()

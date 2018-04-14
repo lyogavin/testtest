@@ -267,7 +267,9 @@ _cvr']
         Feature names: ['app', 'device', 'os', 'channel', 'hour', 'ip_day_hourcount', 'ip_day_hour_oscount', 'ip_day_hour_appcount', 'ip_day_hour_app_oscount', 'app_day_hourcount', 'ip_in_test_hhcount', 'next_click', 'ip_app_device_os_channel_non_attr_count', 'app_os_non_attr_count', 'app_channel_non_attr_count', 'app_device_non_attr_count', 'ip_device_non_attr_count', 'ip_non_attr_count', 'os_non_attr_count', 'channel_non_attr_count', 'ip_app_device_os_channel_cvr', 'app_os_cvr', 'app_channel_cvr', 'app_device_cvr', 'ip_device_cvr', 'ip_cvr', 'os_cvr', 'channel_cvr']
         Feature importances: [224, 27, 182, 316, 38, 76, 15, 21, 56, 25, 112, 127, 6, 3, 3, 0, 1, 4, 1, 0, 0, 6, 1, 2, 5, 3, 5, 5]
     3. 87.2 -> full day train 1/6 val and predict:
-        aliyun: running
+        aliyun: train's auc: 0.983686	valid's auc: 0.97806
+        submission_notebook.csv.14-04-2018_12-11-18
+        LB: 0.9705
 
 88. 86 + count feature discretization 50:
     1. grid test:0.9655061249593924
@@ -304,6 +306,7 @@ _cvr']
     1. val test: 0.9589079351648598
     2. full predict: 0.9686807551924094
 
+92. ensemble of public wordbatch + 80 + 77 + 87.3
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature
