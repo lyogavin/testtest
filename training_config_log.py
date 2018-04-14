@@ -242,7 +242,18 @@ train_config_89_4 = ConfigScheme(False, False, False,
                                log_discretization=True,
                                use_interactive_features=True
                                )
-
+train_config_89_5 = ConfigScheme(False, False, False,
+                               None,
+                               shuffle_sample_filter,
+                               None,
+                               seperate_hist_files=False, add_hist_statis_fts=False,
+                               train_wordbatch=False,
+                               predict_wordbatch = True,
+                               log_discretization=True,
+                               use_interactive_features=True,
+                               train_wordbatch_streaming=True,
+                               train_start_time=None
+                               )
 train_config_88_3 = ConfigScheme(False, False, False,
                                None,
                                shuffle_sample_filter,

@@ -8,7 +8,7 @@
 # For example, here's several helpful packages to load in 
 import sys
 
-on_kernel = True
+on_kernel = False
 
 if on_kernel:
     sys.path.insert(0, '../input/wordbatch-133/wordbatch/')
@@ -58,6 +58,10 @@ def cpuStats():
     py = psutil.Process(pid)
     memoryUse = py.memory_info()[0] / 2. ** 30
     gc.collect()
+    #all_objects = muppy.get_objects()
+    #sum1 = summary.summarize(all_objects)
+    #summary.print_(sum1)
+
     return memoryUse
 
 # Any results you write to the current directory are saved as output.
@@ -83,12 +87,18 @@ import lightgbm as lgb
 import sys
 import gc
 
+
+from pympler import muppy
+from pympler import summary
+
 use_sample = False
 persist_intermediate = False
 
 gen_test_input = True
 
 read_path_with_hist = False
+
+TRAIN_SAMPLE_DATA_LEN = 100001
 
 #path = '../input/'
 path = '../input/talkingdata-adtracking-fraud-detection/'
@@ -280,7 +290,8 @@ class ConfigScheme:
                log_discretization = False,
                predict_wordbatch = False,
                use_interactive_features = False,
-               wordbatch_model = 'FM_FTRL'):
+               wordbatch_model = 'FM_FTRL',
+               train_wordbatch_streaming = False):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -302,6 +313,7 @@ class ConfigScheme:
         self.predict_wordbatch = predict_wordbatch
         self.use_interactive_features = use_interactive_features
         self.wordbatch_model = wordbatch_model
+        self.train_wordbatch_streaming = train_wordbatch_streaming
 
 
 train_config_88_4 = ConfigScheme(False, False, False,
@@ -348,15 +360,27 @@ train_config_89_4 = ConfigScheme(False, False, False,
                                log_discretization=True,
                                use_interactive_features=True
                                )
+train_config_89_5 = ConfigScheme(False, False, False,
+                               None,
+                               shuffle_sample_filter,
+                               None,
+                               seperate_hist_files=False, add_hist_statis_fts=False,
+                               train_wordbatch=False,
+                               predict_wordbatch = True,
+                               log_discretization=True,
+                               use_interactive_features=True,
+                               train_wordbatch_streaming=True,
+                               train_start_time=None
+                               )
 def use_config_scheme(str):
     print('config values: ')
     pprint(vars(eval(str)))
     print('using config var name: ', str)
     return eval(str)
 
-config_scheme_to_use = use_config_scheme('train_config_89_4')
+config_scheme_to_use = use_config_scheme('train_config_87')
 
-print('test log 89_4')
+print('test log 87_2')
 
 
 dtypes = {
@@ -650,7 +674,6 @@ def add_statistic_feature(group_by_cols, training, training_hist, training_hist_
 def generate_counting_history_features(data, history, history_attribution,
                                        with_hist_profile = True, remove_hist_profile_count=0,
                                        discretization=0, discretization_bins=None):
-
     print('discretization bins to use:', discretization_bins)
         
     new_features = []
@@ -722,7 +745,7 @@ def generate_counting_history_features(data, history, history_attribution,
                             data['device'].astype(str) \
                           + "_" + data['os'].astype(str) + "_" + data['channel'].astype(str)).apply(hash) % D
         click_buffer = np.full(D, 3000000000, dtype=np.uint32)
-        data['epochtime'] = data['click_time'].astype(np.int64) // 10 ** 9
+        data['epochtime'] = pd.to_datetime(data['click_time']).astype(np.int64) // 10 ** 9
         next_clicks = []
         for category, time in zip(reversed(data['category'].values), reversed(data['epochtime'].values)):
             next_clicks.append(click_buffer[category] - time)
@@ -738,6 +761,9 @@ def generate_counting_history_features(data, history, history_attribution,
             data['next_click'] = np.log2(1 + data['next_click'].values).astype(int)
         data.drop('epochtime',inplace=True,axis=1)
         data.drop('category',inplace=True,axis=1)
+
+    print('next click ', data['next_click'])
+    print(data['next_click'].describe())
 
     new_features = new_features + ['next_click']
 
@@ -800,6 +826,7 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
                 ft_data = next(pd.read_csv(path_train_hist +ft+ '.train.csv.bz2', dtype={ft:'float32'},
                                     header=0, engine='c',compression='bz2',
                                     chunksize = lentrain))  # .sample(1000)
+                print(path_train_hist +ft+ '.train.csv.bz2' + ' loaded')
             else:
                 print('{} not found!!!'.format(ft))
                 exit(-1)
@@ -895,19 +922,35 @@ def gen_train_df(with_hist_profile = True, persist_fe_data = False):
 def convert_features_to_text(data, predictors):
 
     i = 0
-    str_array = None
-    for feature in predictors:
-        if not feature in acro_names:
-            print('{} missing acronym'.format(feature))
-            exit(-1)
-        if str_array is None:
-            str_array = acro_names[feature] + "_" + data[feature].astype(str)
-        else:
-            str_array = str_array + " " + acro_names[feature] + "_" + data[feature].astype(str)
+
+    lendata = len(data)
+    #str_array = np.zeros(lendata, dtype=np.dtype('U'))
+    str_array = []
+
+
+    for ix, row in data.iterrows():
+        row_str = None
+        for feature in predictors:
+            if not feature in acro_names:
+                print('{} missing acronym'.format(feature))
+                exit(-1)
+            if row_str is None:
+                row_str = acro_names[feature] + "_" + str(row[feature])
+            else:
+                row_str = row_str + " " + acro_names[feature] + "_" + str(row[feature])
+
+        #str_array[i] = row_str
+        str_array.append(row_str)
+            #gc.collect()
+            #print('mem after gc:', cpuStats())
         i += 1
 
-    str_array = str_array.values
-    return str_array
+    gc.collect()
+    print('mem after gc:', cpuStats())
+    ret = np.array(str_array)
+    del str_array
+
+    return ret
 
 
 def fit_batch(clf, X, y, w):
@@ -941,6 +984,236 @@ class ThreadWithReturnValue(threading.Thread):
 def chunker(seq, size):
     return (seq[pos:pos + size] for pos in range(0, len(seq), size))
 
+
+def train_wordbatch_model_streaming():
+    pick_hours = {4, 5, 10, 13, 14}
+    batchsize = 10000000
+    D = 2 ** 22
+
+    if use_sample:
+        batchsize = TRAIN_SAMPLE_DATA_LEN // 5
+
+    wb = None
+    clf = None
+
+    print('creating model...')
+    with timer('creating model'):
+        wb = wordbatch.WordBatch(None, extractor=(WordHash, {"ngram_range": (1, 1), "analyzer": "word",
+                                                             "lowercase": False, "n_features": D,
+                                                             "norm": None, "binary": True})
+                                 , minibatch_size=batchsize // 80, procs=8, freeze=True, timeout=1800, verbose=0)
+
+        clf = None
+        if config_scheme_to_use.wordbatch_model == 'FM_FTRL':
+            clf = FM_FTRL(alpha=0.05, beta=0.1, L1=0.0, L2=0.0, D=D, alpha_fm=0.02, L2_fm=0.0, init_fm=0.01,
+                          weight_fm=1.0,D_fm=8, e_noise=0.0, iters=3, inv_link="sigmoid", e_clip=1.0,
+                          threads=4, use_avx=1, verbose=0)
+        elif config_scheme_to_use.wordbatch_model == 'NN_ReLU_H1':
+            clf = NN_ReLU_H1(alpha=0.05, D = D, verbose=9, e_noise=0.0, threads=4, inv_link="sigmoid")
+        elif config_scheme_to_use.wordbatch_model == 'FTRL':
+            clf = FTRL(alpha=0.05, beta=0.1, L1=0.0, L2=0.0, D=D, iters=3, threads=4, verbose=9)
+        else:
+            print('invalid wordbatch_model param:', config_scheme_to_use.wordbatch_model)
+            exit(-1)
+
+    target = 'is_attributed'
+    #predictors1 = categorical + new_features
+
+    #if config_scheme_to_use.add_hist_statis_fts:
+    #    predictors1 = predictors1 + hist_st
+
+    p = None
+
+    with timer('train wordbatch model...'):
+        train_chunks = pd.read_csv(path_train_sample if use_sample else path_train, dtype=dtypes,
+                                   chunksize = batchsize,
+                                   header=0,
+                                   usecols=train_cols,
+                                   parse_dates=["click_time"])
+        for chunk in train_chunks:
+            # convert features to text:
+            if config_scheme_to_use.train_filter is not None and \
+                            config_scheme_to_use.train_filter['filter_type'] == 'sample':
+                sample_count = config_scheme_to_use.train_filter['sample_count']
+                # sample 1/4 of the data:
+                chunk = chunk.set_index('ip').loc[lambda x: (x.index + 401) % sample_count == 0].reset_index()
+
+            if config_scheme_to_use.train_start_time is not None:
+                chunk = chunk.set_index('click_time'). \
+                     ix[config_scheme_to_use.train_start_time:config_scheme_to_use.train_end_time].reset_index()
+
+                if not use_sample and len(chunk) < 500000:
+                    print('len {} too short to train after filter {} - {}, skip this batch'.format(
+                        len(chunk),
+                        config_scheme_to_use.train_start_time,
+                        config_scheme_to_use.train_end_time))
+                    continue
+
+            chunk = gen_categorical_features(chunk)
+
+            chunk, new_features, discretization_bins_used = \
+                generate_counting_history_features(chunk,
+                                                   None,
+                                                   None,
+                                                   False,
+                                                   discretization=config_scheme_to_use.discretization)
+            print('mem after gen ft:', cpuStats())
+            chunk.drop('click_time', inplace=True, axis=1)
+            print('mem after drop clk time:', cpuStats())
+            gc.collect()
+            print('mem after gc:', cpuStats())
+            chunk.info()
+
+            if p != None:
+                p.join()
+                del (X)
+                print('mem: after del X', cpuStats())
+
+            if config_scheme_to_use.use_interactive_features:
+                print('gen_iteractive_categorical_features...')
+                chunk = gen_iteractive_categorical_features(chunk)
+
+            gc.collect()
+            print('mem after iter fts:', cpuStats())
+
+            predictors1 = categorical + new_features
+
+            if config_scheme_to_use.add_hist_statis_fts:
+                predictors1 = predictors1 + hist_st
+
+            print('converting chunk {} with features {}: '.format(chunk, predictors1))
+            str_array = convert_features_to_text(chunk, predictors1)
+            print('converted to str array: ', str_array)
+
+
+            labels = []
+            weights = []
+            if target in chunk.columns:
+                labels = chunk['is_attributed'].values
+                weights = np.multiply([1.0 if x == 1 else 0.2 for x in chunk['is_attributed'].values],
+                                      chunk['hour'].apply(lambda x: 1.0 if x in pick_hours else 0.5))
+            del (chunk)
+            gc.collect()
+            print('mem:', cpuStats())
+
+
+            if p != None:
+                p.join()
+
+            gc.collect()
+
+            X = wb.transform(str_array)
+            del (str_array)
+            gc.collect()
+            print('mem:', cpuStats())
+
+
+            p = threading.Thread(target=fit_batch, args=(clf, X, labels, weights))
+            p.start()
+
+        if p != None:
+            p.join()
+
+
+    del train_chunks
+    del X
+    del labels
+    gc.collect()
+
+    print('mem:', cpuStats())
+    # convert features to text:
+
+    val = pd.read_csv(path_train_sample if use_sample else path_train, dtype=dtypes,
+                               header=0,
+                               usecols=train_cols,
+                               parse_dates=["click_time"])
+
+    val, _, _ =  \
+        prepare_data(val, 9, 2, config_scheme_to_use.val_filter, False,
+                     start_time=config_scheme_to_use.val_start_time,
+                     end_time=config_scheme_to_use.val_end_time, start_hist_time='2017-11-07 0:00:00')
+
+    print('len val:', len(val))
+    val = gen_categorical_features(val)
+
+    val, new_features1, _ = generate_counting_history_features(val, None,
+                                                           None,
+                                                           False,
+                                                           discretization=config_scheme_to_use.discretization,
+                                                           discretization_bins=None)
+
+    val = val.set_index('click_time').\
+              ix[config_scheme_to_use.val_start_time:config_scheme_to_use.val_end_time].reset_index()
+
+    if config_scheme_to_use.use_interactive_features:
+        val = gen_iteractive_categorical_features(val)
+
+    predictors1 = categorical + new_features1
+
+    if config_scheme_to_use.add_hist_statis_fts:
+        predictors1 = predictors1 + hist_st
+
+    str_array = convert_features_to_text(val, predictors1)
+    print('mem:', cpuStats())
+    labels = val['is_attributed'].values
+
+    del (val)
+    gc.collect()
+
+    print('mem:', cpuStats())
+
+    X = wb.transform(str_array)
+
+    evaluate_batch(clf, X, labels)
+
+    del X
+    del str_array
+    del labels
+
+    gc.collect()
+
+    print('mem:', cpuStats())
+
+    print('predicting...')
+    p = None
+    click_ids = []
+    test_preds = []
+
+    if config_scheme_to_use.predict_wordbatch:
+        test_data, _ = gen_test_df(False, False, None)
+        test_len= len(test_data)
+    gc.collect()
+
+    if test_data is not None:
+        batchsize = batchsize // 10
+        with timer('predict wordbatch model...'):
+            for chunk in chunker(test_data, batchsize):
+                # convert features to text:
+                if config_scheme_to_use.use_interactive_features:
+                    chunk = gen_iteractive_categorical_features(chunk)
+
+                predictors1 = categorical + new_features
+
+                if config_scheme_to_use.add_hist_statis_fts:
+                    predictors1 = predictors1 + hist_st
+
+                str_array = convert_features_to_text(chunk, predictors1)
+                print('mem:', cpuStats())
+                click_ids += chunk['click_id'].tolist()
+
+                if p != None:
+                    test_preds += list(p.join())
+                    del (X)
+                gc.collect()
+
+                X = wb.transform(str_array)
+                del (str_array)
+                p = ThreadWithReturnValue(target=predict_batch, args=(clf, X))
+                p.start()
+        if p != None:  test_preds += list(p.join())
+
+        df_sub = pd.DataFrame({"click_id": click_ids, 'is_attributed': test_preds})
+        df_sub.to_csv(get_dated_filename("wordbatch_fm_ftrl.csv"), index=False)
 
 
 
@@ -1074,7 +1347,6 @@ def train_wordbatch_model(train, val, test_data, new_features):
 
                 str_array = convert_features_to_text(chunk, predictors1)
                 print('mem:', cpuStats())
-                labels = val['is_attributed'].values
                 click_ids += chunk['click_id'].tolist()
 
                 if p != None:
@@ -1321,6 +1593,9 @@ if config_scheme_to_use.train_wordbatch:
     gc.collect()
 
     train_wordbatch_model(train, val, test, new_features)
+
+if config_scheme_to_use.train_wordbatch_streaming:
+    train_wordbatch_model_streaming()
 
 to_submit = False
 

@@ -262,6 +262,8 @@ _cvr']
     aliyun: train's auc: 0.986582	valid's auc: 0.974614
         Feature names: ['app', 'device', 'os', 'channel', 'hour', 'ip_day_hourcount', 'ip_day_hour_oscount', 'ip_day_hour_appcount', 'ip_day_hour_app_oscount', 'app_day_hourcount', 'ip_in_test_hhcount', 'next_click', 'ip_app_device_os_channel_non_attr_count', 'app_os_non_attr_count', 'app_channel_non_attr_count', 'app_device_non_attr_count', 'ip_device_non_attr_count', 'ip_non_attr_count', 'os_non_attr_count', 'channel_non_attr_count', 'ip_app_device_os_channel_cvr', 'app_os_cvr', 'app_channel_cvr', 'app_device_cvr', 'ip_device_cvr', 'ip_cvr', 'os_cvr', 'channel_cvr']
         Feature importances: [201, 30, 161, 293, 38, 75, 16, 19, 49, 24, 99, 118, 5, 1, 1, 0, 5, 2, 2, 0, 12, 4, 6, 6, 2, 2, 1, 4]
+    fix issue:
+        running
     3. 87.2 -> full day train 1/6 val and predict:
         aliyun: running
 
@@ -285,8 +287,11 @@ _cvr']
         grid test: 0.966414
     3. add interactive features:
         grid test 2: 0.9672690870802338
-    4. full to train
-        grid test2: running, 0.9733642574137581
+    4. full to train with interactive
+        grid test2: running, 0.9733642574137581, LB: 0.9611
+            wordbatch_fm_ftrl.csv.13-04-2018_09-05-32
+    5. use all days data to train in streaming:
+        grid test2: running
 
 90. 88.4 + NN H1:
     1 .grid test2: 0.93233640757455
