@@ -8,7 +8,7 @@
 # For example, here's several helpful packages to load in 
 import sys
 
-on_kernel = True
+on_kernel = False
 
 if on_kernel:
     sys.path.insert(0, '../input/wordbatch-133/wordbatch/')
@@ -114,9 +114,9 @@ train_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'is_attribut
 test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
 
 
-#categorical = ['app', 'device', 'os', 'channel', 'hour']
+categorical = ['app', 'device', 'os', 'channel', 'hour']
 #with ip:
-categorical = ['app', 'device', 'os', 'channel', 'hour', 'ip']
+#categorical = ['app', 'device', 'os', 'channel', 'hour', 'ip']
 
 
 cvr_columns_lists = [
@@ -368,6 +368,18 @@ train_config_89_4 = ConfigScheme(False, False, False,
                                log_discretization=True,
                                use_interactive_features=True
                                )
+train_config_89_8 = ConfigScheme(False, False, False,
+                               None,
+                               shuffle_sample_filter,
+                               None,
+                               seperate_hist_files=False, add_hist_statis_fts=False,
+                               train_wordbatch=True,
+                               predict_wordbatch = True,
+                               log_discretization=True,
+                               use_interactive_features=True,
+                                 wordbatch_model='FTRL'
+                               )
+
 train_config_89_5 = ConfigScheme(False, False, False,
                                None,
                                shuffle_sample_filter,
@@ -408,10 +420,9 @@ def use_config_scheme(str):
     print('using config var name: ', str)
     return eval(str)
 
-config_scheme_to_use = use_config_scheme('train_config_89_6')
+config_scheme_to_use = use_config_scheme('train_config_87_3')
 
-print('test log 89_7')
-
+print('test log 87_4')
 
 dtypes = {
     'ip': 'uint32',
@@ -1320,7 +1331,22 @@ def train_wordbatch_model(train, val, test_data, new_features):
             p = threading.Thread(target=fit_batch, args=(clf, X, labels, weights))
             p.start()
 
-    print('mem:', cpuStats())
+        if p != None:
+            p.join()
+
+    print('mem after train:', cpuStats())
+
+    print('recycle train mem:')
+
+    for ft in predictors1:
+        del train[ft]
+
+    del train
+    gc.collect()
+    print('mem after recycle train mem:', cpuStats())
+
+
+
     # convert features to text:
     if config_scheme_to_use.use_interactive_features:
         val = gen_iteractive_categorical_features(val)
@@ -1336,7 +1362,6 @@ def train_wordbatch_model(train, val, test_data, new_features):
 
     del (X)
     del (val)
-    del (train)
     gc.collect()
 
     print('mem:', cpuStats())
@@ -1358,13 +1383,14 @@ def train_wordbatch_model(train, val, test_data, new_features):
     click_ids = []
     test_preds = []
 
+    if config_scheme_to_use.use_interactive_features:
+        test_data = gen_iteractive_categorical_features(test_data)
+
     if test_data is not None:
         batchsize = batchsize // 10
         with timer('predict wordbatch model...'):
             for chunk in chunker(test_data, batchsize):
                 # convert features to text:
-                if config_scheme_to_use.use_interactive_features:
-                    chunk = gen_iteractive_categorical_features(chunk)
 
                 predictors1 = categorical + new_features
 

@@ -31,7 +31,7 @@ train_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'is_attribut
 test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
 
 chunk_size = 1000000
-sample_count = 1
+sample_count = 6
 
 use_sample = True
 
@@ -111,17 +111,9 @@ cvr_columns_lists = [
     ['app', 'os'],
     ['app','channel'],
     ['app', 'device']
-    #['app'], ['device']
 
-    #['ip', 'device', 'hour'],
-    #['app', 'channel', 'hour'],
-    #['ip', 'hour'], ['app', 'hour'], ['device', 'hour'], ['os', 'hour'], ['channel', 'hour'],
-    #['ip', 'app', 'device', 'os', 'channel', 'hour'],
 
-    # V2 Features #
-    ###############
-    #['app', 'os', 'hour'],
-    #['app', 'device', 'hour'],
+
 ]
 def persist(data, name):
     with timer("store data:"+ name):
@@ -238,7 +230,7 @@ for cvr_columns in cvr_columns_lists:
                 for type in agg_types:
                     print('itering type:',type)
                     i=0
-                    rates_idx[type]=0
+                    #rates_idx[type]=0
                     for category in data['previous_category'].values if previous_day else data['category'].values:
                         if i %100000 == 0:
                             print("processing {} line in 2nd round of loop".format(i))
@@ -247,7 +239,11 @@ for cvr_columns in cvr_columns_lists:
                             #                                      click_buffer[category]))
                         rates[type][rates_idx[type]] = rate_calculation(attribution_buffer[category],
                                                                   click_buffer[category], type)
-                        print('{}_#{}. count:{}, attr:{}, rate:{}, type:{}, mark:{}'.format(new_col_name, i,
+
+                        trace_log = False
+                        if trace_log:
+                            print('{}:{}_#{}. count:{}, attr:{}, rate:{}, type:{}, mark:{}'.format(i,
+                                                                      new_col_name, rates_idx[type],
                                                                   click_buffer[category],
                                                                   attribution_buffer[category],
                                                                   rates[type][rates_idx[type]],

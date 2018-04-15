@@ -270,6 +270,7 @@ _cvr']
         aliyun: train's auc: 0.983686	valid's auc: 0.97806
         submission_notebook.csv.14-04-2018_12-11-18
         LB: 0.9705
+    4. fix sta ft issue: aliyun: running
 
 88. 86 + count feature discretization 50:
     1. grid test:0.9655061249593924
@@ -294,13 +295,27 @@ _cvr']
     4. full to train with interactive
         grid test2: running, 0.9733642574137581, LB: 0.9611
             wordbatch_fm_ftrl.csv.13-04-2018_09-05-32
+
+        grid test2: another run after bug fix: LB: 0.9601
+
         Aliyun: fixed bug: LB: 0.9670
+
+        remov ip:
+            grid test3: running:
+
+
     5. use all days data to train in streaming:
         grid test2: running
     6. add ip feature:
         grid test: 0.967267704435634(0.9672534709722984)(0.9677147448307044)
     7. try public wordbatch kernel combination features:
         val test: 0.9648907667401769
+    8. FTRL:
+        grid test 4: train_config_89_8
+            running:
+
+
+
 
 90. 88.4 + NN H1:
     1 .grid test2: 0.93233640757455
