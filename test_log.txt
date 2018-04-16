@@ -278,6 +278,9 @@ _cvr']
         aliyun: train's auc: 0.985055   valid's auc: 0.977926
         submission_notebook.csv.16-04-2018_09-33-48
         LB: 0.9704
+    6. new new params, ft: add day,
+        grid test 4: train's auc: 0.985255	valid's auc: 0.973533
+        grid test 4: full day: running
 
 
 
@@ -308,12 +311,13 @@ _cvr']
 
         grid test2: another run after bug fix: LB: 0.9601
             89 with ip:0.972379470620777
-            wordbatch_fm_ftrl.csv.16-04-2018_01-34-55 LB:
+            wordbatch_fm_ftrl.csv.16-04-2018_01-34-55 LB: 0.9596
 
-        Aliyun: fixed bug: LB: 0.9670
+        Aliyun: fixed bug: wordbatch_fm_ftrl.csv.14-04-2018_19-12-50
+            LB: 0.9670
 
         remov ip:
-            grid test3: 0.9719423646799616:wordbatch_fm_ftrl.csv.16-04-2018_01-30-30 LB:
+            grid test3: 0.9719423646799616:wordbatch_fm_ftrl.csv.16-04-2018_01-30-30 LB: to run
 
 
     5. use all days data to train in streaming:
@@ -324,10 +328,10 @@ _cvr']
         val test: 0.9648907667401769
     8. FTRL:
         grid test 4: train_config_89_8
-            0.9709744819068332:wordbatch_fm_ftrl.csv.16-04-2018_01-30-19 LB:
+            0.9709744819068332:wordbatch_fm_ftrl.csv.16-04-2018_01-30-19 LB: 0.9583
     9. DNN:
         grid test: 0.968752617784948
-        wordbatch_fm_ftrl.csv.16-04-2018_02-04-54 LB:
+        wordbatch_fm_ftrl.csv.16-04-2018_02-04-54 LB: to run
 
 
 
@@ -342,16 +346,32 @@ _cvr']
 92. ensemble of public wordbatch + 80 + 77 + 87.3
     LB: 0.9741
 
+93. LGBM train only:
+    1. base:
+    grid test3: running
+
+94. LGBM train predict:
+    1. base: grid test4: running
+
+
+
+
+
 to do test:
-1. kaggle public kernel, most least frequent hours feature
-2. break down auc by dimensions and filter data and train separately and ensemble
+1. kaggle public kernel, most least frequent hours feature DONE
+2. break down auc by dimensions and filter data and train separately and ensemble DONE
 3. bag features
 4. gbdt + ffm
 5. gbdt feature + ffm
 6. normalization
 7. count smoothing: xxxx
 8. unbalance labels
-9. drop ip count feature, who's very overfitting according to ffm work
+9. drop ip count feature, who's very overfitting according to ffm work DONE
 10. looking at some channel only, performs badly, consider remove channel+ip count feature that over-fits
 11. cvr confidence smooth features
 12. feature engineering
+13. DNN grid param tunning
+14. grid test:
+    train/val ranges;
+    id features, st features,
+    lgbm params
