@@ -270,7 +270,17 @@ _cvr']
         aliyun: train's auc: 0.983686	valid's auc: 0.97806
         submission_notebook.csv.14-04-2018_12-11-18
         LB: 0.9705
-    4. fix sta ft issue: aliyun: running
+    4. fix sta ft issue: aliyun: train's auc: 0.983237	valid's auc: 0.978012
+    Feature names: ['app', 'device', 'os', 'channel', 'hour', 'ip_day_hourcount', 'ip_day_hour_oscount', 'ip_day_hour_appcount', 'ip_day_hour_app_oscount', 'app_day_hourcount', 'ip_in_test_hhcount', 'next_click', 'ip_app_device_os_channel_non_attr_count', 'app_os_non_attr_count', 'app_channel_non_attr_count', 'app_device_non_attr_count', 'ip_device_non_attr_count', 'ip_non_attr_count', 'os_non_attr_count', 'channel_non_attr_count', 'ip_app_device_os_channel_cvr', 'app_os_cvr', 'app_channel_cvr', 'app_device_cvr', 'ip_device_cvr', 'ip_cvr', 'os_cvr', 'channel_cvr']
+    Feature importances: [183, 31, 157, 301, 38, 51, 28, 13, 51, 49, 77, 131, 10, 1, 4, 0, 4, 7, 1, 0, 2, 5, 5, 4, 8, 4, 5, 6]
+        submission_notebook.csv.16-04-2018_02-03-52 LB: 0.9704
+    5. keep only     ['ip', 'app', 'device', 'os', 'channel'],['ip','device'],['ip']
+        aliyun: train's auc: 0.985055   valid's auc: 0.977926
+        submission_notebook.csv.16-04-2018_09-33-48
+        LB: 0.9704
+
+
+
 
 88. 86 + count feature discretization 50:
     1. grid test:0.9655061249593924
@@ -297,11 +307,13 @@ _cvr']
             wordbatch_fm_ftrl.csv.13-04-2018_09-05-32
 
         grid test2: another run after bug fix: LB: 0.9601
+            89 with ip:0.972379470620777
+            wordbatch_fm_ftrl.csv.16-04-2018_01-34-55 LB:
 
         Aliyun: fixed bug: LB: 0.9670
 
         remov ip:
-            grid test3: running:
+            grid test3: 0.9719423646799616:wordbatch_fm_ftrl.csv.16-04-2018_01-30-30 LB:
 
 
     5. use all days data to train in streaming:
@@ -312,7 +324,10 @@ _cvr']
         val test: 0.9648907667401769
     8. FTRL:
         grid test 4: train_config_89_8
-            running:
+            0.9709744819068332:wordbatch_fm_ftrl.csv.16-04-2018_01-30-19 LB:
+    9. DNN:
+        grid test: 0.968752617784948
+        wordbatch_fm_ftrl.csv.16-04-2018_02-04-54 LB:
 
 
 

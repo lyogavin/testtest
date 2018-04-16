@@ -8,7 +8,7 @@
 # For example, here's several helpful packages to load in 
 import sys
 
-on_kernel = False
+on_kernel = True
 
 if on_kernel:
     sys.path.insert(0, '../input/wordbatch-133/wordbatch/')
@@ -91,7 +91,7 @@ import gc
 from pympler import muppy
 from pympler import summary
 
-use_sample = False
+use_sample = True
 persist_intermediate = False
 
 gen_test_input = True
@@ -121,12 +121,11 @@ categorical = ['app', 'device', 'os', 'channel', 'hour']
 
 cvr_columns_lists = [
     ['ip', 'app', 'device', 'os', 'channel'],
-    #['app', 'os'],
-    #['app','channel'],
-    #['app', 'device'],
+    ['app', 'os'],
+    ['app','channel'],
+    ['app', 'device'],
     ['ip','device'],
-    ['ip']
-    #, ['os'], ['channel']
+    ['ip'], ['os'], ['channel']
 ]
 agg_types = ['non_attr_count', 'cvr']
 
@@ -421,9 +420,9 @@ def use_config_scheme(str):
     print('using config var name: ', str)
     return eval(str)
 
-config_scheme_to_use = use_config_scheme('train_config_87_3')
+config_scheme_to_use = use_config_scheme('train_config_89_4')
 
-print('test log 87_4')
+print('test log 89_4 no ip')
 
 dtypes = {
     'ip': 'uint32',
@@ -1378,43 +1377,76 @@ def train_wordbatch_model(train, val, test_data, new_features):
     gc.collect()
 
     print('mem:', cpuStats())
+    
+    return wb, clf
+    
+def predict_wordbatch(wb, clf):
+    batchsize = 10000000
 
     print('predicting...')
     p = None
     click_ids = []
     test_preds = []
 
-    if config_scheme_to_use.use_interactive_features:
-        test_data = gen_iteractive_categorical_features(test_data)
+    if config_scheme_to_use.mock_test_with_val_data_to_test:
+        path_test_to_use = path_train if not use_sample else path_train_sample
+        test_cols_to_use = train_cols
+    else:
+        path_test_to_use = path_test if not use_sample else path_test_sample
+        test_cols_to_use = test_cols
 
-    if test_data is not None:
-        batchsize = batchsize // 10
-        with timer('predict wordbatch model...'):
-            for chunk in chunker(test_data, batchsize):
+    batchsize = batchsize // 10
+    print('predict wordbatch model... batch size:',batchsize)
+    with timer('predict wordbatch model...'):
+
+        chunks = pd.read_csv(path_test_to_use, dtype=dtypes, header=0,
+                           compression='gzip' if read_path_with_hist else None,
+                            chunksize=batchsize,
+                           usecols=test_cols_to_use, parse_dates=["click_time"])  # .sample(1000)
+
+        for chunk in chunks:
+
+            chunk = gen_categorical_features(chunk)
+
+            chunk, new_features, _ = generate_counting_history_features(chunk, None,
+                                                                        None,
+                                                                        False,
+                                                                        discretization=config_scheme_to_use.discretization,
+                                                                        discretization_bins=None)
+
+            gc.collect()
+            print('mem after hist ft:', cpuStats())
+
+            if config_scheme_to_use.use_interactive_features:
+                chunk = gen_iteractive_categorical_features(chunk)
                 # convert features to text:
-
                 predictors1 = categorical + new_features
 
-                if config_scheme_to_use.add_hist_statis_fts:
-                    predictors1 = predictors1 + hist_st
-
-                str_array = convert_features_to_text(chunk, predictors1)
-                print('mem:', cpuStats())
-                click_ids += chunk['click_id'].tolist()
-
-                if p != None:
-                    test_preds += list(p.join())
-                    del (X)
                 gc.collect()
+                print('mem after iter ft:', cpuStats())
+            if config_scheme_to_use.add_hist_statis_fts:
+                predictors1 = predictors1 + hist_st
 
-                X = wb.transform(str_array)
-                del (str_array)
-                p = ThreadWithReturnValue(target=predict_batch, args=(clf, X))
-                p.start()
-        if p != None:  test_preds += list(p.join())
 
-        df_sub = pd.DataFrame({"click_id": click_ids, 'is_attributed': test_preds})
-        df_sub.to_csv(get_dated_filename("wordbatch_fm_ftrl.csv"), index=False)
+            str_array = convert_features_to_text(chunk, predictors1)
+            click_ids += chunk['click_id'].tolist()
+            del chunk
+            gc.collect()
+            print('mem after convert text:', cpuStats())
+
+            if p != None:
+                test_preds += list(p.join())
+                del (X)
+            gc.collect()
+
+            X = wb.transform(str_array)
+            del (str_array)
+            p = ThreadWithReturnValue(target=predict_batch, args=(clf, X))
+            p.start()
+    if p != None:  test_preds += list(p.join())
+
+    df_sub = pd.DataFrame({"click_id": click_ids, 'is_attributed': test_preds})
+    df_sub.to_csv(get_dated_filename("wordbatch_fm_ftrl.csv"), index=False)
 
 
 train_lgbm = False
@@ -1665,12 +1697,24 @@ if config_scheme_to_use.train_wordbatch:
 
     test = None
 
-    if config_scheme_to_use.predict_wordbatch:
-        test, _ = gen_test_df(False, False, discretization_bins_used)
-        test_len= len(test)
     gc.collect()
 
-    train_wordbatch_model(train, val, test, new_features)
+    wb, clf = train_wordbatch_model(train, val, None, new_features)
+    print('mem done train:', cpuStats())
+
+    
+    del train
+    del val
+    
+    #del clf 
+    
+    #del wb
+    
+    gc.collect()
+    print('mem before predict:', cpuStats())
+
+    if config_scheme_to_use.predict_wordbatch:
+        predict_wordbatch(wb,clf)
 
 if config_scheme_to_use.train_wordbatch_streaming:
     train_wordbatch_model_streaming()
@@ -1719,7 +1763,7 @@ if config_scheme_to_use.predict:
         predictors1 = predictors1 + hist_st
     test['is_attributed'] = lgb_model.predict(test[predictors1], num_iteration=lgb_model.best_iteration)
 
-    print("Writing the submission data into a csv file...")
+    print("Writing the submission data into a csv file...") 
 
     test[['click_id','is_attributed']].to_csv(get_dated_filename("submission_notebook.csv"), index=False)
 
@@ -1728,3 +1772,4 @@ if config_scheme_to_use.predict:
 
 if config_scheme_to_use.ffm_data_gen:
     gen_ffm_data()
+
