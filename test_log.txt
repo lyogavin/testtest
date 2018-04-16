@@ -349,12 +349,23 @@ _cvr']
 93. LGBM train only:
     1. base:
     grid test3: running
+    2. grid test4: running
 
 94. LGBM train predict:
-    1. base: grid test4: running
+    1. base:
+        grid test4: failed mem
+        mac: train's auc: 0.986462	valid's auc: 0.974841
+    2. 1/2 to train and 1/2 to val: grid test 4:running
+    3. 1/6 train, 1/6 val:
+        train's auc: 0.987653	valid's auc: 0.974953
 
-
-
+95. 77 grid test 3 reproducing: running
+    0. full day to train and predict:
+        grid test 3:
+        train's auc: 0.980809	valid's auc: 0.979393
+            submission_notebook.csv.16-04-2018_14-15-40
+    1. use 1/6 to train to test
+        train's auc: 0.986501	valid's auc: 0.974407
 
 
 to do test:

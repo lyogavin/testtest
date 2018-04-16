@@ -44,17 +44,6 @@ import os
 import pickle
 from contextlib import contextmanager
 
-
-@contextmanager
-def timer(name):
-    t0 = time.time()
-    print('start ',name)
-    yield
-    print('[{}] done in {} s'.format(name, time.time() - t0))
-
-
-print(os.listdir("../input"))
-
 import os, psutil
 
 
@@ -68,6 +57,19 @@ def cpuStats():
     # summary.print_(sum1)
 
     return memoryUse
+
+@contextmanager
+def timer(name):
+    t0 = time.time()
+    print('start ',name)
+    yield
+    print('[{}] done in {} s'.format(name, time.time() - t0))
+    print('mem after {}: {}'.format(name, cpuStats()))
+
+
+print(os.listdir("../input"))
+
+
 
 
 # Any results you write to the current directory are saved as output.
@@ -460,8 +462,20 @@ train_config_93_1 = ConfigScheme(False, False, False,
                                  val_from=id_9_4am,
                                  val_to=id_9_3pm
                                  )
-train_config_94_1 = ConfigScheme(False, False, False,
+train_config_94_2 = ConfigScheme(False, False, False,
+                                 shuffle_sample_filter_1_to_2,
+                                 shuffle_sample_filter_1_to_2,
                                  None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_train= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 new_predict=True
+                                 )
+train_config_94_3 = ConfigScheme(False, False, False,
+                                 shuffle_sample_filter,
                                  shuffle_sample_filter,
                                  None,
                                  lgbm_params=new_lgbm_params,
@@ -472,7 +486,6 @@ train_config_94_1 = ConfigScheme(False, False, False,
                                  val_to=id_8_3pm,
                                  new_predict=True
                                  )
-
 
 def use_config_scheme(str):
     print('config values: ')
@@ -554,30 +567,6 @@ def post_statistics_features(data):
     return data
 
 
-def add_historical_statistical_features(data):
-    print('adding historical statistic features...')
-    feature_names = []
-    cvr_columns_lists = [['ip', 'device'], ['app', 'channel']]
-
-    for cvr_columns in cvr_columns_lists:
-        sta_ft = data[cvr_columns + ['hour', 'day', 'is_attributed']].groupby(cvr_columns + ['day', 'hour'])[
-            ['is_attributed']].mean().reset_index()
-
-        sta_ft['day'] = sta_ft['day'] + 1
-
-        new_col_name = '_'.join(cvr_columns + ['cvr'])
-        sta_ft = sta_ft.rename(columns={'is_attributed': new_col_name})
-        data = data.merge(sta_ft, on=cvr_columns + ['day', 'hour'], how='left')
-
-        data[new_col_name] = data[new_col_name].astype('float32')
-
-        del sta_ft
-        gc.collect()
-
-        feature_names.append(new_col_name)
-        print('new feature {} added'.format(new_col_name))
-    return data, feature_names
-
 
 def df_get_counts(df, cols):
     arr_slice = df[cols].values
@@ -586,28 +575,44 @@ def df_get_counts(df, cols):
     return counts[unqtags]
 
 
-def add_statistic_feature(group_by_cols, training, counting_col='channel', qcut_count=0.98,
+def add_statistic_feature(group_by_cols, training, qcut_count=0.98,
                           discretization=0, discretization_bins=None,
-                          log_discretization=False):
+                          log_discretization=False,
+                          op='count'):
+    feature_name_added = '_'.join(group_by_cols) + op
+
+    counting_col = group_by_cols[len(group_by_cols) - 1]
+    group_by_cols = group_by_cols[0:len(group_by_cols) - 1]
     features_added = []
-    feature_name_added = '_'.join(group_by_cols) + 'count'
     discretization_bins_used = {}
     print('count ip with group by:', group_by_cols)
-    n_chans = training[group_by_cols + [counting_col]].groupby(by=group_by_cols)[[counting_col]] \
-        .count().reset_index().rename(columns={counting_col: feature_name_added})
-    training = training.merge(n_chans, on=group_by_cols, how='left')
-    del n_chans
+
+    if op == 'cumcount':
+        gp = training[group_by_cols + [counting_col]].\
+            groupby(by=group_by_cols)[[counting_col]].cumcount()
+        training[feature_name_added] = gp.values
+    else:
+        tempstr = 'training[group_by_cols + [counting_col]].groupby(by=group_by_cols)[[counting_col]]'
+        temp1 = eval(tempstr + '.' + op + '()')
+        n_chans = temp1.reset_index().rename(columns={counting_col: feature_name_added})
+        training = training.merge(n_chans, on=group_by_cols if len(group_by_cols) >1 else group_by_cols[0],
+                                  how='left')
+        del n_chans
 
     gc.collect()
     if not log_discretization and discretization == 0:
-        if training[feature_name_added].max() <= 65535:
+        if training[feature_name_added].max() <= 65535 and \
+            op in ['count', 'nunique','cumcount']:
             training[feature_name_added] = training[feature_name_added].astype('uint16')
 
     if not log_discretization and qcut_count != 0 and discretization == 0:
         colmax = training[feature_name_added].max()
         quantile_cut = training[feature_name_added].quantile(qcut_count)
         training[feature_name_added] = training[feature_name_added].apply(
-            lambda x: x if x < quantile_cut else colmax)
+            lambda x: x if x < quantile_cut else quantile_cut)
+            # fix colmax transform to test
+            # lambda x: x if x < quantile_cut else colmax)
+
 
     if log_discretization:
         if training[feature_name_added].min() < 0:
@@ -633,71 +638,35 @@ def add_statistic_feature(group_by_cols, training, counting_col='channel', qcut_
     print(training[feature_name_added].describe())
     print('nan count: ', training[feature_name_added].isnull().sum())
 
+    print('columns after added: ', training.columns.values)
     return training, features_added, discretization_bins_used
 
 
 def generate_counting_history_features(data,
-                                       discretization=0, discretization_bins=None):
+                                       discretization=0, discretization_bins=None,
+                                       add_features_list=None):
     print('discretization bins to use:', discretization_bins)
 
     new_features = []
 
-    add_features_list = [
-
-        # ====================
-        # my best features
-        {'group': ['ip', 'day', 'hour'], 'with_hist': False, 'counting_col': 'channel'},
-        {'group': ['ip', 'day', 'hour', 'os'], 'with_hist': False, 'counting_col': 'channel'},
-        {'group': ['ip', 'day', 'hour', 'app'], 'with_hist': False, 'counting_col': 'channel'},
-        {'group': ['ip', 'day', 'hour', 'app', 'os'], 'with_hist': False, 'counting_col': 'channel'},
-        {'group': ['app', 'day', 'hour'], 'with_hist': False, 'counting_col': 'channel'},
-        {'group': ['ip', 'in_test_hh'], 'with_hist': False, 'counting_col': 'channel'}
-        # =====================
-
-        # try word batch featuers:
-        # =====================
-        # {'group': ['ip', 'day', 'hour'], 'with_hist': False, 'counting_col': 'channel'},
-        # {'group': ['ip', 'app'], 'with_hist': False, 'counting_col': 'channel'},
-        # {'group': ['ip', 'app', 'os'], 'with_hist': False, 'counting_col': 'channel'},
-        # {'group': ['ip', 'device'], 'with_hist': False, 'counting_col': 'channel'},
-        # {'group': ['app', 'channel'], 'with_hist': False, 'counting_col': 'os'},
-        # ======================
-
-        # {'group':['app'], 'with_hist': False, 'counting_col':'channel'},
-        # {'group': ['os'], 'with_hist': False, 'counting_col': 'channel'},
-        # {'group': ['device'], 'with_hist': False, 'counting_col': 'channel'},
-        # {'group': ['channel'], 'with_hist': False, 'counting_col': 'os'},
-        # {'group': ['hour'], 'with_hist': False, 'counting_col': 'os'},
-
-        # {'group':['ip','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
-        # {'group':['ip','os', 'app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
-        # {'group':['ip'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
-        # {'group':['ip','hour','channel'], 'with_hist': with_hist_profile, 'counting_col':'os'},
-        # {'group':['ip','hour','os'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
-        # {'group':['ip','hour','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
-        # {'group':['channel','app'], 'with_hist': with_hist_profile, 'counting_col':'os'},
-        # {'group':['channel','os'], 'with_hist': with_hist_profile, 'counting_col':'app'},
-        # {'group':['channel','app','os'], 'with_hist': with_hist_profile, 'counting_col':'device'},
-        # {'group':['os','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
-    ]
-
     discretization_bins_used = None
 
     for add_feature in add_features_list:
-        data, features_added, discretization_bins_used_current_feature = add_statistic_feature(
-            add_feature['group'],
-            data,
-            counting_col=add_feature['counting_col'],
-            discretization=discretization,
-            discretization_bins=discretization_bins,
-            log_discretization=config_scheme_to_use.log_discretization)
-        new_features = new_features + features_added
-        if discretization_bins_used_current_feature is not None:
-            if discretization_bins_used is None:
-                discretization_bins_used = {}
-            discretization_bins_used = \
-                dict(list(discretization_bins_used.items()) + list(discretization_bins_used_current_feature.items()))
-        gc.collect()
+        with timer('adding feature:' + str(add_feature)):
+            data, features_added, discretization_bins_used_current_feature = add_statistic_feature(
+                add_feature['group'],
+                data,
+                discretization=discretization,
+                discretization_bins=discretization_bins,
+                log_discretization=config_scheme_to_use.log_discretization,
+                op = add_feature['op'])
+            new_features = new_features + features_added
+            if discretization_bins_used_current_feature is not None:
+                if discretization_bins_used is None:
+                    discretization_bins_used = {}
+                discretization_bins_used = \
+                    dict(list(discretization_bins_used.items()) + list(discretization_bins_used_current_feature.items()))
+            gc.collect()
 
     if discretization_bins is None:
         print('discretization bins used:', discretization_bins_used)
@@ -897,11 +866,14 @@ def get_combined_df(gen_test_data):
                             if not use_sample and config_scheme_to_use.train_from is not None else None,
                         parse_dates=["click_time"])
 
+    print('mem after loaded train data:', cpuStats())
 
     if config_scheme_to_use.train_filter and \
                     config_scheme_to_use.train_filter['filter_type'] == 'sample':
         sample_count = config_scheme_to_use.train_filter['sample_count']
         train = train.set_index('ip').loc[lambda x: (x.index + 401) % sample_count == 0].reset_index()
+        gc.collect()
+        print('mem after filtered train data:', cpuStats())
 
     gc.collect()
 
@@ -918,11 +890,15 @@ def get_combined_df(gen_test_data):
                             if not use_sample and config_scheme_to_use.val_from is not None else None,
                         parse_dates=["click_time"])
 
+    print('mem after loaded val data:', cpuStats())
 
     if config_scheme_to_use.val_filter and \
         config_scheme_to_use.val_filter['filter_type'] == 'sample':
         sample_count = config_scheme_to_use.val_filter['sample_count']
         val = val.set_index('ip').loc[lambda x: (x.index + 401) % sample_count == 0].reset_index()
+        gc.collect()
+        print('mem after filtered val data:', cpuStats())
+
 
     gc.collect()
 
@@ -932,6 +908,7 @@ def get_combined_df(gen_test_data):
 
     del val
     gc.collect()
+    print('mem after appended val data:', cpuStats())
 
     if gen_test_data:
         test = pd.read_csv(path_test_sample if use_sample else path_test,
@@ -945,8 +922,7 @@ def get_combined_df(gen_test_data):
 
     return train, train_len, val_len
 
-
-if config_scheme_to_use.new_train:
+def train_and_predict(com_fts_list):
     with timer('load combined data df'):
         combined_df, train_len, val_len = get_combined_df(config_scheme_to_use.new_predict)
         print('total len: {}, train len: {}, val len: {}.'.format(len(combined_df), train_len, val_len))
@@ -955,7 +931,8 @@ if config_scheme_to_use.new_train:
     with timer('gen statistical hist features'):
         combined_df, new_features, discretization_bins_used = \
         generate_counting_history_features(combined_df,
-                                           discretization=config_scheme_to_use.discretization)
+                                           discretization=config_scheme_to_use.discretization,
+                                           add_features_list=com_fts_list)
 
     train = combined_df[:train_len]
     val = combined_df[train_len:train_len + val_len]
@@ -981,3 +958,93 @@ if config_scheme_to_use.new_train:
 
 if config_scheme_to_use.ffm_data_gen:
     gen_ffm_data()
+
+
+if config_scheme_to_use.new_train:
+
+    add_features_list = [
+
+        # ====================
+        # my best features
+        {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+        {'group': ['ip', 'day', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+        {'group': ['ip', 'day', 'hour', 'app', 'is_attributed'], 'op': 'count'},
+        {'group': ['ip', 'day', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
+        {'group': ['app', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+        {'group': ['ip', 'in_test_hh', 'is_attributed'],  'op': 'count'}
+        # =====================
+
+        # try word batch featuers:
+        # =====================
+        # {'group': ['ip', 'day', 'hour'], 'with_hist': False, 'counting_col': 'channel'},
+        # {'group': ['ip', 'app'], 'with_hist': False, 'counting_col': 'channel'},
+        # {'group': ['ip', 'app', 'os'], 'with_hist': False, 'counting_col': 'channel'},
+        # {'group': ['ip', 'device'], 'with_hist': False, 'counting_col': 'channel'},
+        # {'group': ['app', 'channel'], 'with_hist': False, 'counting_col': 'os'},
+        # ======================
+
+        # {'group':['app'], 'with_hist': False, 'counting_col':'channel'},
+        # {'group': ['os'], 'with_hist': False, 'counting_col': 'channel'},
+        # {'group': ['device'], 'with_hist': False, 'counting_col': 'channel'},
+        # {'group': ['channel'], 'with_hist': False, 'counting_col': 'os'},
+        # {'group': ['hour'], 'with_hist': False, 'counting_col': 'os'},
+
+        # {'group':['ip','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+        # {'group':['ip','os', 'app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+        # {'group':['ip'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+        # {'group':['ip','hour','channel'], 'with_hist': with_hist_profile, 'counting_col':'os'},
+        # {'group':['ip','hour','os'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+        # {'group':['ip','hour','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+        # {'group':['channel','app'], 'with_hist': with_hist_profile, 'counting_col':'os'},
+        # {'group':['channel','os'], 'with_hist': with_hist_profile, 'counting_col':'app'},
+        # {'group':['channel','app','os'], 'with_hist': with_hist_profile, 'counting_col':'device'},
+        # {'group':['os','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+    ]
+
+    #train_and_predict(add_features_list)
+
+    import itertools
+    from random import shuffle
+
+    # grid search for feature generations combinations:
+    com_fts_list_to_use = []
+    raw_cols = ['app', 'device', 'os', 'channel', 'hour', 'ip']
+    ops = ['mean','var','skew','nunique','cumcount']
+
+    # non-count() coms:
+    for op in ops:
+        for cols_count in range(2, 7):
+            for cols_coms in itertools.combinations(raw_cols, cols_count):
+                com_fts_list_to_use.append({'group':list(cols_coms), 'op':op})
+
+    #print('added non-count coms(len: {}): {}'.format(len(com_fts_list_to_use), com_fts_list_to_use))
+
+    print('\n\n\n')
+    #for count():
+    for cols_count in range(1, 7):
+        for cols_coms in itertools.combinations(raw_cols, cols_count):
+            temp = []
+            temp.extend(cols_coms)
+            temp.append('is_attributed')
+            com_fts_list_to_use.append({'group': list(temp), 'op': 'count'})
+
+    #print('added count coms(len: {}): {}'.format(len(com_fts_list_to_use), com_fts_list_to_use))
+
+    shuffle(com_fts_list_to_use)
+    #print('shuffled coms(len: {}): {}'.format(len(com_fts_list_to_use), com_fts_list_to_use))
+    #exit(0)
+
+    com_fts_list_to_use = com_fts_list_to_use[0:11]
+
+    size = 6
+    i = 0
+    for pos in range(0, len(com_fts_list_to_use), size):
+        print('==================================')
+        print('#{}. training with statistical features combinations:\n{}'.format(i, '\n'.\
+              join([str(a) for a in com_fts_list_to_use[pos:pos + size]])))
+        print('==================================')
+        with timer('------training------' + str(i)):
+            train_and_predict(com_fts_list_to_use[pos:pos + size] )
+            gc.collect()
+            i+=1
+        print('\n\n\n')
