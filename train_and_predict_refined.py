@@ -94,7 +94,7 @@ import gc
 from pympler import muppy
 from pympler import summary
 
-use_sample = False
+use_sample = True
 persist_intermediate = False
 
 gen_test_input = True
@@ -752,7 +752,7 @@ def convert_features_to_text(data, predictors):
         return str_array
 
 
-def train_lgbm(train, val, new_features):
+def train_lgbm(train, val, new_features, do_val_prediction=False):
 
     target = 'is_attributed'
 
@@ -803,13 +803,14 @@ def train_lgbm(train, val, new_features):
         # Feature importances:
         print('Feature importances:', list(lgb_model.feature_importance()))
 
+        importance_dict = dict(zip(lgb_model.feature_name(), list(lgb_model.feature_importance())))
+
         feature_imp = pd.DataFrame(lgb_model.feature_name(), list(lgb_model.feature_importance()))
 
         if persist_intermediate:
             print('dumping model')
             lgb_model.save_model(get_dated_filename('model.txt'))
 
-        do_val_prediction = False
         val_prediction = None
         if do_val_prediction:
             print("Writing the val_prediction into a csv file...")
@@ -817,11 +818,17 @@ def train_lgbm(train, val, new_features):
 
             print('gen val prediction')
             val_prediction = lgb_model.predict(val[predictors1], num_iteration=lgb_model.best_iteration)
-            val['predict'] = val_prediction
             # pd.Series(val_prediction).to_csv(get_dated_filename("val_prediction.csv"), index=False)
-            val.to_csv(get_dated_filename("val_prediction.csv"), index=False)
+            val_auc = roc_auc_score(val['is_attributed'], val_prediction)
+            if persist_intermediate:
+                val['predict'] = val_prediction
+                val.to_csv(get_dated_filename("val_prediction.csv"), index=False)
 
-    return lgb_model, val_prediction, predictors1
+    if do_val_prediction:
+        return lgb_model, val_prediction, predictors1, importance_dict, val_auc
+    else:
+        return lgb_model, val_prediction, predictors1, importance_dict
+
 
 
 # In[ ]:
@@ -938,7 +945,7 @@ def train_and_predict(com_fts_list):
     val = combined_df[train_len:train_len + val_len]
 
     with timer('train lgbm model...'):
-        lgb_model, val_prediction, predictors = train_lgbm(train, val, new_features)
+        lgb_model, val_prediction, predictors, importances, val_auc = train_lgbm(train, val, new_features, True)
 
     if config_scheme_to_use.new_predict:
         with timer('predict test data:'):
@@ -953,6 +960,8 @@ def train_and_predict(com_fts_list):
             submission.to_csv(get_dated_filename("submission_notebook.csv"), index=False)
 
             print("All done...")
+
+    return importances, val_auc
 
 
 
@@ -1038,13 +1047,25 @@ if config_scheme_to_use.new_train:
 
     size = 6
     i = 0
+    val_auc_list = []
+    importances_list = []
     for pos in range(0, len(com_fts_list_to_use), size):
         print('==================================')
         print('#{}. training with statistical features combinations:\n{}'.format(i, '\n'.\
               join([str(a) for a in com_fts_list_to_use[pos:pos + size]])))
         print('==================================')
         with timer('------training------' + str(i)):
-            train_and_predict(com_fts_list_to_use[pos:pos + size] )
+            importances, auc = train_and_predict(com_fts_list_to_use[pos:pos + size] )
+            importances_list.append(importances)
+            val_auc_list.append(auc)
             gc.collect()
             i+=1
         print('\n\n\n')
+
+    i = 0
+    for importances, auc in zip(importances_list, val_auc_list):
+        print('#',i)
+        i+= 1
+        print('features importances:')
+        pprint(importances)
+        print('val auc:', auc)
