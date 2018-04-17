@@ -94,7 +94,7 @@ import gc
 from pympler import muppy
 from pympler import summary
 
-use_sample = True
+use_sample = False
 persist_intermediate = False
 
 gen_test_input = True
@@ -1043,7 +1043,7 @@ if config_scheme_to_use.new_train:
     #print('shuffled coms(len: {}): {}'.format(len(com_fts_list_to_use), com_fts_list_to_use))
     #exit(0)
 
-    com_fts_list_to_use = com_fts_list_to_use[0:11]
+    #com_fts_list_to_use = com_fts_list_to_use[0:11]
 
     size = 6
     i = 0
