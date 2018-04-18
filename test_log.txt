@@ -355,17 +355,68 @@ _cvr']
     1. base:
         grid test4: failed mem
         mac: train's auc: 0.986462	valid's auc: 0.974841
+        grid test4: failed
     2. 1/2 to train and 1/2 to val: grid test 4:running
     3. 1/6 train, 1/6 val:
         train's auc: 0.987653	valid's auc: 0.974953
+    4. train/val/test seperatedly
+        grid test 4:
+            train's auc: 0.979488	valid's auc: 0.980079
+            LB: 0.9734
+            submission_notebook.csv.17-04-2018_11-05-44
+    5. use params from search id 0_35
+        grid test 4: train_config_94_5:
+            [Warning] Accuracy may be bad since you didn't set num_leaves and 2^max_depth > num_leaves
+            train's auc: 0.9827	valid's auc: 0.978851
+            submission_notebook.csv.17-04-2018_16-51-25
+            LB:0.9704
+    6. use features from selection search, lgbm_params_from_search_0_35:
+        new val split:
+            use 1/2 to train: train's auc: 0.98148	valid's auc: 0.977288
+                submission_notebook.csv.17-04-2018_17-47-09
+                LB:0.9669
+    7. use params from search id 0_81,
+        grid test 4: train_config_94_5:running
+            train's auc: 0.98209	valid's auc: 0.976457
+            submission_notebook.csv.17-04-2018_18-00-41
+                LB: 0.9688
+    8. use features from selection search, use lgbm new params, use 1/2 to train:
+        new val split: train's auc: 0.979721	valid's auc: 0.979057
+            submission_notebook.csv.18-04-2018_01-14-40
+                LB: 0.9689
+    9. use params from search id 0_81 + no no_estimators, use early stopping.
+        grid test 4:running
+        submission_notebook.csv.18-04-2018_01-13-31
+        LB:
+    10. use features from selection search, remove least important features,
+        use lgbm new params, use 1/2 to train:
+        new val split: train's auc: 0.981166	valid's auc: 0.979353
+            submission_notebook.csv.18-04-2018_02-43-00
+                LB:
+    11. 10 + old features to reproduce 1/2 day train:
+        new val split: train's auc: 0.980093	valid's auc: 0.979113
+            submission_notebook.csv.18-04-2018_03-46-54.csv
+            LB:0.9724
+    12. 11+ best search single fts group:
+        new val split: running
 
-95. 77 grid test 3 reproducing: running
+95. 77 grid test 3 reproducing:
     0. full day to train and predict:
         grid test 3:
         train's auc: 0.980809	valid's auc: 0.979393
             submission_notebook.csv.16-04-2018_14-15-40
     1. use 1/6 to train to test
         train's auc: 0.986501	valid's auc: 0.974407
+96. sklearn bayesSearchCV, params search:
+    1. 93_1 config, n_jobs = 1, refit=False, iterations 30 grid test 2: done
+    2. 93_1 config, n_jobs = 1, refit=False, iterations 100 grid test 2: version 76 done.
+    3. 93_1 config, n_jobs = 1, refit=False, iterations 100 grid test 3: done
+    4. 93_1 config, n_jobs = 1, refit=False, iterations 100 grid test: done
+    5. 93_1 config, n_jobs = 1, refit=False, iterations 100 grid test 2: running
+    6. 93_1 config, n_jobs = 1, refit=False, iterations 20 changed to n_estimators: (50, 100, 300, 500)
+        grid test 3: running
+    7. 93_1 config, n_jobs = 1, refit=False, iterations 30 changed to n_estimators:n_estimators': (100, 200, 300, 400, 500)
+        grid test2 : running
 
 
 to do test:
