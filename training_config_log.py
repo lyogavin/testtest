@@ -351,3 +351,17 @@ train_config_94_8 = ConfigScheme(False, False, False,
                                  val_to=id_8_3pm,
                                  new_predict=True
                                  )
+
+train_config_97 = ConfigScheme(False, False, False,
+                                 shuffle_sample_filter,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=lgbm_params_from_search_2_11,
+                                 new_train= False,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 new_predict=False,
+                                 grid_search_ft_gen=True
+                                 )

@@ -35,7 +35,7 @@ matplotlib.use('Agg')
 
 
 def get_dated_filename(filename):
-    return '{}.{}.csv'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S"))
+    return '{}_{}.csv'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S"))
     # return filename
 
 
@@ -96,7 +96,7 @@ import gc
 from pympler import muppy
 from pympler import summary
 
-use_sample = False
+use_sample = True
 persist_intermediate = False
 
 gen_test_input = True
@@ -109,6 +109,9 @@ TRAIN_SAMPLE_DATA_LEN = 100001
 path = '../input/talkingdata-adtracking-fraud-detection/'
 path_train_hist = '../input/data_with_hist/'
 path_test_hist = '../input/data_with_hist/'
+
+ft_cache_path = '../input/ft_cache/'
+os.mkdir( ft_cache_path )
 
 path_train = path + 'train.csv'
 path_train_sample = path + 'train_sample.csv'
@@ -303,6 +306,15 @@ lgbm_params_from_search_0_35 = {
  'reg_alpha': 8.954987962970492, 'reg_lambda': 1000.0, 'scale_pos_weight': 6.1806180811037486, 'subsample': 1.0,
  'subsample_for_bin': 740701, 'subsample_freq': 0}
 
+
+lgbm_params_from_search_2_11 = {
+    'boosting_type': 'gbdt',
+    'objective': 'binary',
+    'metric': 'auc',
+    'nthread': 4,
+    'verbose': 0,
+    'colsample_bytree': 0.01, 'learning_rate': 1.040731554567982, 'max_depth': 0, 'min_child_samples': 51, 'min_child_weight': 7, 'min_split_gain': 1.0109536459124555, 'n_estimators': 300, 'num_leaves': 31, 'reg_alpha': 1.2420399086947274, 'reg_lambda': 1000.0, 'scale_pos_weight': 4.652061504081354, 'subsample': 1.0, 'subsample_for_bin': 571876, 'subsample_freq': 0}
+
 lgbm_params_from_search_0_81 = {
     'boosting_type': 'gbdt',
     'objective': 'binary',
@@ -341,6 +353,75 @@ print("Loading Data")
 
 import pickle
 
+search_features_list = [
+
+    # ====================
+    # my best features
+    {'group': ['ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'device', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'device', 'hour', 'app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'device', 'os', 'app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'device', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'channel', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'channel', 'device', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'os', 'device', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
+    {'group': ['channel', 'hour', 'ip'], 'op': 'var'},
+    {'group': ['app', 'os', 'channel', 'ip'], 'op': 'skew'},
+    {'group': ['app', 'channel', 'ip'], 'op': 'mean'},
+]
+
+best_single_group_in_search = [
+    {'group': ['app', 'device', 'ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'device', 'os', 'hour', 'ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['device', 'channel', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'channel', 'is_attributed'], 'op': 'count'},
+    {'group': ['device', 'os', 'ip'], 'op': 'mean'},
+    {'group': ['ip', 'is_attributed'], 'op': 'count'}
+]
+add_features_list_origin = [
+
+    # ====================
+    # my best features
+    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
+    # =====================
+
+    # try word batch featuers:
+    # =====================
+    # {'group': ['ip', 'day', 'hour'], 'with_hist': False, 'counting_col': 'channel'},
+    # {'group': ['ip', 'app'], 'with_hist': False, 'counting_col': 'channel'},
+    # {'group': ['ip', 'app', 'os'], 'with_hist': False, 'counting_col': 'channel'},
+    # {'group': ['ip', 'device'], 'with_hist': False, 'counting_col': 'channel'},
+    # {'group': ['app', 'channel'], 'with_hist': False, 'counting_col': 'os'},
+    # ======================
+
+    # {'group':['app'], 'with_hist': False, 'counting_col':'channel'},
+    # {'group': ['os'], 'with_hist': False, 'counting_col': 'channel'},
+    # {'group': ['device'], 'with_hist': False, 'counting_col': 'channel'},
+    # {'group': ['channel'], 'with_hist': False, 'counting_col': 'os'},
+    # {'group': ['hour'], 'with_hist': False, 'counting_col': 'os'},
+
+    # {'group':['ip','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+    # {'group':['ip','os', 'app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+    # {'group':['ip'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+    # {'group':['ip','hour','channel'], 'with_hist': with_hist_profile, 'counting_col':'os'},
+    # {'group':['ip','hour','os'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+    # {'group':['ip','hour','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+    # {'group':['channel','app'], 'with_hist': with_hist_profile, 'counting_col':'os'},
+    # {'group':['channel','os'], 'with_hist': with_hist_profile, 'counting_col':'app'},
+    # {'group':['channel','app','os'], 'with_hist': with_hist_profile, 'counting_col':'device'},
+    # {'group':['os','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
+]
+
+
 
 class ConfigScheme:
     def __init__(self, predict=False, train=True, ffm_data_gen=False,
@@ -368,7 +449,9 @@ class ConfigScheme:
                  train_to=None,
                  val_from=None,
                  val_to=None,
-                 new_predict = False):
+                 new_predict = False,
+                 run_theme = '',
+                 add_features_list = add_features_list_origin):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -397,157 +480,10 @@ class ConfigScheme:
         self.val_from=val_from
         self.val_to=val_to
         self.new_predict = new_predict
+        self.run_theme = run_theme
+        self.add_features_list = add_features_list
 
 
-train_config_88_4 = ConfigScheme(False, False, False,
-                                 shuffle_sample_filter,
-                                 shuffle_sample_filter,
-                                 None,
-                                 seperate_hist_files=False, add_hist_statis_fts=False,
-                                 train_wordbatch=True,
-                                 predict_wordbatch=True,
-                                 log_discretization=True,
-                                 discretization=0
-                                 )
-
-train_config_87 = ConfigScheme(False, True, False,
-                               shuffle_sample_filter,
-                               shuffle_sample_filter,
-                               None,
-                               train_start_time=val_time_range_start,
-                               train_end_time=val_time_range_end,
-                               val_start_time=train_time_range_start,
-                               val_end_time=train_time_range_end,
-                               seperate_hist_files=True, add_hist_statis_fts=True,
-                               lgbm_params=new_lgbm_params
-                               )
-train_config_89 = ConfigScheme(False, False, False,
-                               shuffle_sample_filter,
-                               shuffle_sample_filter,
-                               None,
-                               seperate_hist_files=False, add_hist_statis_fts=False,
-                               train_start_time=val_time_range_start,
-                               train_end_time=val_time_range_end,
-                               val_start_time=train_time_range_start,
-                               val_end_time=train_time_range_end,
-                               train_wordbatch=True,
-                               log_discretization=True
-                               )
-train_config_89_4 = ConfigScheme(False, False, False,
-                                 None,
-                                 shuffle_sample_filter,
-                                 None,
-                                 seperate_hist_files=False, add_hist_statis_fts=False,
-                                 train_wordbatch=True,
-                                 predict_wordbatch=True,
-                                 log_discretization=True,
-                                 use_interactive_features=True
-                                 )
-train_config_89_8 = ConfigScheme(False, False, False,
-                                 None,
-                                 shuffle_sample_filter,
-                                 None,
-                                 seperate_hist_files=False, add_hist_statis_fts=False,
-                                 train_wordbatch=True,
-                                 predict_wordbatch=True,
-                                 log_discretization=True,
-                                 use_interactive_features=True,
-                                 wordbatch_model='FTRL'
-                                 )
-
-train_config_89_5 = ConfigScheme(False, False, False,
-                                 None,
-                                 shuffle_sample_filter,
-                                 None,
-                                 seperate_hist_files=False, add_hist_statis_fts=False,
-                                 train_wordbatch=False,
-                                 predict_wordbatch=True,
-                                 log_discretization=True,
-                                 use_interactive_features=True,
-                                 train_wordbatch_streaming=True,
-                                 train_start_time=None
-                                 )
-
-train_config_89_6 = ConfigScheme(False, False, False,
-                                 shuffle_sample_filter,
-                                 shuffle_sample_filter,
-                                 None,
-                                 seperate_hist_files=False, add_hist_statis_fts=False,
-                                 train_start_time=val_time_range_start,
-                                 train_end_time=val_time_range_end,
-                                 val_start_time=train_time_range_start,
-                                 val_end_time=train_time_range_end,
-                                 train_wordbatch=True,
-                                 log_discretization=True,
-                                 use_interactive_features=True
-                                 )
-train_config_87_3 = ConfigScheme(True, True, False,
-                                 None,
-                                 shuffle_sample_filter,
-                                 None,
-                                 seperate_hist_files=True, add_hist_statis_fts=True,
-                                 lgbm_params=new_lgbm_params
-                                 )
-train_config_93_1 = ConfigScheme(False, False, False,
-                                 shuffle_sample_filter,
-                                 shuffle_sample_filter,
-                                 None,
-                                 lgbm_params=new_lgbm_params,
-                                 new_train= True,
-                                 train_from=id_8_4am,
-                                 train_to=id_8_3pm,
-                                 val_from=id_9_4am,
-                                 val_to=id_9_3pm
-                                 )
-train_config_94_2 = ConfigScheme(False, False, False,
-                                 shuffle_sample_filter_1_to_2,
-                                 shuffle_sample_filter_1_to_2,
-                                 None,
-                                 lgbm_params=new_lgbm_params,
-                                 new_train= True,
-                                 train_from=id_9_4am,
-                                 train_to=id_9_3pm,
-                                 val_from=id_8_4am,
-                                 val_to=id_8_3pm,
-                                 new_predict=True
-                                 )
-train_config_94_3 = ConfigScheme(False, False, False,
-                                 shuffle_sample_filter,
-                                 shuffle_sample_filter,
-                                 None,
-                                 lgbm_params=new_lgbm_params,
-                                 new_train= True,
-                                 train_from=id_9_4am,
-                                 train_to=id_9_3pm,
-                                 val_from=id_8_4am,
-                                 val_to=id_8_3pm,
-                                 new_predict=True
-                                 )
-
-train_config_94_1 = ConfigScheme(False, False, False,
-                                 None,
-                                 shuffle_sample_filter,
-                                 None,
-                                 lgbm_params=new_lgbm_params,
-                                 new_train= True,
-                                 train_from=id_9_4am,
-                                 train_to=id_9_3pm,
-                                 val_from=id_8_4am,
-                                 val_to=id_8_3pm,
-                                 new_predict=True
-                                 )
-train_config_94_5 = ConfigScheme(False, False, False,
-                                 None,
-                                 shuffle_sample_filter,
-                                 None,
-                                 lgbm_params=lgbm_params_from_search,
-                                 new_train= True,
-                                 train_from=id_9_4am,
-                                 train_to=id_9_3pm,
-                                 val_from=id_8_4am,
-                                 val_to=id_8_3pm,
-                                 new_predict=True
-                                 )
 train_config_94_8 = ConfigScheme(False, False, False,
                                  shuffle_sample_filter_1_to_2,
                                  shuffle_sample_filter,
@@ -561,6 +497,31 @@ train_config_94_8 = ConfigScheme(False, False, False,
                                  new_predict=True
                                  )
 
+train_config_94_13 = ConfigScheme(False, False, False,
+                                 shuffle_sample_filter,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=lgbm_params_from_search_2_11,
+                                 new_train= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 new_predict=True
+                                 )
+train_config_97 = ConfigScheme(False, False, False,
+                                 shuffle_sample_filter,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=lgbm_params_from_search_2_11,
+                                 new_train= False,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='grid_search_ft_gen'
+                                 )
+
 def use_config_scheme(str):
     print('config values: ')
     pprint(vars(eval(str)))
@@ -568,9 +529,9 @@ def use_config_scheme(str):
     return eval(str)
 
 
-config_scheme_to_use = use_config_scheme('train_config_94_8')
+config_scheme_to_use = use_config_scheme('train_config_97')
 
-print('test log 94_12')
+print('test log 97')
 
 dtypes = {
     'ip': 'uint32',
@@ -652,8 +613,24 @@ def df_get_counts(df, cols):
 def add_statistic_feature(group_by_cols, training, qcut_count=0.98,
                           discretization=0, discretization_bins=None,
                           log_discretization=False,
-                          op='count'):
+                          op='count',
+                          use_ft_cache = False,
+                          ft_cache_prefix = '',
+                          only_ft_cache = False):
     feature_name_added = '_'.join(group_by_cols) + op
+    ft_cache_file_name = ft_cache_prefix + '_' + feature_name_added
+    ft_cache_file_name = ft_cache_file_name + '_sample' if use_sample else ft_cache_file_name
+    ft_cache_file_name = ft_cache_file_name + '.csv.bz2'
+
+    if Path(ft_cache_path + ft_cache_file_name).is_file():
+        ft_cache_data = pd.read_csv(ft_cache_path + ft_cache_file_name,
+                                    dtype={ft: 'float32'},
+                                    header=0, engine='c',
+                                    compression='bz2')
+        training[feature_name_added] = ft_cache_data
+        print('loaded {} from file {}'.format(feature_name_added, ft_cache_path + ft_cache_file_name))
+        return training, [feature_name_added], None
+
 
     counting_col = group_by_cols[len(group_by_cols) - 1]
     group_by_cols = group_by_cols[0:len(group_by_cols) - 1]
@@ -713,12 +690,25 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0.98,
     print('nan count: ', training[feature_name_added].isnull().sum())
 
     print('columns after added: ', training.columns.values)
+
+    if use_ft_cache:
+        pd.DataFrame(training[feature_name_added]).to_csv(ft_cache_path + ft_cache_file_name,
+                                                          index=False,compression='bz2')
+        print('saved {} to file {}'.format(feature_name_added, ft_cache_path + ft_cache_file_name))
+        if only_ft_cache:
+            del training[feature_name_added]
+            del features_added[-1]
+            gc.collect()
+
     return training, features_added, discretization_bins_used
 
 
 def generate_counting_history_features(data,
                                        discretization=0, discretization_bins=None,
-                                       add_features_list=None):
+                                       add_features_list=None,
+                                       use_ft_cache = False,
+                                       ft_cache_prefix = '',
+                                       only_ft_cache = False):
     print('discretization bins to use:', discretization_bins)
 
     new_features = []
@@ -733,7 +723,10 @@ def generate_counting_history_features(data,
                 discretization=discretization,
                 discretization_bins=discretization_bins,
                 log_discretization=config_scheme_to_use.log_discretization,
-                op = add_feature['op'])
+                op = add_feature['op'],
+                use_ft_cache = use_ft_cache,
+                ft_cache_prefix = ft_cache_prefix,
+                only_ft_cache = only_ft_cache)
             new_features = new_features + features_added
             if discretization_bins_used_current_feature is not None:
                 if discretization_bins_used is None:
@@ -1045,7 +1038,8 @@ def train_and_predict(com_fts_list):
 
     return importances, val_auc
 
-def train_and_predict_gen_fts_seperately(com_fts_list):
+
+def gen_ft_caches_seperately(com_fts_list):
 
     with timer('loading train df:'):
         train = get_train_df()
@@ -1055,7 +1049,13 @@ def train_and_predict_gen_fts_seperately(com_fts_list):
         train, new_features, discretization_bins_used = \
         generate_counting_history_features(train,
                                            discretization=config_scheme_to_use.discretization,
-                                           add_features_list=com_fts_list)
+                                           add_features_list=com_fts_list,
+                                           use_ft_cache = True,
+                                           ft_cache_prefix='train',
+                                           only_ft_cache = True)
+
+    del train
+
 
     gc.collect()
 
@@ -1068,18 +1068,52 @@ def train_and_predict_gen_fts_seperately(com_fts_list):
         generate_counting_history_features(val,
                                            discretization=config_scheme_to_use.discretization,
                                            add_features_list=com_fts_list,
-                                           discretization_bins=discretization_bins_used)
+                                           discretization_bins=discretization_bins_used,
+                                           use_ft_cache = True,
+                                           ft_cache_prefix='val',
+                                           only_ft_cache = True)
+    gc.collect()
+
+def train_and_predict_gen_fts_seperately(com_fts_list, use_ft_cache = False, only_cache=False):
+
+    with timer('loading train df:'):
+        train = get_train_df()
+    with timer('gen categorical features for train'):
+        train = gen_categorical_features(train)
+    with timer('gen statistical hist features for train'):
+        train, new_features, discretization_bins_used = \
+        generate_counting_history_features(train,
+                                           discretization=config_scheme_to_use.discretization,
+                                           add_features_list=com_fts_list,
+                                           use_ft_cache = use_ft_cache,
+                                           ft_cache_prefix='train')
+
+    gc.collect()
+
+    with timer('loading val df:'):
+        val = get_val_df()
+    with timer('gen categorical features for val'):
+        val = gen_categorical_features(val)
+    with timer('gen statistical hist features for val'):
+        val, _, _ = \
+        generate_counting_history_features(val,
+                                           discretization=config_scheme_to_use.discretization,
+                                           add_features_list=com_fts_list,
+                                           discretization_bins=discretization_bins_used,
+                                           use_ft_cache = use_ft_cache,
+                                           ft_cache_prefix='val')
     gc.collect()
 
     with timer('train lgbm model...'):
-        lgb_model, val_prediction, predictors, importances, val_auc = train_lgbm(train, val, new_features, True)
+        if not only_cache:
+            lgb_model, val_prediction, predictors, importances, val_auc = train_lgbm(train, val, new_features, True)
 
     del train
     del val
     gc.collect()
     print('mem after train and gc:', cpuStats())
 
-    if config_scheme_to_use.new_predict:
+    if config_scheme_to_use.new_predict and not only_cache:
 
         with timer('predict test data:'):
             with timer('loading test df:'):
@@ -1091,7 +1125,9 @@ def train_and_predict_gen_fts_seperately(com_fts_list):
                     generate_counting_history_features(test,
                                                        discretization=config_scheme_to_use.discretization,
                                                        add_features_list=com_fts_list,
-                                                       discretization_bins=discretization_bins_used)
+                                                       discretization_bins=discretization_bins_used,
+                                                       use_ft_cache = use_ft_cache,
+                                                       ft_cache_prefix='test')
 
             predict_result = lgb_model.predict(test[predictors], num_iteration=lgb_model.best_iteration)
             submission = pd.DataFrame({'is_attributed':predict_result,
@@ -1103,7 +1139,10 @@ def train_and_predict_gen_fts_seperately(com_fts_list):
 
             print("All done...")
 
-    return importances, val_auc
+    if only_cache:
+        return {}, 0
+    else:
+        return importances, val_auc
 
 
 
@@ -1111,7 +1150,7 @@ if config_scheme_to_use.ffm_data_gen:
     gen_ffm_data()
 
 
-def grid_search_features_combination():
+def grid_search_features_combination(only_gen_ft_cache = False):
     import itertools
     from random import shuffle
 
@@ -1145,7 +1184,7 @@ def grid_search_features_combination():
 
     #com_fts_list_to_use = com_fts_list_to_use[0:11]
 
-    size = 6
+    size = 6 if not only_gen_ft_cache else 100000
     i = 0
     val_auc_list = []
     importances_list = []
@@ -1154,38 +1193,35 @@ def grid_search_features_combination():
         print('#{}. training with statistical features combinations:\n{}'.format(i, '\n'.\
               join([str(a) for a in com_fts_list_to_use[pos:pos + size]])))
         print('==================================')
-        with timer('------training------' + str(i)):
-            importances, auc = train_and_predict(com_fts_list_to_use[pos:pos + size] )
-            importances_list.append(importances)
-            val_auc_list.append(auc)
-            gc.collect()
-            i+=1
+        if only_gen_ft_cache:
+            with timer('------gening fts------' + str(i)):
+                gen_ft_caches_seperately(com_fts_list_to_use[pos:pos + size])
+        else:
+            with timer('------training------' + str(i)):
+                importances, auc = train_and_predict_gen_fts_seperately(com_fts_list_to_use[pos:pos + size],
+                                                                        use_ft_cache=True,
+                                                                        only_cache=True)
+                importances_list.append(importances)
+                val_auc_list.append(auc)
+                gc.collect()
+                i+=1
         print('\n\n\n')
 
-    i = 0
-    for importances, auc in zip(importances_list, val_auc_list):
-        print('#',i)
-        i+= 1
-        print('features importances:')
-        pprint(importances)
-        print('val auc:', auc)
-
+    if not only_gen_ft_cache:
+        i = 0
+        for importances, auc in zip(importances_list, val_auc_list):
+            print('#',i)
+            i+= 1
+            print('features importances:')
+            pprint(importances)
+            print('val auc:', auc)
 
 
 
 def lgbm_params_search(com_fts_list):
     ITERATIONS = 30 # 1000
     # Classifier
-    with timer('create bayes cv tunner'):
-        bayes_cv_tuner = BayesSearchCV(
-            estimator=lgb.LGBMClassifier(
-                boosting_type= 'gbdt',
-                objective= 'binary',
-                metric= 'auc',
-                n_jobs = 5,
-                silent = False
-            ),
-            search_spaces={
+    search_spaces_0 = {
                 'learning_rate': (10.0 ** 0.01, 10.0 ** 1.0, 'log-uniform'),
                 'num_leaves': (4, 31),
                 'max_depth': (0, 50),
@@ -1202,7 +1238,37 @@ def lgbm_params_search(com_fts_list):
                 # 'is_unbalance': True,
                 'n_estimators': (50, 100), # alias: num_boost_round
                 'scale_pos_weight': (10.0 ** 1e-6, 500.0, 'log-uniform')
-            },
+            }
+    search_spaces_1 = {
+                        'learning_rate': (0.01, 1.0, 'log-uniform'),
+                        'min_child_weight': (0, 10),
+                        'max_depth': (3, 10),
+                        'num_leaves': (4, 11),
+                        'max_delta_step': (0, 20),
+                        'subsample': (0.01, 1.0, 'uniform'),
+                        'colsample_bytree': (0.01, 1.0, 'uniform'),
+                        'reg_lambda': (1e-9, 1000, 'log-uniform'),
+                        'reg_alpha': (1e-9, 1.0, 'log-uniform'),
+                        'min_child_weight': (0, 5),
+                        'min_child_samples': (10, 200),
+                        # 'max_bin': (64, 255), # unsupported in skylearn
+                        'subsample_freq': (0, 1),
+                        'subsample_for_bin': (200000, 800000),
+                        'min_split_gain': (0, 0.01, 'uniform'),
+                        # 'is_unbalance': True,
+                        'n_estimators': (50, 500),  # alias: num_boost_round
+                        'scale_pos_weight': (1e-6, 500.0, 'log-uniform')
+                    },
+    with timer('create bayes cv tunner'):
+        bayes_cv_tuner = BayesSearchCV(
+            estimator=lgb.LGBMClassifier(
+                boosting_type= 'gbdt',
+                objective= 'binary',
+                metric= 'auc',
+                n_jobs = 5,
+                silent = False
+            ),
+            search_spaces=search_spaces_1,
             scoring='roc_auc',
             cv=StratifiedKFold(
                 n_splits=3,
@@ -1260,82 +1326,27 @@ def lgbm_params_search(com_fts_list):
 
 
 def run_model():
+    print('run theme: ', config_scheme_to_use.run_theme)
 
-    search_features_list = [
-
-        # ====================
-        # my best features
-        {'group': ['ip', 'is_attributed'], 'op': 'count'},
-        {'group': ['ip', 'device', 'hour', 'is_attributed'], 'op': 'count'},
-        {'group': ['ip', 'device', 'hour', 'app', 'is_attributed'], 'op': 'count'},
-        {'group': ['ip', 'device', 'os', 'app', 'is_attributed'], 'op': 'count'},
-        {'group': ['ip', 'device', 'is_attributed'], 'op': 'count'},
-        {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
-        {'group': ['ip', 'os', 'is_attributed'], 'op': 'count'},
-        {'group': ['ip', 'channel', 'is_attributed'], 'op': 'count'},
-        {'group': ['ip', 'channel', 'device','is_attributed'], 'op': 'count'},
-        {'group': ['ip', 'os', 'device', 'is_attributed'], 'op': 'count'},
-        {'group': ['ip', 'app', 'is_attributed'], 'op': 'count'},
-        {'group': ['ip', 'in_test_hh', 'is_attributed'],  'op': 'count'},
-        {'group': ['channel', 'hour', 'ip'],  'op': 'var'},
-        {'group': ['app', 'os', 'channel','ip'],  'op': 'skew'},
-        {'group': ['app', 'channel','ip'],  'op': 'mean'},
-        ]
+    if config_scheme_to_use.run_theme == 'grid_search_ft_gen':
+        grid_search_features_combination(True)
+    elif config_scheme_to_use.run_theme == 'train_and_predict':
+        print('add features list: ')
+        pprint(config_scheme_to_use.add_features_list)
+        train_and_predict(config_scheme_to_use.add_features_list)
+    elif config_scheme_to_use.run_theme == 'lgbm_params_search':
+        print('add features list: ')
+        pprint(config_scheme_to_use.add_features_list)
+        lgbm_params_search(config_scheme_to_use.add_features_list)
+    elif config_scheme_to_use.run_theme == 'train_and_predict_gen_fts_seperately':
+        print('add features list: ')
+        pprint(config_scheme_to_use.add_features_list)
+        train_and_predict_gen_fts_seperately(config_scheme_to_use.add_features_list)
+    else:
+        print("nothing to run... exit")
 
 
-    best_single_group_in_search = [
-        {'group': ['app', 'device', 'ip', 'is_attributed'], 'op': 'count'},
-        {'group': ['app', 'device', 'os', 'hour', 'ip', 'is_attributed'], 'op': 'count'},
-        {'group': ['device', 'channel', 'ip', 'ip', 'ip', 'ip', 'ip'], 'op': 'mean'},
-        {'group': ['app', 'channel', 'is_attributed'], 'op': 'count'},
-        {'group': ['device', 'os', 'ip'], 'op': 'mean'},
-        {'group': ['ip', 'is_attributed'], 'op': 'count'}
-    ]
-    add_features_list = [
-
-        # ====================
-        # my best features
-        {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
-        {'group': ['ip', 'day', 'hour', 'os', 'is_attributed'], 'op': 'count'},
-        {'group': ['ip', 'day', 'hour', 'app', 'is_attributed'], 'op': 'count'},
-        {'group': ['ip', 'day', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
-        {'group': ['app', 'day', 'hour', 'is_attributed'], 'op': 'count'},
-        {'group': ['ip', 'in_test_hh', 'is_attributed'],  'op': 'count'}
-        # =====================
-
-        # try word batch featuers:
-        # =====================
-        # {'group': ['ip', 'day', 'hour'], 'with_hist': False, 'counting_col': 'channel'},
-        # {'group': ['ip', 'app'], 'with_hist': False, 'counting_col': 'channel'},
-        # {'group': ['ip', 'app', 'os'], 'with_hist': False, 'counting_col': 'channel'},
-        # {'group': ['ip', 'device'], 'with_hist': False, 'counting_col': 'channel'},
-        # {'group': ['app', 'channel'], 'with_hist': False, 'counting_col': 'os'},
-        # ======================
-
-        # {'group':['app'], 'with_hist': False, 'counting_col':'channel'},
-        # {'group': ['os'], 'with_hist': False, 'counting_col': 'channel'},
-        # {'group': ['device'], 'with_hist': False, 'counting_col': 'channel'},
-        # {'group': ['channel'], 'with_hist': False, 'counting_col': 'os'},
-        # {'group': ['hour'], 'with_hist': False, 'counting_col': 'os'},
-
-        # {'group':['ip','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
-        # {'group':['ip','os', 'app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
-        # {'group':['ip'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
-        # {'group':['ip','hour','channel'], 'with_hist': with_hist_profile, 'counting_col':'os'},
-        # {'group':['ip','hour','os'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
-        # {'group':['ip','hour','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
-        # {'group':['channel','app'], 'with_hist': with_hist_profile, 'counting_col':'os'},
-        # {'group':['channel','os'], 'with_hist': with_hist_profile, 'counting_col':'app'},
-        # {'group':['channel','app','os'], 'with_hist': with_hist_profile, 'counting_col':'device'},
-        # {'group':['os','app'], 'with_hist': with_hist_profile, 'counting_col':'channel'},
-    ]
-
-    #train_and_predict(add_features_list)
-    #lgbm_params_search(add_features_list)
-    #train_and_predict_gen_fts_seperately(add_features_list)
-
-    train_and_predict_gen_fts_seperately(best_single_group_in_search)
-
-
-if config_scheme_to_use.new_train:
+with timer('run_model...'):
     run_model()
+
+print('run_model done')

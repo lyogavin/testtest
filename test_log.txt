@@ -398,7 +398,12 @@ _cvr']
             submission_notebook.csv.18-04-2018_03-46-54.csv
             LB:0.9724
     12. 11+ best search single fts group:
-        new val split: running
+        new val split: train's auc: 0.980249	valid's auc: 0.97967
+            submission_notebook.18-04-2018_06-40-13.csv
+            LB: reached limit
+    13. 1/6 with new lgbm params from 96.6 best
+        grid test 4: train's auc: 0.975135	valid's auc: 0.974865
+
 
 95. 77 grid test 3 reproducing:
     0. full day to train and predict:
@@ -414,9 +419,17 @@ _cvr']
     4. 93_1 config, n_jobs = 1, refit=False, iterations 100 grid test: done
     5. 93_1 config, n_jobs = 1, refit=False, iterations 100 grid test 2: running
     6. 93_1 config, n_jobs = 1, refit=False, iterations 20 changed to n_estimators: (50, 100, 300, 500)
-        grid test 3: running
+        grid test 3: best:0.974774
+        "{'colsample_bytree': 0.01, 'learning_rate': 1.040731554567982, 'max_depth': 0, 'min_child_samples': 51, 'min_child_weight': 7, 'min_split_gain': 1.0109536459124555, 'n_estimators': 300, 'num_leaves': 31, 'reg_alpha': 1.2420399086947274, 'reg_lambda': 1000.0, 'scale_pos_weight': 4.652061504081354, 'subsample': 1.0, 'subsample_for_bin': 571876, 'subsample_freq': 0}"
     7. 93_1 config, n_jobs = 1, refit=False, iterations 30 changed to n_estimators:n_estimators': (100, 200, 300, 400, 500)
-        grid test2 : running
+        grid test2 : Failed
+    8. 6 + refined search ranges:
+        grid test: running
+
+97. grid search ft gen:
+
+
+
 
 
 to do test:
