@@ -617,8 +617,8 @@ train_config_96 = ConfigScheme(False, False, False,
                                   )
 
 train_config_99 = ConfigScheme(False, False, False,
-                                 shuffle_sample_filter_1_to_20,
-                                 shuffle_sample_filter_1_to_20,
+                                 shuffle_sample_filter_1_to_10,
+                                 shuffle_sample_filter_1_to_10,
                                  None,
                                  lgbm_params=new_lgbm_params,
                                  train_from=id_8_4am,
@@ -1411,7 +1411,7 @@ def grid_search_features_combination(only_gen_ft_cache = False):
                                                                         com_fts_list_to_use[pos:pos + size],
                                                                         use_ft_cache=True,
                                                                         only_cache=only_gen_ft_cache,
-                                                                        use_base_data_cache=True)
+                                                                        use_base_data_cache=False)
                 importances_list.append(importances)
                 val_auc_list.append(auc)
                 gc.collect()
