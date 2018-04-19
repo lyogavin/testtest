@@ -98,6 +98,7 @@ from pympler import summary
 
 use_sample = True
 persist_intermediate = False
+print_verbose = False
 
 gen_test_input = True
 
@@ -111,7 +112,10 @@ path_train_hist = '../input/data_with_hist/'
 path_test_hist = '../input/data_with_hist/'
 
 ft_cache_path = '../input/ft_cache/'
-os.mkdir( ft_cache_path )
+try:
+    os.mkdir( ft_cache_path )
+except:
+    None
 
 path_train = path + 'train.csv'
 path_train_sample = path + 'train_sample.csv'
@@ -313,7 +317,25 @@ lgbm_params_from_search_2_11 = {
     'metric': 'auc',
     'nthread': 4,
     'verbose': 0,
-    'colsample_bytree': 0.01, 'learning_rate': 1.040731554567982, 'max_depth': 0, 'min_child_samples': 51, 'min_child_weight': 7, 'min_split_gain': 1.0109536459124555, 'n_estimators': 300, 'num_leaves': 31, 'reg_alpha': 1.2420399086947274, 'reg_lambda': 1000.0, 'scale_pos_weight': 4.652061504081354, 'subsample': 1.0, 'subsample_for_bin': 571876, 'subsample_freq': 0}
+    'colsample_bytree': 0.01, 'learning_rate': 1.040731554567982, 'max_depth': 0, 'min_child_samples': 51,
+    'min_child_weight': 7, 'min_split_gain': 1.0109536459124555, 'n_estimators': 300, 'num_leaves': 31,
+    'reg_alpha': 1.2420399086947274, 'reg_lambda': 1000.0, 'scale_pos_weight': 4.652061504081354,
+    'subsample': 1.0, 'subsample_for_bin': 571876, 'subsample_freq': 0}
+
+
+lgbm_params_from_search_96_8_10 = {
+    'boosting_type': 'gbdt',
+    'objective': 'binary',
+    'metric': 'auc',
+    'nthread': 4,
+    'verbose': 0,
+    'colsample_bytree': 0.6021467085338628, 'learning_rate': 0.37861782981986614, 'max_depth': 5,
+    'min_child_samples': 171, 'min_child_weight': 1, 'min_split_gain': 0.004337458691335552,
+    'n_estimators': 249, 'num_leaves': 10, 'reg_alpha': 8.1447463220916e-05, 'reg_lambda': 64.24440555484793,
+    'scale_pos_weight': 4.350080991126866, 'subsample': 0.5332391076871872, 'subsample_for_bin': 470584,
+    'subsample_freq': 1
+}
+
 
 lgbm_params_from_search_0_81 = {
     'boosting_type': 'gbdt',
@@ -372,6 +394,7 @@ search_features_list = [
     {'group': ['channel', 'hour', 'ip'], 'op': 'var'},
     {'group': ['app', 'os', 'channel', 'ip'], 'op': 'skew'},
     {'group': ['app', 'channel', 'ip'], 'op': 'mean'},
+    {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'], 'op': 'nextclick'}
 ]
 
 best_single_group_in_search = [
@@ -380,7 +403,8 @@ best_single_group_in_search = [
     {'group': ['device', 'channel', 'is_attributed'], 'op': 'count'},
     {'group': ['app', 'channel', 'is_attributed'], 'op': 'count'},
     {'group': ['device', 'os', 'ip'], 'op': 'mean'},
-    {'group': ['ip', 'is_attributed'], 'op': 'count'}
+    {'group': ['ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'], 'op': 'nextclick'}
 ]
 add_features_list_origin = [
 
@@ -391,9 +415,9 @@ add_features_list_origin = [
     {'group': ['ip', 'day', 'hour', 'app', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'day', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
     {'group': ['app', 'day', 'hour', 'is_attributed'], 'op': 'count'},
-    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'], 'op': 'nextclick'}
     # =====================
-
     # try word batch featuers:
     # =====================
     # {'group': ['ip', 'day', 'hour'], 'with_hist': False, 'counting_col': 'channel'},
@@ -522,6 +546,31 @@ train_config_97 = ConfigScheme(False, False, False,
                                  run_theme='grid_search_ft_gen'
                                  )
 
+train_config_94_14 = ConfigScheme(False, False, False,
+                                 shuffle_sample_filter,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=lgbm_params_from_search_96_8_10,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately'
+                                  )
+
+train_config_98 = ConfigScheme(False, False, False,
+                                 shuffle_sample_filter,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=id_8_4am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='grid_search_ft_coms'
+                                  )
+
+
 def use_config_scheme(str):
     print('config values: ')
     pprint(vars(eval(str)))
@@ -529,9 +578,9 @@ def use_config_scheme(str):
     return eval(str)
 
 
-config_scheme_to_use = use_config_scheme('train_config_97')
+config_scheme_to_use = use_config_scheme('train_config_98')
 
-print('test log 97')
+print('test log 98')
 
 dtypes = {
     'ip': 'uint32',
@@ -624,7 +673,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0.98,
 
     if Path(ft_cache_path + ft_cache_file_name).is_file():
         ft_cache_data = pd.read_csv(ft_cache_path + ft_cache_file_name,
-                                    dtype={ft: 'float32'},
+                                    dtype='float32',
                                     header=0, engine='c',
                                     compression='bz2')
         training[feature_name_added] = ft_cache_data
@@ -642,6 +691,38 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0.98,
         gp = training[group_by_cols + [counting_col]].\
             groupby(by=group_by_cols)[[counting_col]].cumcount()
         training[feature_name_added] = gp.values
+    elif op=='nextclick':
+        with timer("Adding next click times"):
+            D = 2 ** 26
+            #data['category'] = (data['ip'].astype(str) + "_" + data['app'].astype(str) + "_" + \
+            #                    data['device'].astype(str) \
+            #                    + "_" + data['os'].astype(str) + "_" + data['channel'].astype(str)) \
+            #                       .apply(hash) % D
+            joint_col = None
+
+            for col in group_by_cols:
+                if joint_col is None:
+                    joint_col = training[col].astype(str)
+                else:
+                    joint_col = joint_col + "_" + training[col].astype(str)
+            training['category'] = joint_col.apply(hash) % D
+            del joint_col
+            gc.collect()
+            click_buffer = np.full(D, 3000000000, dtype=np.uint32)
+            training['epochtime'] = training['click_time'].astype(np.int64) // 10 ** 9
+            next_clicks = []
+            for category, time in zip(reversed(training['category'].values),
+                                      reversed(training['epochtime'].values)):
+                next_clicks.append(click_buffer[category] - time)
+                click_buffer[category] = time
+            del (click_buffer)
+            training[feature_name_added] = list(reversed(next_clicks))
+
+            training.drop('epochtime', inplace=True, axis=1)
+            training.drop('category', inplace=True, axis=1)
+
+            #if print_verbose:
+            print('next click added:', training[feature_name_added].describe())
     else:
         tempstr = 'training[group_by_cols + [counting_col]].groupby(by=group_by_cols)[[counting_col]]'
         temp1 = eval(tempstr + '.' + op + '()')
@@ -672,7 +753,8 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0.98,
         training[feature_name_added] = np.log2(1 + training[feature_name_added].values).astype(int)
         print('log dicretizing feature:', feature_name_added)
     elif discretization != 0:
-        print('before qcut', feature_name_added, training[feature_name_added].describe())
+        if print_verbose:
+            print('before qcut', feature_name_added, training[feature_name_added].describe())
         if discretization_bins is None:
             ret, discretization_bins_used[feature_name_added] = pd.qcut(training[feature_name_added], discretization,
                                                                         labels=False, duplicates='drop', retbins=True)
@@ -681,12 +763,14 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0.98,
             training[feature_name_added] = pd.cut(training[feature_name_added],
                                                   discretization_bins[feature_name_added],
                                                   labels=False).fillna(0).astype('uint16')
-        print('after qcut', feature_name_added, training[feature_name_added].describe())
+        if print_verbose:
+            print('after qcut', feature_name_added, training[feature_name_added].describe())
 
     features_added.append(feature_name_added)
 
     print('added features:', features_added)
-    print(training[feature_name_added].describe())
+    if print_verbose:
+        print(training[feature_name_added].describe())
     print('nan count: ', training[feature_name_added].isnull().sum())
 
     print('columns after added: ', training.columns.values)
@@ -743,33 +827,36 @@ def generate_counting_history_features(data,
     data = post_statistics_features(data)
 
     # add next click feature:
-    with timer("Adding next click times"):
-        D = 2 ** 26
-        data['category'] = (data['ip'].astype(str) + "_" + data['app'].astype(str) + "_" + \
-                            data['device'].astype(str) \
-                            + "_" + data['os'].astype(str) + "_" + data['channel'].astype(str)).apply(hash) % D
-        click_buffer = np.full(D, 3000000000, dtype=np.uint32)
-        data['epochtime'] = data['click_time'].astype(np.int64) // 10 ** 9
-        next_clicks = []
-        for category, time in zip(reversed(data['category'].values), reversed(data['epochtime'].values)):
-            next_clicks.append(click_buffer[category] - time)
-            click_buffer[category] = time
-        del (click_buffer)
-        data['next_click'] = list(reversed(next_clicks))
+    add_next_click = False
+    if add_next_click:
+        with timer("Adding next click times"):
+            D = 2 ** 26
+            data['category'] = (data['ip'].astype(str) + "_" + data['app'].astype(str) + "_" + \
+                                data['device'].astype(str) \
+                                + "_" + data['os'].astype(str) + "_" + data['channel'].astype(str)).apply(hash) % D
+            click_buffer = np.full(D, 3000000000, dtype=np.uint32)
+            data['epochtime'] = data['click_time'].astype(np.int64) // 10 ** 9
+            next_clicks = []
+            for category, time in zip(reversed(data['category'].values), reversed(data['epochtime'].values)):
+                next_clicks.append(click_buffer[category] - time)
+                click_buffer[category] = time
+            del (click_buffer)
+            data['next_click'] = list(reversed(next_clicks))
 
-        if discretization != 0:
-            print('min of next click: {}, max: {}'.format(data['next_click'].min(), data['next_click'].max()))
-            if data['next_click'].min() < 0:
-                print('!!!! invalid time in next click, fix it.....')
-                data['next_click'] = data['next_click'].apply(lambda x: np.max([0, x]))
-            data['next_click'] = np.log2(1 + data['next_click'].values).astype(int)
-        data.drop('epochtime', inplace=True, axis=1)
-        data.drop('category', inplace=True, axis=1)
+            if discretization != 0:
+                print('min of next click: {}, max: {}'.format(data['next_click'].min(), data['next_click'].max()))
+                if data['next_click'].min() < 0:
+                    print('!!!! invalid time in next click, fix it.....')
+                    data['next_click'] = data['next_click'].apply(lambda x: np.max([0, x]))
+                data['next_click'] = np.log2(1 + data['next_click'].values).astype(int)
+            data.drop('epochtime', inplace=True, axis=1)
+            data.drop('category', inplace=True, axis=1)
 
-    #print('next click ', data['next_click'])
-    print(data['next_click'].describe())
+            #print('next click ', data['next_click'])
+            if print_verbose:
+                print(data['next_click'].describe())
 
-    new_features = new_features + ['next_click']
+            new_features = new_features + ['next_click']
 
     gc.collect()
 
@@ -1074,12 +1161,26 @@ def gen_ft_caches_seperately(com_fts_list):
                                            only_ft_cache = True)
     gc.collect()
 
-def train_and_predict_gen_fts_seperately(com_fts_list, use_ft_cache = False, only_cache=False):
+def train_and_predict_gen_fts_seperately(com_fts_list, use_ft_cache = False, only_cache=False,
+                                         use_base_data_cache=False):
 
-    with timer('loading train df:'):
-        train = get_train_df()
-    with timer('gen categorical features for train'):
-        train = gen_categorical_features(train)
+    if use_base_data_cache and \
+            hasattr(train_and_predict_gen_fts_seperately, 'base_train_data_cache') and \
+                    train_and_predict_gen_fts_seperately.base_train_data_cache is not None:
+        with timer('loading base train data from cache:'):
+            train = train_and_predict_gen_fts_seperately.base_train_data_cache.copy()
+    else:
+        print('no base data cache, load it.')
+        with timer('loading train df:'):
+            train = get_train_df()
+        with timer('gen categorical features for train'):
+            train = gen_categorical_features(train)
+
+        if use_base_data_cache:
+            with timer('setting base train data cache'):
+                train_and_predict_gen_fts_seperately.base_train_data_cache = train.copy()
+
+
     with timer('gen statistical hist features for train'):
         train, new_features, discretization_bins_used = \
         generate_counting_history_features(train,
@@ -1089,11 +1190,21 @@ def train_and_predict_gen_fts_seperately(com_fts_list, use_ft_cache = False, onl
                                            ft_cache_prefix='train')
 
     gc.collect()
+    if use_base_data_cache and \
+            hasattr(train_and_predict_gen_fts_seperately, 'base_val_data_cache') and \
+                    train_and_predict_gen_fts_seperately.base_val_data_cache is not None:
+        with timer('loading base train data from cache:'):
+            val = train_and_predict_gen_fts_seperately.base_val_data_cache.copy()
+    else:
+        with timer('loading val df:'):
+            val = get_val_df()
+        with timer('gen categorical features for val'):
+            val = gen_categorical_features(val)
+        if use_base_data_cache:
+            with timer('setting base train data cache'):
+                train_and_predict_gen_fts_seperately.base_val_data_cache = val.copy()
 
-    with timer('loading val df:'):
-        val = get_val_df()
-    with timer('gen categorical features for val'):
-        val = gen_categorical_features(val)
+
     with timer('gen statistical hist features for val'):
         val, _, _ = \
         generate_counting_history_features(val,
@@ -1182,9 +1293,13 @@ def grid_search_features_combination(only_gen_ft_cache = False):
     #print('shuffled coms(len: {}): {}'.format(len(com_fts_list_to_use), com_fts_list_to_use))
     #exit(0)
 
-    #com_fts_list_to_use = com_fts_list_to_use[0:11]
 
     size = 6 if not only_gen_ft_cache else 100000
+
+    if use_sample:
+        com_fts_list_to_use = com_fts_list_to_use[0:size*3+2]
+
+
     i = 0
     val_auc_list = []
     importances_list = []
@@ -1198,9 +1313,15 @@ def grid_search_features_combination(only_gen_ft_cache = False):
                 gen_ft_caches_seperately(com_fts_list_to_use[pos:pos + size])
         else:
             with timer('------training------' + str(i)):
-                importances, auc = train_and_predict_gen_fts_seperately(com_fts_list_to_use[pos:pos + size],
+                additional_groups= [
+                    {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'],'op': 'nextclick'},
+                    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
+                    ]
+                importances, auc = train_and_predict_gen_fts_seperately(additional_groups +
+                                                                        com_fts_list_to_use[pos:pos + size],
                                                                         use_ft_cache=True,
-                                                                        only_cache=True)
+                                                                        only_cache=only_gen_ft_cache,
+                                                                        use_base_data_cache=True)
                 importances_list.append(importances)
                 val_auc_list.append(auc)
                 gc.collect()
@@ -1244,7 +1365,6 @@ def lgbm_params_search(com_fts_list):
                         'min_child_weight': (0, 10),
                         'max_depth': (3, 10),
                         'num_leaves': (4, 11),
-                        'max_delta_step': (0, 20),
                         'subsample': (0.01, 1.0, 'uniform'),
                         'colsample_bytree': (0.01, 1.0, 'uniform'),
                         'reg_lambda': (1e-9, 1000, 'log-uniform'),
@@ -1330,6 +1450,8 @@ def run_model():
 
     if config_scheme_to_use.run_theme == 'grid_search_ft_gen':
         grid_search_features_combination(True)
+    elif config_scheme_to_use.run_theme == 'grid_search_ft_coms':
+        grid_search_features_combination(False)
     elif config_scheme_to_use.run_theme == 'train_and_predict':
         print('add features list: ')
         pprint(config_scheme_to_use.add_features_list)

@@ -217,7 +217,7 @@ base @20:
     mac: train's auc: 0.995599	valid's auc: 0.986938
         submission_notebook.csv.10-04-2018_13-06-17
 78. 77 + add click count later feature:
-    1/6 grid test2: running
+    1/6 grid test2:
 79.76 + historical feature(only hist data trained) ensemble
     aliyun:
 80. 77 + ffm data gen
@@ -241,7 +241,7 @@ _cvr']
     Feature importances: [232, 28, 186, 361, 55, 98, 27, 29, 68, 36, 115, 140, 4, 15, 4, 2]
     train's auc: 0.987176	valid's auc: 0.974488
 84. ip_device_os_app_channel_cvr: click count when no attribution
-    aliyun:running:train's auc: 0.986444   valid's auc: 0.974269
+    aliyun::train's auc: 0.986444   valid's auc: 0.974269
     Feature names: ['app', 'device', 'os', 'channel', 'hour', 'ip_day_hourcount', 'ip_day_hour_oscount', 'ip_day_hour_appcount', 'ip_day_hour_app_oscount', 'app_day_hourcount', 'ip_in_test_hhcount', 'next_click', 'ip_app_device_os_channel_cvr']
     Feature importances: [214, 29, 153, 319, 44, 74, 13, 23, 45, 25, 95, 133, 17]
 85. use ip_device_cvr, ip_cvr, os_cvr, channel_cvr: click count when no attribution features
@@ -280,7 +280,7 @@ _cvr']
         LB: 0.9704
     6. new new params, ft: add day,
         grid test 4: train's auc: 0.985255	valid's auc: 0.973533
-        grid test 4: full day: running
+        grid test 4: full day:
 
 
 
@@ -306,7 +306,7 @@ _cvr']
     3. add interactive features:
         grid test 2: 0.9672690870802338
     4. full to train with interactive
-        grid test2: running, 0.9733642574137581, LB: 0.9611
+        grid test2: , 0.9733642574137581, LB: 0.9611
             wordbatch_fm_ftrl.csv.13-04-2018_09-05-32
 
         grid test2: another run after bug fix: LB: 0.9601
@@ -321,7 +321,7 @@ _cvr']
 
 
     5. use all days data to train in streaming:
-        grid test2: running
+        grid test2:
     6. add ip feature:
         grid test: 0.967267704435634(0.9672534709722984)(0.9677147448307044)
     7. try public wordbatch kernel combination features:
@@ -348,15 +348,15 @@ _cvr']
 
 93. LGBM train only:
     1. base:
-    grid test3: running
-    2. grid test4: running
+    grid test3:
+    2. grid test4:
 
 94. LGBM train predict:
     1. base:
         grid test4: failed mem
         mac: train's auc: 0.986462	valid's auc: 0.974841
         grid test4: failed
-    2. 1/2 to train and 1/2 to val: grid test 4:running
+    2. 1/2 to train and 1/2 to val: grid test 4:
     3. 1/6 train, 1/6 val:
         train's auc: 0.987653	valid's auc: 0.974953
     4. train/val/test seperatedly
@@ -376,7 +376,7 @@ _cvr']
                 submission_notebook.csv.17-04-2018_17-47-09
                 LB:0.9669
     7. use params from search id 0_81,
-        grid test 4: train_config_94_5:running
+        grid test 4: train_config_94_5:
             train's auc: 0.98209	valid's auc: 0.976457
             submission_notebook.csv.17-04-2018_18-00-41
                 LB: 0.9688
@@ -385,7 +385,7 @@ _cvr']
             submission_notebook.csv.18-04-2018_01-14-40
                 LB: 0.9689
     9. use params from search id 0_81 + no no_estimators, use early stopping.
-        grid test 4:running
+        grid test 4:
         submission_notebook.csv.18-04-2018_01-13-31
         LB:
     10. use features from selection search, remove least important features,
@@ -403,6 +403,11 @@ _cvr']
             LB: reached limit
     13. 1/6 with new lgbm params from 96.6 best
         grid test 4: train's auc: 0.975135	valid's auc: 0.974865
+    14. 1/6 with lgbm params search from 96.8:
+    'colsample_bytree': 0.6021467085338628, 'learning_rate': 0.37861782981986614, 'max_delta_step': 2, 'max_depth': 5, 'min_child_samples': 171, 'min_child_weight': 1, 'min_split_gain': 0.004337458691335552, 'n_estimators': 249, 'num_leaves': 10, 'reg_alpha': 8.1447463220916e-05, 'reg_lambda': 64.24440555484793, 'scale_pos_weight': 4.350080991126866, 'subsample': 0.5332391076871872, 'subsample_for_bin': 470584, 'subsample_freq': 1
+        grid test : train's auc: 0.982759	valid's auc: 0.977399
+        predict: running with 1day:
+        LB: 0.9726
 
 
 95. 77 grid test 3 reproducing:
@@ -417,17 +422,23 @@ _cvr']
     2. 93_1 config, n_jobs = 1, refit=False, iterations 100 grid test 2: version 76 done.
     3. 93_1 config, n_jobs = 1, refit=False, iterations 100 grid test 3: done
     4. 93_1 config, n_jobs = 1, refit=False, iterations 100 grid test: done
-    5. 93_1 config, n_jobs = 1, refit=False, iterations 100 grid test 2: running
+    5. 93_1 config, n_jobs = 1, refit=False, iterations 100 grid test 2: failed
     6. 93_1 config, n_jobs = 1, refit=False, iterations 20 changed to n_estimators: (50, 100, 300, 500)
         grid test 3: best:0.974774
         "{'colsample_bytree': 0.01, 'learning_rate': 1.040731554567982, 'max_depth': 0, 'min_child_samples': 51, 'min_child_weight': 7, 'min_split_gain': 1.0109536459124555, 'n_estimators': 300, 'num_leaves': 31, 'reg_alpha': 1.2420399086947274, 'reg_lambda': 1000.0, 'scale_pos_weight': 4.652061504081354, 'subsample': 1.0, 'subsample_for_bin': 571876, 'subsample_freq': 0}"
     7. 93_1 config, n_jobs = 1, refit=False, iterations 30 changed to n_estimators:n_estimators': (100, 200, 300, 400, 500)
         grid test2 : Failed
     8. 6 + refined search ranges:
-        grid test: running
+        grid test: succeeded
+        best auc: 0.977103,
+        'colsample_bytree': 0.6021467085338628, 'learning_rate': 0.37861782981986614, 'max_delta_step': 2, 'max_depth': 5, 'min_child_samples': 171, 'min_child_weight': 1, 'min_split_gain': 0.004337458691335552, 'n_estimators': 249, 'num_leaves': 10, 'reg_alpha': 8.1447463220916e-05, 'reg_lambda': 64.24440555484793, 'scale_pos_weight': 4.350080991126866, 'subsample': 0.5332391076871872, 'subsample_for_bin': 470584, 'subsample_freq': 1
+    9. another run:
 
 97. grid search ft gen:
+    aliyun: running:
 
+98. grid search feature combinatoins:
+    use config 98.
 
 
 

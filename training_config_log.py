@@ -365,3 +365,16 @@ train_config_97 = ConfigScheme(False, False, False,
                                  new_predict=False,
                                  grid_search_ft_gen=True
                                  )
+
+
+train_config_98 = ConfigScheme(False, False, False,
+                                 shuffle_sample_filter,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=id_8_4am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='grid_search_ft_coms'
+                                  )
