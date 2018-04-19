@@ -407,6 +407,40 @@ best_single_group_in_search = [
     {'group': ['ip', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'], 'op': 'nextclick'}
 ]
+
+ft_coms_97478=[
+    {'group': ['app', 'device', 'ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['device', 'ip'], 'op': 'var'},
+    {'group': ['device', 'os', 'ip'], 'op': 'mean'},
+    {'group': ['ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'device', 'os','hour','ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['device', 'channel', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'], 'op': 'nextclick'}
+]
+
+
+ft_coms_search_99_1=[
+    # importance 27 .. 4:
+    {'group': ['ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['device', 'ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['hour', 'ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'os', 'hour', 'ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'channel', 'is_attributed'], 'op': 'count'},
+    {'group': ['device', 'os', 'ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['os', 'ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'device', 'os', 'hour', 'ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'channel', 'ip'], 'op': 'nunique'},
+    # importance 3:
+    {'group': ['app', 'channel', 'hour'], 'op': 'cumcount'},
+    {'group': ['app', 'hour'], 'op': 'mean'},
+    {'group': ['device', 'os', 'hour', 'is_attributed'], 'op': 'count'},
+
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'], 'op': 'nextclick'}
+]
+
+
 add_features_list_origin = [
 
     # ====================
@@ -594,6 +628,34 @@ train_config_99 = ConfigScheme(False, False, False,
                                  run_theme='grid_search_ft_coms'
                                   )
 
+train_config_100 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 new_predict=True,
+                                 add_features_list=ft_coms_97478
+                                  )
+train_config_100_3 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 new_predict=True,
+                                 add_features_list=ft_coms_search_99_1
+                                  )
+
+
 def use_config_scheme(str):
     print('config values: ')
     pprint(vars(eval(str)))
@@ -601,9 +663,9 @@ def use_config_scheme(str):
     return eval(str)
 
 
-config_scheme_to_use = use_config_scheme('train_config_99')
+config_scheme_to_use = use_config_scheme('train_config_100_3')
 
-print('test log 99')
+print('test log 100_3')
 
 dtypes = {
     'ip': 'uint32',
@@ -979,6 +1041,11 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
         print('Feature names:', lgb_model.feature_name())
         # Feature importances:
         print('Feature importances:', list(lgb_model.feature_importance()))
+        try:
+            pprint(sorted(zip(lgb_model.feature_name(),list(lgb_model.feature_importance())),
+                          key=lambda x: x[1]))
+        except:
+            print('error sorting and zipping fts')
 
         importance_dict = dict(zip(lgb_model.feature_name(), list(lgb_model.feature_importance())))
 
@@ -1130,7 +1197,7 @@ def train_and_predict(com_fts_list):
     val = combined_df[train_len:train_len + val_len]
 
     with timer('train lgbm model...'):
-        lgb_model, val_prediction, predictors, importances, val_auc = train_lgbm(train, val, new_features, True)
+        lgb_model, val_prediction, predictors, importances, val_auc = train_lgbm(train, val, new_features, False)
 
     if config_scheme_to_use.new_predict:
         with timer('predict test data:'):
@@ -1240,7 +1307,7 @@ def train_and_predict_gen_fts_seperately(com_fts_list, use_ft_cache = False, onl
 
     with timer('train lgbm model...'):
         if not only_cache:
-            lgb_model, val_prediction, predictors, importances, val_auc = train_lgbm(train, val, new_features, True)
+            lgb_model, val_prediction, predictors, importances, val_auc = train_lgbm(train, val, new_features, False)
 
     del train
     del val
@@ -1460,6 +1527,7 @@ def lgbm_params_search(com_fts_list):
             np.round(bayes_cv_tuner.best_score_, 4),
             bayes_cv_tuner.best_params_
         ))
+        all_models.sort_values('mean_test_score')
 
         # Save all model results
         all_models.to_csv("xgBoost_cv_results.csv")

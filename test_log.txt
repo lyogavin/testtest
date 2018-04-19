@@ -437,7 +437,22 @@ _cvr']
         best auc: 0.977103,
         'colsample_bytree': 0.6021467085338628, 'learning_rate': 0.37861782981986614, 'max_delta_step': 2, 'max_depth': 5, 'min_child_samples': 171, 'min_child_weight': 1, 'min_split_gain': 0.004337458691335552, 'n_estimators': 249, 'num_leaves': 10, 'reg_alpha': 8.1447463220916e-05, 'reg_lambda': 64.24440555484793, 'scale_pos_weight': 4.350080991126866, 'subsample': 0.5332391076871872, 'subsample_for_bin': 470584, 'subsample_freq': 1
     9. 8. another run:
-        grid 3: running
+        grid 3: 0.975941
+        {'colsample_bytree': 0.9991702362401564, 'learning_rate': 1.0, 'max_depth': 7, 'min_child_samples': 200, 'min_child_weight': 2, 'min_split_gain': 0.0, 'n_estimators': 131, 'num_leaves': 7, 'reg_alpha': 0.00014471896477199475, 'reg_lambda': 176.4050928547651, 'scale_pos_weight': 0.8349642426002523, 'subsample': 0.9658854015682086, 'subsample_for_bin': 679915, 'subsample_freq': 1}
+    10. another run:
+        grid test 3: best: 0.977468
+        "{'colsample_bytree': 0.9832436408235254, 'learning_rate': 0.21148409343315033, 'max_depth': 3, 'min_child_samples': 116, 'min_child_weight': 1, 'min_split_gain': 0.0, 'n_estimators': 229, 'num_leaves': 6, 'reg_alpha': 4.597782653285172e-06, 'reg_lambda': 10.497593218316116, 'scale_pos_weight': 499.99999999999994, 'subsample': 0.38649766667697655, 'subsample_for_bin': 468639, 'subsample_freq': 0}"
+    11. another run:
+        val split: best: 0.976008
+        {'colsample_bytree': 0.6209085649172932, 'learning_rate': 0.35540927532494104, 'max_depth': 6, 'min_child_samples': 176, 'min_child_weight': 3, 'min_split_gain': 0.005946200350868385, 'n_estimators': 342, 'num_leaves': 7, 'reg_alpha': 0.004026635957416632, 'reg_lambda': 0.040887904512512056, 'scale_pos_weight': 109.72255122430063, 'subsample': 0.6612742297240571, 'subsample_for_bin': 567047, 'subsample_freq': 0}
+    12. another run:
+        grid test 3: best: 0.975877
+
+    13. another run:
+        val split: best: 0.975669
+
+
+
 
 97. grid search ft gen:
     aliyun: done:
@@ -446,7 +461,68 @@ _cvr']
     use config 98: aliyun :killed in half
 99. 1/20 sample to train with all the combination features:
     use config 99
-    aliyun:running
+    1. aliyun: done. train's auc: 0.987152   valid's auc: 0.968834
+
+    194                device_os_hour_is_attributedcount   3
+    88                                      app_hourmean   3
+    277                         app_channel_hourcumcount   3
+    166                            app_channel_ipnunique   4
+    150         app_device_os_hour_ip_is_attributedcount   4
+    20                          os_ip_is_attributedcount   5
+    278                  device_os_ip_is_attributedcount   5
+    342                   app_channel_is_attributedcount   5
+    103                app_os_hour_ip_is_attributedcount   7
+    199                       hour_ip_is_attributedcount   9
+    319                     device_ip_is_attributedcount  14
+    6                   ip_in_test_hh_is_attributedcount  17
+    110                            ip_is_attributedcount  27
+    2                                                 os  38
+    5    ip_app_device_os_channel_is_attributednextclick  48
+    0                                                app  72
+    3                                            channel  84
+
+    2. another run, changed to 1/10, early stopping: 200:
+        train's auc: 0.978841   valid's auc: 0.955474
+
+        74                                 channel_ipcumcount           3
+        226                                    app_os_hourvar           3
+        324                    app_device_channel_hour_ipmean           3
+        160                                  app_device_osvar           3
+        5     ip_app_device_os_channel_is_attributednextclick           3
+        198                                  channel_hourskew           4
+        216              device_os_channel_is_attributedcount           4
+        4                                                hour          10
+        1                                              device          27
+        2                                                  os         117
+        0                                                 app         164
+        3                                             channel         238
+
+    3.  another run, changed to 1/10, early stopping: 30:
+    aliyun: train's auc: 0.979002	valid's auc: 0.955185:
+
+     (3, 'hour_ipcumcount'),
+     (3, 'device_os_channel_hour_ipcumcount'),
+     (3, 'app_hour_ipskew'),
+     (3, 'os_hour_ipcumcount'),
+     (3, 'os_hour_ipskew'),
+     (3, 'channel_hour_ipskew'),
+     (4, 'ip_app_device_os_channel_is_attributednextclick'),
+     (4, 'device_os_hour_ipcumcount'),
+     (8, 'hour'),
+     (26, 'device'),
+     (111, 'os'),
+     (162, 'app'),
+     (227, 'channel')]
+
+100. use best auc from ft coms search:
+    ft 0: [118]   train's auc: 0.984903   valid's auc: 0.974782
+    Feature names: ['app', 'device', 'os', 'channel', 'hour',
+    'app_device_ip_is_attributedcount', 'device_ipvar', 'device_os_ipmean', 'ip_is_attributedcount',
+    'app_device_os_hour_ip_is_attributedcount', 'device_channel_is_attributedcount', 'next_click']
+    Feature importances: [203, 25, 118, 247, 32, 28, 0, 4, 126, 27, 12, 122]
+    1. grid : failed, changed to 1/2 sample to run
+    2. gird test 4: use all to train to run again: running
+    3. grid test: use fts from search 99.1 running
 
 
 
