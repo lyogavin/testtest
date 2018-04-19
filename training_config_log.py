@@ -378,3 +378,32 @@ train_config_98 = ConfigScheme(False, False, False,
                                  val_to=id_9_3pm,
                                  run_theme='grid_search_ft_coms'
                                   )
+
+
+
+
+train_config_94_14 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=lgbm_params_from_search_96_8_10,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 new_predict=True,
+                                 run_theme='train_and_predict_gen_fts_seperately'
+                                  )
+
+train_config_94_15 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=lgbm_params_from_search_2_11,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 new_predict=True,
+                                 run_theme='train_and_predict_gen_fts_seperately'
+                                  )

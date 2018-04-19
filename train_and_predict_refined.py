@@ -96,7 +96,7 @@ import gc
 from pympler import muppy
 from pympler import summary
 
-use_sample = True
+use_sample = False
 persist_intermediate = False
 print_verbose = False
 
@@ -364,7 +364,8 @@ lgbm_params_from_search_0_81 = {
 shuffle_sample_filter = {'filter_type': 'sample', 'sample_count': 6}
 shuffle_sample_filter_1_to_2 = {'filter_type': 'sample', 'sample_count': 2}
 
-shuffle_sample_filter_1_to_10 = {'filter_type': 'sample', 'sample_count': 1}
+shuffle_sample_filter_1_to_10 = {'filter_type': 'sample', 'sample_count': 10}
+shuffle_sample_filter_1_to_20 = {'filter_type': 'sample', 'sample_count': 20}
 shuffle_sample_filter_1_to_10k = {'filter_type': 'sample', 'sample_count': 1}
 
 hist_ft_sample_filter = {'filter_type': 'hist_ft'}
@@ -569,7 +570,29 @@ train_config_98 = ConfigScheme(False, False, False,
                                  val_to=id_9_3pm,
                                  run_theme='grid_search_ft_coms'
                                   )
+train_config_96 = ConfigScheme(False, False, False,
+                                 shuffle_sample_filter,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=id_8_4am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='lgbm_params_search'
+                                  )
 
+train_config_99 = ConfigScheme(False, False, False,
+                                 shuffle_sample_filter_1_to_20,
+                                 shuffle_sample_filter_1_to_20,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=id_8_4am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='grid_search_ft_coms'
+                                  )
 
 def use_config_scheme(str):
     print('config values: ')
@@ -578,9 +601,9 @@ def use_config_scheme(str):
     return eval(str)
 
 
-config_scheme_to_use = use_config_scheme('train_config_98')
+config_scheme_to_use = use_config_scheme('train_config_99')
 
-print('test log 98')
+print('test log 99')
 
 dtypes = {
     'ip': 'uint32',
@@ -1294,7 +1317,7 @@ def grid_search_features_combination(only_gen_ft_cache = False):
     #exit(0)
 
 
-    size = 6 if not only_gen_ft_cache else 100000
+    size = 400 if not only_gen_ft_cache else 100000
 
     if use_sample:
         com_fts_list_to_use = com_fts_list_to_use[0:size*3+2]
@@ -1378,7 +1401,7 @@ def lgbm_params_search(com_fts_list):
                         # 'is_unbalance': True,
                         'n_estimators': (50, 500),  # alias: num_boost_round
                         'scale_pos_weight': (1e-6, 500.0, 'log-uniform')
-                    },
+                    }
     with timer('create bayes cv tunner'):
         bayes_cv_tuner = BayesSearchCV(
             estimator=lgb.LGBMClassifier(

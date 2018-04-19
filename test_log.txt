@@ -406,8 +406,12 @@ _cvr']
     14. 1/6 with lgbm params search from 96.8:
     'colsample_bytree': 0.6021467085338628, 'learning_rate': 0.37861782981986614, 'max_delta_step': 2, 'max_depth': 5, 'min_child_samples': 171, 'min_child_weight': 1, 'min_split_gain': 0.004337458691335552, 'n_estimators': 249, 'num_leaves': 10, 'reg_alpha': 8.1447463220916e-05, 'reg_lambda': 64.24440555484793, 'scale_pos_weight': 4.350080991126866, 'subsample': 0.5332391076871872, 'subsample_for_bin': 470584, 'subsample_freq': 1
         grid test : train's auc: 0.982759	valid's auc: 0.977399
-        predict: running with 1day:
+        predict: with 1day:
         LB: 0.9726
+    15. 1day, lgbm_params_from_search_2_11,
+        auc: 9748
+        {'colsample_bytree': 0.01, 'learning_rate': 1.040731554567982, 'max_depth': 0, 'min_child_samples': 51, 'min_child_weight': 7, 'min_split_gain': 1.0109536459124555, 'n_estimators': 300, 'num_leaves': 31, 'reg_alpha': 1.2420399086947274, 'reg_lambda': 1000.0, 'scale_pos_weight': 4.652061504081354, 'subsample': 1.0, 'subsample_for_bin': 571876, 'subsample_freq': 0}
+        grid test: LB: 0.9682
 
 
 95. 77 grid test 3 reproducing:
@@ -432,13 +436,17 @@ _cvr']
         grid test: succeeded
         best auc: 0.977103,
         'colsample_bytree': 0.6021467085338628, 'learning_rate': 0.37861782981986614, 'max_delta_step': 2, 'max_depth': 5, 'min_child_samples': 171, 'min_child_weight': 1, 'min_split_gain': 0.004337458691335552, 'n_estimators': 249, 'num_leaves': 10, 'reg_alpha': 8.1447463220916e-05, 'reg_lambda': 64.24440555484793, 'scale_pos_weight': 4.350080991126866, 'subsample': 0.5332391076871872, 'subsample_for_bin': 470584, 'subsample_freq': 1
-    9. another run:
+    9. 8. another run:
+        grid 3: running
 
 97. grid search ft gen:
-    aliyun: running:
+    aliyun: done:
 
 98. grid search feature combinatoins:
-    use config 98.
+    use config 98: aliyun :killed in half
+99. 1/20 sample to train with all the combination features:
+    use config 99
+    aliyun:running
 
 
 
