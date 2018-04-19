@@ -271,7 +271,7 @@ new_lgbm_params1 = {
     'reg_lambda': 0,
     'nthread': 5,
     'verbose': 9,
-    'early_stopping_round': 20,
+    'early_stopping_round': 100, #20,
     # 'is_unbalance': True,
     'scale_pos_weight': 200.0
 }
@@ -617,8 +617,8 @@ train_config_96 = ConfigScheme(False, False, False,
                                   )
 
 train_config_99 = ConfigScheme(False, False, False,
-                                 shuffle_sample_filter_1_to_10,
-                                 shuffle_sample_filter_1_to_10,
+                                 shuffle_sample_filter_1_to_20,
+                                 shuffle_sample_filter_1_to_20,
                                  None,
                                  lgbm_params=new_lgbm_params,
                                  train_from=id_8_4am,
@@ -663,9 +663,9 @@ def use_config_scheme(str):
     return eval(str)
 
 
-config_scheme_to_use = use_config_scheme('train_config_100_3')
+config_scheme_to_use = use_config_scheme('train_config_99')
 
-print('test log 100_3')
+print('test log 99_2')
 
 dtypes = {
     'ip': 'uint32',
@@ -752,6 +752,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0.98,
                           ft_cache_prefix = '',
                           only_ft_cache = False):
     feature_name_added = '_'.join(group_by_cols) + op
+
     ft_cache_file_name = ft_cache_prefix + '_' + feature_name_added
     ft_cache_file_name = ft_cache_file_name + '_sample' if use_sample else ft_cache_file_name
     ft_cache_file_name = ft_cache_file_name + '.csv.bz2'
@@ -1071,7 +1072,7 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
     if do_val_prediction:
         return lgb_model, val_prediction, predictors1, importance_dict, val_auc
     else:
-        return lgb_model, val_prediction, predictors1, importance_dict
+        return lgb_model, val_prediction, predictors1, importance_dict, 0
 
 
 
@@ -1430,7 +1431,7 @@ def grid_search_features_combination(only_gen_ft_cache = False):
 
 
 def lgbm_params_search(com_fts_list):
-    ITERATIONS = 30 # 1000
+    ITERATIONS = 1000
     # Classifier
     search_spaces_0 = {
                 'learning_rate': (10.0 ** 0.01, 10.0 ** 1.0, 'log-uniform'),
@@ -1485,10 +1486,10 @@ def lgbm_params_search(com_fts_list):
                 shuffle=True,
                 random_state=42
             ),
-            n_jobs=1, #3
+            n_jobs=3,
             n_iter=ITERATIONS,
             verbose=9,
-            refit=False, #True,
+            refit=True,
             random_state=42
         )
 

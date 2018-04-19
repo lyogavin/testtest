@@ -481,38 +481,8 @@ _cvr']
     0                                                app  72
     3                                            channel  84
 
-    2. another run, changed to 1/10, early stopping: 200:
-        train's auc: 0.978841   valid's auc: 0.955474
-
-        74                                 channel_ipcumcount           3
-        226                                    app_os_hourvar           3
-        324                    app_device_channel_hour_ipmean           3
-        160                                  app_device_osvar           3
-        5     ip_app_device_os_channel_is_attributednextclick           3
-        198                                  channel_hourskew           4
-        216              device_os_channel_is_attributedcount           4
-        4                                                hour          10
-        1                                              device          27
-        2                                                  os         117
-        0                                                 app         164
-        3                                             channel         238
-
-    3.  another run, changed to 1/10, early stopping: 30:
-    aliyun: train's auc: 0.979002	valid's auc: 0.955185:
-
-     (3, 'hour_ipcumcount'),
-     (3, 'device_os_channel_hour_ipcumcount'),
-     (3, 'app_hour_ipskew'),
-     (3, 'os_hour_ipcumcount'),
-     (3, 'os_hour_ipskew'),
-     (3, 'channel_hour_ipskew'),
-     (4, 'ip_app_device_os_channel_is_attributednextclick'),
-     (4, 'device_os_hour_ipcumcount'),
-     (8, 'hour'),
-     (26, 'device'),
-     (111, 'os'),
-     (162, 'app'),
-     (227, 'channel')]
+    2. another run, changed to 1/20, early stopping: 100:
+    aliyun: running
 
 100. use best auc from ft coms search:
     ft 0: [118]   train's auc: 0.984903   valid's auc: 0.974782
@@ -521,11 +491,14 @@ _cvr']
     'app_device_os_hour_ip_is_attributedcount', 'device_channel_is_attributedcount', 'next_click']
     Feature importances: [203, 25, 118, 247, 32, 28, 0, 4, 126, 27, 12, 122]
     1. grid : failed, changed to 1/2 sample to run
-    2. gird test 4: use all to train to run again: running
+    2. gird test 4: use all to train to run again: LB: 0.9721
     3. grid test: use fts from search 99.1 running
 
 
-
+101 lgbm params search:
+    train_config_96, n_jobs = 3, refit=True, iterations 1000
+    use_base_cache = True,
+    aliyun: running
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
