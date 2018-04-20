@@ -359,7 +359,16 @@ lgbm_params_from_search_0_81 = {
     'subsample_freq': 1
 }
 
-
+lgbm_params_from_search_101 = {
+    'boosting_type': 'gbdt',
+    'objective': 'binary',
+    'metric': 'auc',
+    'nthread': 4,
+    'verbose': 9,
+    'min_child_weight': 3, 'subsample_for_bin': 542556, 'learning_rate': 0.30803266868575857,
+    'subsample_freq': 0, 'max_depth': 8, 'subsample': 1.0, 'num_leaves': 7, 'reg_lambda': 28.66709162037324,
+    'early_stopping_round': 371, 'min_split_gain': 0.0028642748250716932, 'reg_alpha': 7.351107378081451e-05,
+    'scale_pos_weight': 29.983824928443436, 'colsample_bytree': 0.8639270134191158, 'min_child_samples': 200}
 
 shuffle_sample_filter = {'filter_type': 'sample', 'sample_count': 6}
 shuffle_sample_filter_1_to_2 = {'filter_type': 'sample', 'sample_count': 2}
@@ -439,8 +448,43 @@ ft_coms_search_99_1=[
     {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'], 'op': 'nextclick'}
 ]
+ft_coms_search_99_2_2=[
+    # importance 4:
+    {'group': ['device', 'channel'], 'op': 'cumcount'},
+    {'group': ['device', 'os', 'hour', 'ip'], 'op': 'nunique'},
+    {'group': ['app', 'os', 'channel', 'ip'], 'op': 'count'},
+    {'group': ['app', 'ip', 'is_attributed'], 'op': 'count'},
+    # importance 27 .. 5:
+    {'group': ['ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['device', 'ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'device', 'os', 'hour', 'ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'os', 'hour', 'ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['hour', 'ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['os', 'ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'channel', 'is_attributed'], 'op': 'count'},
+    {'group': ['device', 'os', 'ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['device', 'hour', 'ip', 'is_attributed'], 'op': 'count'},
+    # importance 3:
 
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'], 'op': 'nextclick'}
+]
+ft_coms_search_99_2=[
+    # importance 27 .. 5:
+    {'group': ['ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['device', 'ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'device', 'os', 'hour', 'ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'os', 'hour', 'ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['hour', 'ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['os', 'ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'channel', 'is_attributed'], 'op': 'count'},
+    {'group': ['device', 'os', 'ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['device', 'hour', 'ip', 'is_attributed'], 'op': 'count'},
+    # importance 3:
 
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'], 'op': 'nextclick'}
+]
 add_features_list_origin = [
 
     # ====================
@@ -627,7 +671,17 @@ train_config_99 = ConfigScheme(False, False, False,
                                  val_to=id_9_3pm,
                                  run_theme='grid_search_ft_coms'
                                   )
-
+train_config_99_4 = ConfigScheme(False, False, False,
+                                 shuffle_sample_filter_1_to_20,
+                                 shuffle_sample_filter_1_to_20,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=id_8_4am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='grid_search_ft_coms_plus_lgbm_searcher'
+                                  )
 train_config_100 = ConfigScheme(False, False, False,
                                  None,
                                  shuffle_sample_filter,
@@ -656,6 +710,32 @@ train_config_100_3 = ConfigScheme(False, False, False,
                                   )
 
 
+train_config_102 = ConfigScheme(False, False, False,
+                                 shuffle_sample_filter,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=lgbm_params_from_search_101,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately'
+                                  )
+
+
+train_config_103 = ConfigScheme(False, False, False,
+                                 shuffle_sample_filter_1_to_2,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_train= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict'
+                                 )
+
 def use_config_scheme(str):
     print('config values: ')
     pprint(vars(eval(str)))
@@ -663,9 +743,9 @@ def use_config_scheme(str):
     return eval(str)
 
 
-config_scheme_to_use = use_config_scheme('train_config_99')
+config_scheme_to_use = use_config_scheme('train_config_99_4')
 
-print('test log 99_2')
+print('test log 99_4')
 
 dtypes = {
     'ip': 'uint32',
@@ -1352,31 +1432,38 @@ if config_scheme_to_use.ffm_data_gen:
     gen_ffm_data()
 
 
-def grid_search_features_combination(only_gen_ft_cache = False):
+def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searcher = False):
     import itertools
     from random import shuffle
 
     # grid search for feature generations combinations:
     com_fts_list_to_use = []
-    raw_cols = ['app', 'device', 'os', 'channel', 'hour', 'ip']
-    ops = ['mean','var','skew','nunique','cumcount']
+    raw_cols0 = ['app', 'device', 'os', 'channel', 'hour', 'ip']
+    raw_cols1 = ['app', 'device', 'os', 'channel', 'in_test_hh', 'ip']
+    ops = ['mean','var','nextclick','nunique','cumcount']
+    #ops = ['mean','var','skew','nunique','cumcount']
+    #ops = ['mean','var','nunique','cumcount']
 
-    # non-count() coms:
-    for op in ops:
-        for cols_count in range(2, 7):
+    raw_cols_groups = [raw_cols0]
+    #raw_cols_groups = [raw_cols0, raw_cols1]
+
+    for raw_cols in raw_cols_groups:
+        # non-count() coms:
+        for op in ops:
+            for cols_count in range(2, 7):
+                for cols_coms in itertools.combinations(raw_cols, cols_count):
+                    com_fts_list_to_use.append({'group':list(cols_coms), 'op':op})
+
+        #print('added non-count coms(len: {}): {}'.format(len(com_fts_list_to_use), com_fts_list_to_use))
+
+        print('\n\n\n')
+        #for count():
+        for cols_count in range(1, 7):
             for cols_coms in itertools.combinations(raw_cols, cols_count):
-                com_fts_list_to_use.append({'group':list(cols_coms), 'op':op})
-
-    #print('added non-count coms(len: {}): {}'.format(len(com_fts_list_to_use), com_fts_list_to_use))
-
-    print('\n\n\n')
-    #for count():
-    for cols_count in range(1, 7):
-        for cols_coms in itertools.combinations(raw_cols, cols_count):
-            temp = []
-            temp.extend(cols_coms)
-            temp.append('is_attributed')
-            com_fts_list_to_use.append({'group': list(temp), 'op': 'count'})
+                temp = []
+                temp.extend(cols_coms)
+                temp.append('is_attributed')
+                com_fts_list_to_use.append({'group': list(temp), 'op': 'count'})
 
     #print('added count coms(len: {}): {}'.format(len(com_fts_list_to_use), com_fts_list_to_use))
 
@@ -1405,12 +1492,18 @@ def grid_search_features_combination(only_gen_ft_cache = False):
         else:
             with timer('------training------' + str(i)):
                 additional_groups= [
-                    {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'],'op': 'nextclick'},
-                    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
+                    {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'],'op': 'nextclick'}
+                    #, {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
                     ]
-                importances, auc = train_and_predict_gen_fts_seperately(additional_groups +
+
+                if use_lgbm_searcher:
+                    lgbm_params_search(additional_groups + com_fts_list_to_use[pos:pos + size])
+                    importances = {}
+                    auc = 0
+                else:
+                    importances, auc = train_and_predict_gen_fts_seperately(additional_groups +
                                                                         com_fts_list_to_use[pos:pos + size],
-                                                                        use_ft_cache=True,
+                                                                        use_ft_cache=False,
                                                                         only_cache=only_gen_ft_cache,
                                                                         use_base_data_cache=False)
                 importances_list.append(importances)
@@ -1544,6 +1637,8 @@ def run_model():
         grid_search_features_combination(True)
     elif config_scheme_to_use.run_theme == 'grid_search_ft_coms':
         grid_search_features_combination(False)
+    elif config_scheme_to_use.run_theme == 'grid_search_ft_coms_plus_lgbm_searcher':
+        grid_search_features_combination(False, use_lgbm_searcher=True)
     elif config_scheme_to_use.run_theme == 'train_and_predict':
         print('add features list: ')
         pprint(config_scheme_to_use.add_features_list)

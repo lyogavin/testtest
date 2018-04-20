@@ -482,7 +482,52 @@ _cvr']
     3                                            channel  84
 
     2. another run, changed to 1/20, early stopping: 100:
-    aliyun: running
+    aliyun: train's auc: 0.990977	valid's auc: 0.969237
+     ('app_channel_ipnunique', 3),
+     ('device_os_hour_is_attributedcount', 3),
+     ('app_device_ip_is_attributedcount', 3),
+     ('device_channel_hour_ipcumcount', 3),
+     ('app_ipvar', 3),
+     ('channel_is_attributedcount', 3),
+     ('device_channelcumcount', 4),
+     ('device_os_hour_ipnunique', 4),
+     ('app_os_channel_ip_is_attributedcount', 4),
+     ('app_ip_is_attributedcount', 4),
+     ('device', 5),
+     ('device_hour_ip_is_attributedcount', 5),
+     ('device_os_ip_is_attributedcount', 6),
+     ('app_channel_is_attributedcount', 6),
+     ('os_ip_is_attributedcount', 8),
+     ('hour_ip_is_attributedcount', 9),
+     ('app_os_hour_ip_is_attributedcount', 9),
+     ('app_device_os_hour_ip_is_attributedcount', 11),
+     ('ip_in_test_hh_is_attributedcount', 15),
+     ('device_ip_is_attributedcount', 15),
+     ('ip_is_attributedcount', 36),
+     ('os', 53),
+     ('ip_app_device_os_channel_is_attributednextclick', 68),
+     ('app', 85),
+     ('channel', 148)]
+     3. skew -> next_click(and remove hard coded click)
+        use base data cache = true
+        use config 99
+        cache path -> ./input on kernel
+
+        grid test3 : running
+     3. add another group of in_test_hh (and remove skew to speed up, and remvoe hard coded one)
+        use base data cache = true
+        use config 99
+        cache path -> ./input on kernel
+
+        val split : running
+     4. fts coms search + lgbm params search:
+        skew -> next_click(and remove hard coded click)
+        use base data cache = False
+        use ft caceh = False
+        use config
+        cache path -> ./ft_cache on kernel
+
+        grid test2: running
 
 100. use best auc from ft coms search:
     ft 0: [118]   train's auc: 0.984903   valid's auc: 0.974782
@@ -492,13 +537,28 @@ _cvr']
     Feature importances: [203, 25, 118, 247, 32, 28, 0, 4, 126, 27, 12, 122]
     1. grid : failed, changed to 1/2 sample to run
     2. gird test 4: use all to train to run again: LB: 0.9721
-    3. grid test: use fts from search 99.1 running
+    3. grid test: 1 day train, use fts from search 99.1 0.9725
+    4. grid test 4: use 1 day train, 99.2 LB: 0.9726
+    5. grid test 4: based on 4 add importance 4 4 features half train: LB: 0.9728
 
 
 101 lgbm params search:
     train_config_96, n_jobs = 3, refit=True, iterations 1000
-    use_base_cache = True,
+    aliyun: killed
+    Best ROC-AUC: 0.9779 so far
+
+102 use new lgbm param:
+    grid test:
+    train's auc: 0.982307	valid's auc: 0.97766
+    LB: 0.9702
+
+    Best ROC-AUC: 0.9779
+    {'min_child_weight': 3, 'subsample_for_bin': 542556, 'learning_rate': 0.30803266868575857, 'subsample_freq': 0, 'max_depth': 8, 'subsample': 1.0, 'num_leaves': 7, 'reg_lambda': 28.66709162037324, 'n_estimators': 371, 'min_split_gain': 0.0028642748250716932, 'reg_alpha': 7.351107378081451e-05, 'scale_pos_weight': 29.983824928443436, 'colsample_bytree': 0.8639270134191158, 'min_child_samples': 200}
+
+103 train/val joint ft gen: compare with 94.4:
     aliyun: running
+
+
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
