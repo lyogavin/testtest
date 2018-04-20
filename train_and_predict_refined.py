@@ -743,9 +743,9 @@ def use_config_scheme(str):
     return eval(str)
 
 
-config_scheme_to_use = use_config_scheme('train_config_99_4')
+config_scheme_to_use = use_config_scheme('train_config_103')
 
-print('test log 99_4')
+print('test log 103')
 
 dtypes = {
     'ip': 'uint32',

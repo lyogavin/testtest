@@ -556,6 +556,7 @@ _cvr']
     {'min_child_weight': 3, 'subsample_for_bin': 542556, 'learning_rate': 0.30803266868575857, 'subsample_freq': 0, 'max_depth': 8, 'subsample': 1.0, 'num_leaves': 7, 'reg_lambda': 28.66709162037324, 'n_estimators': 371, 'min_split_gain': 0.0028642748250716932, 'reg_alpha': 7.351107378081451e-05, 'scale_pos_weight': 29.983824928443436, 'colsample_bytree': 0.8639270134191158, 'min_child_samples': 200}
 
 103 train/val joint ft gen: compare with 94.4:
+    use train_config_103
     aliyun: running
 
 
