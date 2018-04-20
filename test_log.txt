@@ -509,17 +509,12 @@ _cvr']
      ('app', 85),
      ('channel', 148)]
      3. skew -> next_click(and remove hard coded click)
-        use base data cache = true
+        use base data cache = False
+        use ft cache = False
         use config 99
-        cache path -> ./input on kernel
+        cache path -> ./ft_cache on kernel
 
-        grid test3 : running
-     3. add another group of in_test_hh (and remove skew to speed up, and remvoe hard coded one)
-        use base data cache = true
-        use config 99
-        cache path -> ./input on kernel
-
-        val split : running
+        grid test3 : failed mem
      4. fts coms search + lgbm params search:
         skew -> next_click(and remove hard coded click)
         use base data cache = False
@@ -527,7 +522,15 @@ _cvr']
         use config
         cache path -> ./ft_cache on kernel
 
-        grid test2: running
+        grid test2: failed mem
+     5. add another group of in_test_hh (and remove skew to speed up, and remvoe hard coded one)
+        use base data cache = False
+        use ft cache False
+        use config 99
+        cache path -> ./ft_cache on kernel
+
+
+        val split : running
 
 100. use best auc from ft coms search:
     ft 0: [118]   train's auc: 0.984903   valid's auc: 0.974782
@@ -557,7 +560,37 @@ _cvr']
 
 103 train/val joint ft gen: compare with 94.4:
     use train_config_103
-    aliyun: running
+    aliyun: 1/2 day: LB:0.9724
+    aliyun: 1 day train: LB:0.9737
+    aliyun: use best lgbm search params (101): running
+
+104 seperate ft gen + try few lines of data following public kernel:
+    use train_config_104
+    compare with 94.4
+    grid test3: LB:0.9718
+
+105 use public lgbm params
+    compare with 94.4
+    grid test4: done version 38
+
+106 test ft qcut:
+    config 106
+    1. baseline
+        grid test 2: train's auc: 0.984589	valid's auc: 0.974076
+    2. no qcut for next click (only qcut for count)
+        grid test: train's auc: 0.987518	valid's auc: 0.974453
+    3. joint ft gen:
+        grid test2: train's auc: 0.988639	valid's auc: 0.974992
+    4. 2+ joint ft gen:
+        grid test: train's auc: 0.986187	valid's auc: 0.974787
+    5. 3 + public lgbm params:
+        grid test2: train's auc: 0.985341	valid's auc: 0.973539
+    6.
+
+107. ft coms grid search based on joint ft gen training:
+    use config 99:
+    aliyun: to run
+
 
 
 

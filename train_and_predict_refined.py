@@ -96,7 +96,7 @@ import gc
 from pympler import muppy
 from pympler import summary
 
-use_sample = False
+use_sample = True
 persist_intermediate = False
 print_verbose = False
 
@@ -204,6 +204,11 @@ id_8_3pm = 118735619
 id_9_4am = 144708152
 id_9_3pm = 181878211
 
+public_train_from = 109903890
+public_train_to =  147403890
+public_val_from = 147403890
+public_val_to = 149903890
+
 default_lgbm_params = {
     'boosting_type': 'gbdt',
     'objective': 'binary',
@@ -251,6 +256,21 @@ new_lgbm_params = {
     # 'is_unbalance': True,
     'scale_pos_weight': 99.0
 }
+
+public_kernel_lgbm_params = dict(new_lgbm_params)
+public_kernel_lgbm_params.update({
+        'learning_rate': 0.20,
+        #'is_unbalance': 'true', # replaced with scale_pos_weight argument
+        'num_leaves': 7,  # 2^max_depth - 1
+        'max_depth': 3,  # -1 means no limit
+        'min_child_samples': 100,  # Minimum number of data need in a child(min_data_in_leaf)
+        'max_bin': 100,  # Number of bucketed bin for feature values
+        'subsample': 0.7,  # Subsample ratio of the training instance.
+        'subsample_freq': 1,  # frequence of subsample, <=0 means no enable
+        'colsample_bytree': 0.9,  # Subsample ratio of columns when constructing each tree.
+        'min_child_weight': 0,  # Minimum sum of instance weight(hessian) needed in a child(leaf)
+        'scale_pos_weight':200 # because training data is extremely unbalanced
+    })
 
 new_lgbm_params1 = {
     'boosting_type': 'gbdt',
@@ -724,7 +744,7 @@ train_config_102 = ConfigScheme(False, False, False,
 
 
 train_config_103 = ConfigScheme(False, False, False,
-                                 shuffle_sample_filter_1_to_2,
+                                 None,
                                  shuffle_sample_filter,
                                  None,
                                  lgbm_params=new_lgbm_params,
@@ -736,6 +756,62 @@ train_config_103 = ConfigScheme(False, False, False,
                                  run_theme='train_and_predict'
                                  )
 
+train_config_104 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=public_train_from,
+                                 train_to=public_train_to,
+                                 val_from=public_val_from,
+                                 val_to=public_val_to,
+                                 run_theme='train_and_predict_gen_fts_seperately'
+                                  )
+train_config_105 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=public_kernel_lgbm_params,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately'
+                                  )
+
+train_config_106 = ConfigScheme(False, False, False,
+                                shuffle_sample_filter,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=id_8_4am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately'
+                                  )
+train_config_106_3 = ConfigScheme(False, False, False,
+                                shuffle_sample_filter,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=id_8_4am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='train_and_predict'
+                                  )
+train_config_106_5 = ConfigScheme(False, False, False,
+                                shuffle_sample_filter,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=public_kernel_lgbm_params,
+                                 train_from=id_8_4am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='train_and_predict'
+                                  )
 def use_config_scheme(str):
     print('config values: ')
     pprint(vars(eval(str)))
@@ -743,9 +819,9 @@ def use_config_scheme(str):
     return eval(str)
 
 
-config_scheme_to_use = use_config_scheme('train_config_103')
+config_scheme_to_use = use_config_scheme('train_config_99')
 
-print('test log 103')
+print('test log 107')
 
 dtypes = {
     'ip': 'uint32',
@@ -837,7 +913,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0.98,
     ft_cache_file_name = ft_cache_file_name + '_sample' if use_sample else ft_cache_file_name
     ft_cache_file_name = ft_cache_file_name + '.csv.bz2'
 
-    if Path(ft_cache_path + ft_cache_file_name).is_file():
+    if use_ft_cache and Path(ft_cache_path + ft_cache_file_name).is_file():
         ft_cache_data = pd.read_csv(ft_cache_path + ft_cache_file_name,
                                     dtype='float32',
                                     header=0, engine='c',
@@ -903,7 +979,8 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0.98,
             op in ['count', 'nunique','cumcount']:
             training[feature_name_added] = training[feature_name_added].astype('uint16')
 
-    if not log_discretization and qcut_count != 0 and discretization == 0:
+    qcut_op_types = ['count', 'nextclick', 'nunique']
+    if not log_discretization and qcut_count != 0 and discretization == 0 and op in qcut_op_types:
         colmax = training[feature_name_added].max()
         quantile_cut = training[feature_name_added].quantile(qcut_count)
         training[feature_name_added] = training[feature_name_added].apply(
@@ -1262,7 +1339,8 @@ def get_combined_df(gen_test_data):
 
     return train, train_len, val_len
 
-def train_and_predict(com_fts_list):
+def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
+                                         use_base_data_cache=False):
     with timer('load combined data df'):
         combined_df, train_len, val_len = get_combined_df(config_scheme_to_use.new_predict)
         print('total len: {}, train len: {}, val len: {}.'.format(len(combined_df), train_len, val_len))
@@ -1272,6 +1350,7 @@ def train_and_predict(com_fts_list):
         combined_df, new_features, discretization_bins_used = \
         generate_counting_history_features(combined_df,
                                            discretization=config_scheme_to_use.discretization,
+                                           use_ft_cache = use_ft_cache,
                                            add_features_list=com_fts_list)
 
     train = combined_df[:train_len]
@@ -1501,11 +1580,20 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
                     importances = {}
                     auc = 0
                 else:
-                    importances, auc = train_and_predict_gen_fts_seperately(additional_groups +
+                    jointly = True
+                    if jointly:
+                        importances, auc = train_and_predict(additional_groups +
+                                                            com_fts_list_to_use[pos:pos + size],
+                                                            use_ft_cache=False,
+                                                            only_cache=only_gen_ft_cache,
+                                                            use_base_data_cache=False)
+                    else:
+                        importances, auc = train_and_predict_gen_fts_seperately(additional_groups +
                                                                         com_fts_list_to_use[pos:pos + size],
                                                                         use_ft_cache=False,
                                                                         only_cache=only_gen_ft_cache,
                                                                         use_base_data_cache=False)
+
                 importances_list.append(importances)
                 val_auc_list.append(auc)
                 gc.collect()

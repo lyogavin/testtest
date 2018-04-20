@@ -407,3 +407,27 @@ train_config_94_15 = ConfigScheme(False, False, False,
                                  new_predict=True,
                                  run_theme='train_and_predict_gen_fts_seperately'
                                   )
+
+
+train_config_106_3 = ConfigScheme(False, False, False,
+                                shuffle_sample_filter,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=id_8_4am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='train_and_predict'
+                                  )
+train_config_106_5 = ConfigScheme(False, False, False,
+                                shuffle_sample_filter,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=public_kernel_lgbm_params,
+                                 train_from=id_8_4am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='train_and_predict'
+                                  )
