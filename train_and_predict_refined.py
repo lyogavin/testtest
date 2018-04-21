@@ -568,11 +568,23 @@ ft_coms_search_99_2=[
     {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'], 'op': 'nextclick'}
 ]
-add_features_list_origin = [
+add_features_list_origin_astype = [
 
     # ====================
     # my best features
     {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count', 'astyep':'uint16'},
+    {'group': ['ip', 'day', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'], 'op': 'nextclick'}
+    ]
+add_features_list_origin = [
+
+    # ====================
+    # my best features
+    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'day', 'hour', 'os', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'day', 'hour', 'app', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'day', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
@@ -1012,6 +1024,45 @@ train_config_103_7 = ConfigScheme(False, False, False,
                                  run_theme='train_and_predict',
                                  add_features_list=ft_coms_from_public_astype
                                  )
+train_config_103_8 = ConfigScheme(False, False, False,
+                                 None,
+                                 None,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=public_train_from,
+                                 train_to=public_train_to,
+                                 val_from=public_val_from,
+                                 val_to=public_val_to,
+                                 run_theme='train_and_predict',
+                                 add_features_list=ft_coms_from_public_astype
+                                 )
+
+train_config_106_10 = ConfigScheme(False, False, False,
+                                shuffle_sample_filter,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=id_8_4am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='train_and_predict',
+                                 add_features_list=add_features_list_origin_astype
+                                   )
+
+train_config_106_11 = ConfigScheme(False, False, False,
+                                shuffle_sample_filter,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=id_8_4am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='train_and_predict',
+                                 add_features_list=ft_coms_from_public_astype
+                                  )
 def use_config_scheme(str):
     print('config values: ')
     pprint(vars(eval(str)))
@@ -1019,9 +1070,9 @@ def use_config_scheme(str):
     return eval(str)
 
 
-config_scheme_to_use = use_config_scheme('train_config_103_7')
+config_scheme_to_use = use_config_scheme('train_config_103_8')
 
-print('test log 103_7')
+print('test log 103 8')
 
 dtypes = {
     'ip': 'uint32',

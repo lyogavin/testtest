@@ -570,9 +570,11 @@ _cvr']
     5. based on 4. add click_next shift
         LB: 0.9738
     6. 5 + pub fts:
-        aliyun: running
+        aliyun: LB: 0.9719
     7. 6 + pub fts, with 3 astype uint16:
-        aliyun: to run
+        aliyun: 0.9728
+    8. 7+pub ranges, no sample(still keep day ft)
+        aliyun: running
 
 104 seperate ft gen + try few lines of data following public kernel:
     use train_config_104
@@ -605,6 +607,10 @@ _cvr']
         grid test2: train's auc: 0.986457	valid's auc: 0.974897
     9. 8.+ pub ranges and day ft:
         grid test2: train's auc: 0.987384	valid's auc: 0.973594
+    10. 3 + astypes.
+        grid test3: train's auc: 0.986469	valid's auc: 0.974742
+    11. 7+ astypes:
+        grid test4: train's auc: 0.984605	valid's auc: 0.973873
 
 107. ft coms grid search based on joint ft gen training:
     use config 99:
@@ -621,7 +627,8 @@ _cvr']
         failed mem
     5.
 
-
+109 pub script: aliyun: 0.9777
+110 pub script + remove astype uint16: azzureyun: running
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
