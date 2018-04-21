@@ -560,9 +560,14 @@ _cvr']
 
 103 train/val joint ft gen: compare with 94.4:
     use train_config_103
-    aliyun: 1/2 day: LB:0.9724
-    aliyun: 1 day train: LB:0.9737
-    aliyun: use best lgbm search params (101): running
+    1. aliyun: 1/2 day: LB:0.9724
+    2. aliyun: 1 day train: LB:0.9737
+    3. aliyun: use best lgbm search params (101): submission_notebook_20-04-2018_23-57-42.csv
+    LB: 0.9736
+    4. no qcut at all(qcut=0):
+        aliyun: train's auc: 0.981078	valid's auc: 0.980541
+        LB: 0.9738
+    5. based on 4. add click_next shift
 
 104 seperate ft gen + try few lines of data following public kernel:
     use train_config_104
@@ -585,12 +590,31 @@ _cvr']
         grid test: train's auc: 0.986187	valid's auc: 0.974787
     5. 3 + public lgbm params:
         grid test2: train's auc: 0.985341	valid's auc: 0.973539
-    6.
+    6. joint + no qcut all:
+        grid test4: train's auc: 0.987148	valid's auc: 0.97487
+        grid test4: early stopping 100: train's auc: 0.989302	valid's auc: 0.974815
+    7. joint + noqcut + pub fts:
+        val split: train's auc: 0.986388	valid's auc: 0.974555
+        val split: early stopping 100: train's auc: 0.988386	valid's auc: 0.974489
+    8. based on 3. add next click shift:
+        grid test2: train's auc: 0.986457	valid's auc: 0.974897
+    9. 8.+ pub ranges and day ft:
+        grid test2: train's auc: 0.987384	valid's auc: 0.973594
 
 107. ft coms grid search based on joint ft gen training:
     use config 99:
     aliyun: to run
 
+108. use public fts train 1day seperately, no qcut
+    1. old lgbm params: grid test: failed mem
+    2. public lgbm params: grid test 3: failed mem
+        grid test3: changed to 1_to_2 LB: 0.9709 again
+    3. grid test3: use pub ranges and add day in categorical,
+        train's auc: 0.982843	valid's auc: 0.967226
+        LB: submitting:
+    4. based on 2. grid test: 1_to_2 to train, no cut, add click_next_shift, noday
+        failed mem
+    5.
 
 
 
@@ -612,3 +636,4 @@ to do test:
     train/val ranges;
     id features, st features,
     lgbm params
+15. for group by dimensions, next_click times forms a sequience, the mean, var skew of this sequence

@@ -96,7 +96,7 @@ import gc
 from pympler import muppy
 from pympler import summary
 
-use_sample = True
+use_sample = False
 persist_intermediate = False
 print_verbose = False
 
@@ -125,6 +125,7 @@ path_test_sample = path + 'test_sample.csv'
 train_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'is_attributed']
 test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
 
+#categorical = ['app', 'device', 'os', 'channel', 'hour', 'day']
 categorical = ['app', 'device', 'os', 'channel', 'hour']
 # with ip:
 # categorical = ['app', 'device', 'os', 'channel', 'hour', 'ip']
@@ -448,6 +449,37 @@ ft_coms_97478=[
     {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'], 'op': 'nextclick'}
 ]
 
+ft_coms_from_public=[
+    # importance 27 .. 4:
+    {'group': ['ip', 'channel'], 'op': 'nunique'},
+    {'group': ['ip', 'device', 'os', 'app'], 'op': 'cumcount'},
+    {'group': ['ip', 'day', 'hour'], 'op': 'nunique'},
+
+
+    {'group': ['ip', 'app'], 'op': 'nunique'},
+    {'group': ['ip', 'app', 'os'], 'op': 'nunique'},
+    {'group': ['ip', 'device'], 'op': 'nunique'},
+    {'group': ['app', 'channel'], 'op': 'nunique'},
+
+    {'group': ['ip', 'os'], 'op': 'cumcount'},
+    {'group': ['ip', 'device', 'os', 'app'], 'op': 'nunique'},
+
+    # count:
+    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'os', 'is_attributed'], 'op': 'count'},
+
+    # var:
+    {'group': ['ip','day','channel','hour'], 'op': 'var'},
+    {'group': ['ip','app', 'os', 'hour'], 'op': 'var'},
+    {'group': ['ip','app', 'channel', 'day'], 'op': 'var'},
+
+    # mean:
+    {'group': ['ip','app', 'channel','hour'], 'op': 'mean'},
+
+    #{'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'], 'op': 'nextclick'}
+]
 
 ft_coms_search_99_1=[
     # importance 27 .. 4:
@@ -812,6 +844,119 @@ train_config_106_5 = ConfigScheme(False, False, False,
                                  val_to=id_9_3pm,
                                  run_theme='train_and_predict'
                                   )
+
+train_config_106_6 = ConfigScheme(False, False, False,
+                                shuffle_sample_filter,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=id_8_4am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='train_and_predict'
+                                  )
+
+train_config_106_7 = ConfigScheme(False, False, False,
+                                shuffle_sample_filter,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=id_8_4am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='train_and_predict',
+                                 add_features_list=ft_coms_from_public
+                                  )
+
+train_config_108 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 new_predict=True,
+                                 add_features_list=ft_coms_from_public
+                                  )
+
+train_config_108_2 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=public_kernel_lgbm_params,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 new_predict=True,
+                                 add_features_list=ft_coms_from_public
+                                  )
+
+
+train_config_108_3 = ConfigScheme(False, False, False,
+                                  shuffle_sample_filter_1_to_2,
+                                  shuffle_sample_filter_1_to_2,
+                                 None,
+                                 lgbm_params=public_kernel_lgbm_params,
+                                 train_from=public_train_from,
+                                 train_to=public_train_to,
+                                 val_from=public_val_from,
+                                 val_to=public_val_to,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 new_predict=True,
+                                 add_features_list=ft_coms_from_public
+                                  )
+
+
+train_config_108_4 = ConfigScheme(False, False, False,
+                                  shuffle_sample_filter_1_to_2,
+                                  shuffle_sample_filter_1_to_2,
+                                 None,
+                                 lgbm_params=public_kernel_lgbm_params,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 new_predict=True,
+                                 add_features_list=ft_coms_from_public
+                                  )
+
+train_config_106_8 = ConfigScheme(False, False, False,
+                                shuffle_sample_filter,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=id_8_4am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='train_and_predict'
+                                  )
+
+
+
+
+train_config_103_5 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict'
+                                 )
+
+
 def use_config_scheme(str):
     print('config values: ')
     pprint(vars(eval(str)))
@@ -819,9 +964,9 @@ def use_config_scheme(str):
     return eval(str)
 
 
-config_scheme_to_use = use_config_scheme('train_config_99')
+config_scheme_to_use = use_config_scheme('train_config_103_5')
 
-print('test log 107')
+print('test log 103_5')
 
 dtypes = {
     'ip': 'uint32',
@@ -900,7 +1045,7 @@ def df_get_counts(df, cols):
     return counts[unqtags]
 
 
-def add_statistic_feature(group_by_cols, training, qcut_count=0.98,
+def add_statistic_feature(group_by_cols, training, qcut_count=0, #0.98,
                           discretization=0, discretization_bins=None,
                           log_discretization=False,
                           op='count',
@@ -960,11 +1105,17 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0.98,
             del (click_buffer)
             training[feature_name_added] = list(reversed(next_clicks))
 
+            training[feature_name_added+'_shift'] = pd.DataFrame(list(reversed(next_clicks))).shift(+1).values
+            features_added.append(feature_name_added+'_shift')
+
             training.drop('epochtime', inplace=True, axis=1)
             training.drop('category', inplace=True, axis=1)
 
             #if print_verbose:
             print('next click added:', training[feature_name_added].describe())
+
+
+
     else:
         tempstr = 'training[group_by_cols + [counting_col]].groupby(by=group_by_cols)[[counting_col]]'
         temp1 = eval(tempstr + '.' + op + '()')
