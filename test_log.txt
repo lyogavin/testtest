@@ -568,6 +568,11 @@ _cvr']
         aliyun: train's auc: 0.981078	valid's auc: 0.980541
         LB: 0.9738
     5. based on 4. add click_next shift
+        LB: 0.9738
+    6. 5 + pub fts:
+        aliyun: running
+    7. 6 + pub fts, with 3 astype uint16:
+        aliyun: to run
 
 104 seperate ft gen + try few lines of data following public kernel:
     use train_config_104
@@ -611,7 +616,7 @@ _cvr']
         grid test3: changed to 1_to_2 LB: 0.9709 again
     3. grid test3: use pub ranges and add day in categorical,
         train's auc: 0.982843	valid's auc: 0.967226
-        LB: submitting:
+        LB: submitting:0.9708
     4. based on 2. grid test: 1_to_2 to train, no cut, add click_next_shift, noday
         failed mem
     5.

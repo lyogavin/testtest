@@ -448,7 +448,6 @@ ft_coms_97478=[
     {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'], 'op': 'nextclick'}
 ]
-
 ft_coms_from_public=[
     # importance 27 .. 4:
     {'group': ['ip', 'channel'], 'op': 'nunique'},
@@ -468,6 +467,38 @@ ft_coms_from_public=[
     {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'app', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'app', 'os', 'is_attributed'], 'op': 'count'},
+
+    # var:
+    {'group': ['ip','day','channel','hour'], 'op': 'var'},
+    {'group': ['ip','app', 'os', 'hour'], 'op': 'var'},
+    {'group': ['ip','app', 'channel', 'day'], 'op': 'var'},
+
+    # mean:
+    {'group': ['ip','app', 'channel','hour'], 'op': 'mean'},
+
+    #{'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'], 'op': 'nextclick'}
+]
+
+ft_coms_from_public_astype=[
+    # importance 27 .. 4:
+    {'group': ['ip', 'channel'], 'op': 'nunique'},
+    {'group': ['ip', 'device', 'os', 'app'], 'op': 'cumcount'},
+    {'group': ['ip', 'day', 'hour'], 'op': 'nunique'},
+
+
+    {'group': ['ip', 'app'], 'op': 'nunique'},
+    {'group': ['ip', 'app', 'os'], 'op': 'nunique'},
+    {'group': ['ip', 'device'], 'op': 'nunique'},
+    {'group': ['app', 'channel'], 'op': 'nunique'},
+
+    {'group': ['ip', 'os'], 'op': 'cumcount'},
+    {'group': ['ip', 'device', 'os', 'app'], 'op': 'nunique'},
+
+    # count:
+    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count', 'astyep':'uint16'},
+    {'group': ['ip', 'app', 'is_attributed'], 'op': 'count', 'astyep':'uint16'},
+    {'group': ['ip', 'app', 'os', 'is_attributed'], 'op': 'count', 'astyep':'uint16'},
 
     # var:
     {'group': ['ip','day','channel','hour'], 'op': 'var'},
@@ -541,7 +572,7 @@ add_features_list_origin = [
 
     # ====================
     # my best features
-    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count', 'astyep':'uint16'},
     {'group': ['ip', 'day', 'hour', 'os', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'day', 'hour', 'app', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'day', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
@@ -955,8 +986,32 @@ train_config_103_5 = ConfigScheme(False, False, False,
                                  val_to=id_8_3pm,
                                  run_theme='train_and_predict'
                                  )
-
-
+train_config_103_6 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict',
+                                 add_features_list=ft_coms_from_public
+                                 )
+train_config_103_7 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict',
+                                 add_features_list=ft_coms_from_public_astype
+                                 )
 def use_config_scheme(str):
     print('config values: ')
     pprint(vars(eval(str)))
@@ -964,9 +1019,9 @@ def use_config_scheme(str):
     return eval(str)
 
 
-config_scheme_to_use = use_config_scheme('train_config_103_5')
+config_scheme_to_use = use_config_scheme('train_config_103_7')
 
-print('test log 103_5')
+print('test log 103_7')
 
 dtypes = {
     'ip': 'uint32',
@@ -1051,7 +1106,8 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0, #0.98,
                           op='count',
                           use_ft_cache = False,
                           ft_cache_prefix = '',
-                          only_ft_cache = False):
+                          only_ft_cache = False,
+                          astype=None):
     feature_name_added = '_'.join(group_by_cols) + op
 
     ft_cache_file_name = ft_cache_prefix + '_' + feature_name_added
@@ -1161,6 +1217,9 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0, #0.98,
             print('after qcut', feature_name_added, training[feature_name_added].describe())
 
     features_added.append(feature_name_added)
+    for ft in feature_name_added:
+        if astype is not None:
+            training[ft] = training[ft].astype(astype)
 
     print('added features:', features_added)
     if print_verbose:
@@ -1204,7 +1263,8 @@ def generate_counting_history_features(data,
                 op = add_feature['op'],
                 use_ft_cache = use_ft_cache,
                 ft_cache_prefix = ft_cache_prefix,
-                only_ft_cache = only_ft_cache)
+                only_ft_cache = only_ft_cache,
+                astype = add_feature['astype'] if 'astype' in add_feature else None)
             new_features = new_features + features_added
             if discretization_bins_used_current_feature is not None:
                 if discretization_bins_used is None:
@@ -1272,6 +1332,7 @@ def generate_counting_history_features(data,
         gc.collect()
         new_features = new_features + ['click_count_later']
 
+    print('data dtypes:',data.dtypes)
     return data, new_features, discretization_bins_used
 
 
