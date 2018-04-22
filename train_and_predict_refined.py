@@ -633,6 +633,26 @@ add_features_list_origin_no_channel_next_click = [
     {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'}
     ]
 
+add_features_list_origin_no_channel_next_click_stnc = [
+
+    # ====================
+    # my best features
+    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+    # st nc:
+    {'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'qt0.98'},
+    {'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'qt0.02'},
+    {'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'min'},
+    {'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'var'},
+    {'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'mean'},
+    {'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'skew'}
+    ]
+
 add_features_list_origin = [
 
     # ====================
@@ -1118,6 +1138,20 @@ train_config_103_11 = ConfigScheme(False, False, False,
                                  add_features_list=add_features_list_origin_no_channel_next_click
                                    )
 
+train_config_103_12 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict',
+                                 add_features_list=add_features_list_origin_no_channel_next_click_stnc
+                                   )
+
 train_config_106_10 = ConfigScheme(False, False, False,
                                 shuffle_sample_filter,
                                  shuffle_sample_filter,
@@ -1158,9 +1192,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_103_11')
+config_scheme_to_use = use_config_scheme('train_config_103_12')
 
-print('test log 103_11')
+print('test log 103_12')
 
 dtypes = {
     'ip': 'uint32',
@@ -1318,11 +1352,13 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0, #0.98,
             #if print_verbose:
             print('next click added:', training[feature_name_added].describe())
 
-
-
     else:
         tempstr = 'training[group_by_cols + [counting_col]].groupby(by=group_by_cols)[[counting_col]]'
-        temp1 = eval(tempstr + '.' + op + '()')
+        if len(op) > 2 and op[0:2] == 'qt':
+            temp1 = eval('{}.quantile({})'.format(tempstr, float(op[2:])) )
+        else:
+            temp1 = eval(tempstr + '.' + op + '()')
+
         n_chans = temp1.reset_index().rename(columns={counting_col: feature_name_added})
         training = training.merge(n_chans, on=group_by_cols if len(group_by_cols) >1 else group_by_cols[0],
                                   how='left')

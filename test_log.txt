@@ -580,8 +580,11 @@ _cvr']
     10. make everything the same, test (no_type_cast, type cast in config, no ft cache):
         aliyun: failed NAN
     11. remove channel from next click ft:
-        based on 103_4, use ft cache, no day, no type case = False
-        aliyun: running
+        based on 103_4, use ft cache, no day, no type cast = False
+        train_config_103_11
+        aliyun:submission_notebook_22-04-2018_23-32-09.csv(moved to /mnt)
+            LB: 0.9779
+    12. add mean, var, skew, min, qt98,qt02 of next click
 
 104 seperate ft gen + try few lines of data following public kernel:
     use train_config_104
