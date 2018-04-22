@@ -44,6 +44,11 @@ def lgb_modelfit_nocv(params, dtrain, dvalid, predictors, target='target', objec
     lgb_params.update(params)
 
     print("preparing validation datasets")
+    #dump features to debug:
+    #dtrain[predictors].to_csv("train_ft_dump.csv.bz2", compression='bz2',index=False)
+    #dvalid[predictors].to_csv("val_ft_dump.csv.bz2", compression='bz2',index=False)
+    #print('dump done')
+    #exit(0)
 
     xgtrain = lgb.Dataset(dtrain[predictors].values, label=dtrain[target].values,
                           feature_name=predictors,
@@ -247,9 +252,9 @@ def DO(frm,to,fileno):
 
     print("vars and data type: ")
     train_df.info()
-    train_df['ip_tcount'] = train_df['ip_tcount'].astype('uint16')
-    train_df['ip_app_count'] = train_df['ip_app_count'].astype('uint16')
-    train_df['ip_app_os_count'] = train_df['ip_app_os_count'].astype('uint16')
+    #train_df['ip_tcount'] = train_df['ip_tcount'].astype('uint16')
+    #train_df['ip_app_count'] = train_df['ip_app_count'].astype('uint16')
+    #train_df['ip_app_os_count'] = train_df['ip_app_os_count'].astype('uint16')
 
     target = 'is_attributed'
     predictors.extend(['app','device','os', 'channel', 'hour', 'day', 
@@ -277,6 +282,29 @@ def DO(frm,to,fileno):
 
     print("Training...")
     start_time = time.time()
+    new_lgbm_params = {
+        'boosting_type': 'gbdt',
+        'objective': 'binary',
+        'metric': 'auc',
+        'learning_rate': 0.1,
+        'num_leaves': 9,
+        'max_depth': 5,
+        'min_child_samples': 100,
+        'max_bin': 150,
+        'subsample': 0.9,
+        'subsample_freq': 1,
+        'colsample_bytree': 0.7,
+        'min_child_weight': 0,
+        'subsample_for_bin': 200000,
+        'min_split_gain': 0,
+        'reg_alpha': 0,
+        'reg_lambda': 0,
+        'nthread': 5,
+        'verbose': 9,
+        'early_stopping_round': 20,
+        # 'is_unbalance': True,
+        'scale_pos_weight': 99.0
+    }
 
     params = {
         'learning_rate': 0.20,
@@ -291,6 +319,8 @@ def DO(frm,to,fileno):
         'min_child_weight': 0,  # Minimum sum of instance weight(hessian) needed in a child(leaf)
         'scale_pos_weight':200 # because training data is extremely unbalanced 
     }
+
+    #test_df[predictors].to_csv("test_ft_dump.csv.bz2", compression='bz2',index=False)
     (bst,best_iteration) = lgb_modelfit_nocv(params, 
                             train_df, 
                             val_df, 
@@ -326,9 +356,11 @@ def DO(frm,to,fileno):
     return sub
 
 nrows=184903891-1
+#nchunk=39670059
 nchunk=40000000
 val_size=2500000
 
+#frm=144708152
 frm=nrows-75000000
 if debug:
     frm=0
