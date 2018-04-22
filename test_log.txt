@@ -645,6 +645,8 @@ _cvr']
 
 114 use config 103_10 debug run to compare
 
+115 lgbm param grid search: 08 val 09 train, sample 1/3
+
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
 2. break down auc by dimensions and filter data and train separately and ensemble DONE

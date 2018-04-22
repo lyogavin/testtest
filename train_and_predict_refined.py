@@ -402,6 +402,7 @@ lgbm_params_from_search_101 = {
 
 shuffle_sample_filter = {'filter_type': 'sample', 'sample_count': 6}
 shuffle_sample_filter_1_to_2 = {'filter_type': 'sample', 'sample_count': 2}
+shuffle_sample_filter_1_to_3 = {'filter_type': 'sample', 'sample_count': 3}
 
 shuffle_sample_filter_1_to_10 = {'filter_type': 'sample', 'sample_count': 10}
 shuffle_sample_filter_1_to_20 = {'filter_type': 'sample', 'sample_count': 20}
@@ -1177,6 +1178,19 @@ train_config_106_11 = ConfigScheme(False, False, False,
                                  run_theme='train_and_predict',
                                  add_features_list=ft_coms_from_public_astype
                                   )
+
+train_config_115 = ConfigScheme(False, False, False,
+                                shuffle_sample_filter_1_to_3,
+                                shuffle_sample_filter_1_to_3,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='lgbm_params_search',
+                                 add_features_list=add_features_list_origin_no_channel_next_click
+                                  )
 def use_config_scheme(str):
     ret = eval(str)
     if debug:
@@ -1192,9 +1206,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_103_12')
+config_scheme_to_use = use_config_scheme('train_config_115')
 
-print('test log 103_12')
+print('test log 115')
 
 dtypes = {
     'ip': 'uint32',
