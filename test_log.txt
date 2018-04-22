@@ -578,6 +578,9 @@ _cvr']
     9. 8 + dump features to debug:
         aliyun: done, still click to debug
     10. make everything the same, test (no_type_cast, type cast in config, no ft cache):
+        aliyun: failed NAN
+    11. remove channel from next click ft:
+        based on 103_4, use ft cache, no day, no type case = False
         aliyun: running
 
 104 seperate ft gen + try few lines of data following public kernel:
@@ -635,7 +638,9 @@ _cvr']
 110 pub script + remove astype uint16: azzureyun: LB: 0.9777
 111 110 + use my train range: azzureyun: LB: 0.9786
 112 111 + my lgbm params: azzureyun: LB: 0.9784
-113 111 + add channel dimension in nextclick ft: azzureyun: running
+113 111 + add channel dimension in nextclick ft: azzureyun: 0.9724
+
+114 use config 103_10 debug run to compare
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE

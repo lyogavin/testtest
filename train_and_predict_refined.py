@@ -98,7 +98,8 @@ from pympler import summary
 
 dump_train_data = False
 
-use_sample = True
+use_sample = False
+debug = False
 persist_intermediate = False
 print_verbose = False
 
@@ -127,8 +128,8 @@ path_test_sample = path + 'test_sample.csv'
 train_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'is_attributed']
 test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
 
-categorical = ['app', 'device', 'os', 'channel', 'hour', 'day']
-#categorical = ['app', 'device', 'os', 'channel', 'hour']
+#categorical = ['app', 'device', 'os', 'channel', 'hour', 'day']
+categorical = ['app', 'device', 'os', 'channel', 'hour']
 # with ip:
 # categorical = ['app', 'device', 'os', 'channel', 'hour', 'ip']
 
@@ -212,6 +213,11 @@ public_train_to =  147403890
 public_val_from = 147403890
 public_val_to = 149903890
 
+debug_train_from = 0
+debug_train_to = 90000
+debug_val_from=90000
+debug_val_to=100000
+
 default_lgbm_params = {
     'boosting_type': 'gbdt',
     'objective': 'binary',
@@ -253,7 +259,7 @@ new_lgbm_params = {
     'min_split_gain': 0,
     'reg_alpha': 0,
     'reg_lambda': 0,
-    'nthread': 5,
+    'nthread': 10,
     'verbose': 9,
     'early_stopping_round': 20,
     # 'is_unbalance': True,
@@ -613,6 +619,20 @@ add_features_list_origin_astype = [
     {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'], 'op': 'nextclick'}
     ]
+
+add_features_list_origin_no_channel_next_click = [
+
+    # ====================
+    # my best features
+    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'}
+    ]
+
 add_features_list_origin = [
 
     # ====================
@@ -1083,6 +1103,21 @@ train_config_103_10 = ConfigScheme(False, False, False,
                                  run_theme='train_and_predict',
                                  add_features_list=ft_coms_from_public_astype_all_set_type
                                  )
+
+train_config_103_11 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict',
+                                 add_features_list=add_features_list_origin_no_channel_next_click
+                                   )
+
 train_config_106_10 = ConfigScheme(False, False, False,
                                 shuffle_sample_filter,
                                  shuffle_sample_filter,
@@ -1109,15 +1144,23 @@ train_config_106_11 = ConfigScheme(False, False, False,
                                  add_features_list=ft_coms_from_public_astype
                                   )
 def use_config_scheme(str):
+    ret = eval(str)
+    if debug:
+        ret.train_from = debug_train_from
+        ret.train_to = debug_train_to
+        ret.val_from=debug_val_from
+        ret.val_to=debug_val_to
     print('config values: ')
-    pprint(vars(eval(str)))
+    pprint(vars(ret))
     print('using config var name: ', str)
-    return eval(str)
 
 
-config_scheme_to_use = use_config_scheme('train_config_103_8')
+    return ret
 
-print('test log 103 9')
+
+config_scheme_to_use = use_config_scheme('train_config_103_11')
+
+print('test log 103_11')
 
 dtypes = {
     'ip': 'uint32',
@@ -1244,7 +1287,16 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0, #0.98,
                     joint_col = training[col].astype(str)
                 else:
                     joint_col = joint_col + "_" + training[col].astype(str)
+            if debug:
+                print('data:',training[0:10])
+                print('debug str',joint_col[0:10])
+                print('debug str', (training['ip'].astype(str) + "_" + training['app'].astype(str) + "_" + training['device'].astype(str) \
+            + "_" + training['os'].astype(str)+ "_" + training['channel'].astype(str))[0:10])
+
             training['category'] = joint_col.apply(hash) % D
+            if debug:
+                print('debug category',training['category'][0:10])
+
             del joint_col
             gc.collect()
             click_buffer = np.full(D, 3000000000, dtype=np.uint32)
@@ -1277,7 +1329,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0, #0.98,
         del n_chans
 
     gc.collect()
-    no_type_cast = True
+    no_type_cast = False
     if not no_type_cast and not log_discretization and discretization == 0:
         if training[feature_name_added].max() <= 65535 and \
             op in ['count', 'nunique','cumcount']:

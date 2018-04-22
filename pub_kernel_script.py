@@ -12,7 +12,7 @@ import gc
 import matplotlib.pyplot as plt
 import os
 
-debug=0
+debug=1
 if debug:
     print('*** debug parameter set: this is a test run for debugging purposes ***')
 
@@ -169,7 +169,15 @@ def DO(frm,to,fileno):
     else:
         D=2**26
         train_df['category'] = (train_df['ip'].astype(str) + "_" + train_df['app'].astype(str) + "_" + train_df['device'].astype(str) \
-            + "_" + train_df['os'].astype(str)).apply(hash) % D
+            + "_" + train_df['os'].astype(str)+ "_" + train_df['channel'].astype(str)).apply(hash) % D
+
+        if debug:
+            print('data:', train_df[0:10])
+
+            print('debug str', (train_df['ip'].astype(str) + "_" + train_df['app'].astype(str) + "_" + train_df['device'].astype(str) \
+            + "_" + train_df['os'].astype(str)+ "_" + train_df['channel'].astype(str))[0:10])
+        if debug:
+            print('debug category', train_df['category'][0:10])
         click_buffer= np.full(D, 3000000000, dtype=np.uint32)
 
         train_df['epochtime']= train_df['click_time'].astype(np.int64) // 10 ** 9
