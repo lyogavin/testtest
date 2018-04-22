@@ -96,6 +96,8 @@ import gc
 from pympler import muppy
 from pympler import summary
 
+dump_train_data = False
+
 use_sample = False
 persist_intermediate = False
 print_verbose = False
@@ -1072,7 +1074,7 @@ def use_config_scheme(str):
 
 config_scheme_to_use = use_config_scheme('train_config_103_8')
 
-print('test log 103 8')
+print('test log 103 9')
 
 dtypes = {
     'ip': 'uint32',
@@ -1428,6 +1430,11 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
     predictors_to_train = [predictors1]
 
     for predictors in predictors_to_train:
+        if dump_train_data:
+            train[predictors].to_csv("train_ft_dump.csv.bz2", compression='bz2',index=False)
+            val[predictors].to_csv("val_ft_dump.csv.bz2", compression='bz2',index=False)
+            print('dumping done')
+            exit(0)
         print('training with :', predictors)
         dtrain = lgb.Dataset(train[predictors].values, label=train[target].values,
                              feature_name=predictors,
@@ -1618,13 +1625,15 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
 
     train = combined_df[:train_len]
     val = combined_df[train_len:train_len + val_len]
+    if dump_train_data and config_scheme_to_use.new_predict:
+        test = combined_df[train_len + val_len:]
+        test[categorical + new_features].to_csv("test_ft_dump.csv.bz2", compression='bz2',index=False)
 
     with timer('train lgbm model...'):
         lgb_model, val_prediction, predictors, importances, val_auc = train_lgbm(train, val, new_features, False)
 
     if config_scheme_to_use.new_predict:
         with timer('predict test data:'):
-            test = combined_df[train_len + val_len:]
 
             predict_result = lgb_model.predict(test[predictors], num_iteration=lgb_model.best_iteration)
             submission = pd.DataFrame({'is_attributed':predict_result,
@@ -1993,7 +2002,7 @@ def run_model():
     elif config_scheme_to_use.run_theme == 'train_and_predict':
         print('add features list: ')
         pprint(config_scheme_to_use.add_features_list)
-        train_and_predict(config_scheme_to_use.add_features_list)
+        train_and_predict(config_scheme_to_use.add_features_list, use_ft_cache =True)
     elif config_scheme_to_use.run_theme == 'lgbm_params_search':
         print('add features list: ')
         pprint(config_scheme_to_use.add_features_list)
