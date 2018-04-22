@@ -98,7 +98,7 @@ from pympler import summary
 
 dump_train_data = False
 
-use_sample = False
+use_sample = True
 persist_intermediate = False
 print_verbose = False
 
@@ -127,8 +127,8 @@ path_test_sample = path + 'test_sample.csv'
 train_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'is_attributed']
 test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
 
-#categorical = ['app', 'device', 'os', 'channel', 'hour', 'day']
-categorical = ['app', 'device', 'os', 'channel', 'hour']
+categorical = ['app', 'device', 'os', 'channel', 'hour', 'day']
+#categorical = ['app', 'device', 'os', 'channel', 'hour']
 # with ip:
 # categorical = ['app', 'device', 'os', 'channel', 'hour', 'ip']
 
@@ -272,7 +272,8 @@ public_kernel_lgbm_params.update({
         'subsample_freq': 1,  # frequence of subsample, <=0 means no enable
         'colsample_bytree': 0.9,  # Subsample ratio of columns when constructing each tree.
         'min_child_weight': 0,  # Minimum sum of instance weight(hessian) needed in a child(leaf)
-        'scale_pos_weight':200 # because training data is extremely unbalanced
+        'scale_pos_weight':200, # because training data is extremely unbalanced
+        'early_stopping_round': 30
     })
 
 new_lgbm_params1 = {
@@ -498,9 +499,9 @@ ft_coms_from_public_astype=[
     {'group': ['ip', 'device', 'os', 'app'], 'op': 'nunique'},
 
     # count:
-    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count', 'astyep':'uint16'},
-    {'group': ['ip', 'app', 'is_attributed'], 'op': 'count', 'astyep':'uint16'},
-    {'group': ['ip', 'app', 'os', 'is_attributed'], 'op': 'count', 'astyep':'uint16'},
+    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count', 'astype':'uint16'},
+    {'group': ['ip', 'app', 'is_attributed'], 'op': 'count', 'astype':'uint16'},
+    {'group': ['ip', 'app', 'os', 'is_attributed'], 'op': 'count', 'astype':'uint16'},
 
     # var:
     {'group': ['ip','day','channel','hour'], 'op': 'var'},
@@ -513,7 +514,37 @@ ft_coms_from_public_astype=[
     #{'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'], 'op': 'nextclick'}
 ]
+ft_coms_from_public_astype_all_set_type=[
+    # importance 27 .. 4:
+    {'group': ['ip', 'channel'], 'op': 'nunique', 'astype':'int64'},
+    {'group': ['ip', 'device', 'os', 'app'], 'op': 'cumcount', 'astype':'int64'},
+    {'group': ['ip', 'day', 'hour'], 'op': 'nunique', 'astype':'int64'},
 
+
+    {'group': ['ip', 'app'], 'op': 'nunique', 'astype':'int64'},
+    {'group': ['ip', 'app', 'os'], 'op': 'nunique', 'astype':'int64'},
+    {'group': ['ip', 'device'], 'op': 'nunique', 'astype':'int64'},
+    {'group': ['app', 'channel'], 'op': 'nunique', 'astype':'int64'},
+
+    {'group': ['ip', 'os'], 'op': 'cumcount', 'astype':'int64'},
+    {'group': ['ip', 'device', 'os', 'app'], 'op': 'nunique', 'astype':'int64'},
+
+    # count:
+    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count', 'astype':'uint16'},
+    {'group': ['ip', 'app', 'is_attributed'], 'op': 'count', 'astype':'uint16'},
+    {'group': ['ip', 'app', 'os', 'is_attributed'], 'op': 'count', 'astype':'uint16'},
+
+    # var:
+    {'group': ['ip','day','channel','hour'], 'op': 'var', 'astype':'float64'},
+    {'group': ['ip','app', 'os', 'hour'], 'op': 'var', 'astype':'float64'},
+    {'group': ['ip','app', 'channel', 'day'], 'op': 'var', 'astype':'float64'},
+
+    # mean:
+    {'group': ['ip','app', 'channel','hour'], 'op': 'mean', 'astype':'float64'},
+
+    #{'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'], 'op': 'nextclick', 'astype':'int64'}
+]
 ft_coms_search_99_1=[
     # importance 27 .. 4:
     {'group': ['ip', 'is_attributed'], 'op': 'count'},
@@ -1039,7 +1070,19 @@ train_config_103_8 = ConfigScheme(False, False, False,
                                  run_theme='train_and_predict',
                                  add_features_list=ft_coms_from_public_astype
                                  )
-
+train_config_103_10 = ConfigScheme(False, False, False,
+                                 None,
+                                 None,
+                                 None,
+                                 lgbm_params=public_kernel_lgbm_params,
+                                 new_predict= True,
+                                 train_from=public_train_from,
+                                 train_to=public_train_to,
+                                 val_from=public_val_from,
+                                 val_to=public_val_to,
+                                 run_theme='train_and_predict',
+                                 add_features_list=ft_coms_from_public_astype_all_set_type
+                                 )
 train_config_106_10 = ConfigScheme(False, False, False,
                                 shuffle_sample_filter,
                                  shuffle_sample_filter,
@@ -1234,7 +1277,8 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0, #0.98,
         del n_chans
 
     gc.collect()
-    if not log_discretization and discretization == 0:
+    no_type_cast = True
+    if not no_type_cast and not log_discretization and discretization == 0:
         if training[feature_name_added].max() <= 65535 and \
             op in ['count', 'nunique','cumcount']:
             training[feature_name_added] = training[feature_name_added].astype('uint16')
@@ -1270,7 +1314,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0, #0.98,
             print('after qcut', feature_name_added, training[feature_name_added].describe())
 
     features_added.append(feature_name_added)
-    for ft in feature_name_added:
+    for ft in features_added:
         if astype is not None:
             training[ft] = training[ft].astype(astype)
 
@@ -1455,7 +1499,7 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                               evals_result=evals_results,
                               num_boost_round=1000,
                               early_stopping_rounds=30,
-                              verbose_eval=50,
+                              verbose_eval=10,
                               feval=None)
 
         # Nick's Feature Importance Plot
@@ -1634,6 +1678,8 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
 
     if config_scheme_to_use.new_predict:
         with timer('predict test data:'):
+            if not dump_train_data: # because for dump case, it'll be set above
+                test = combined_df[train_len + val_len:]
 
             predict_result = lgb_model.predict(test[predictors], num_iteration=lgb_model.best_iteration)
             submission = pd.DataFrame({'is_attributed':predict_result,
@@ -2002,7 +2048,7 @@ def run_model():
     elif config_scheme_to_use.run_theme == 'train_and_predict':
         print('add features list: ')
         pprint(config_scheme_to_use.add_features_list)
-        train_and_predict(config_scheme_to_use.add_features_list, use_ft_cache =True)
+        train_and_predict(config_scheme_to_use.add_features_list, use_ft_cache =False)
     elif config_scheme_to_use.run_theme == 'lgbm_params_search':
         print('add features list: ')
         pprint(config_scheme_to_use.add_features_list)

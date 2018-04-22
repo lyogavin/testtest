@@ -574,6 +574,10 @@ _cvr']
     7. 6 + pub fts, with 3 astype uint16:
         aliyun: 0.9728
     8. 7+pub ranges, no sample(still keep day ft)
+        aliyun: LB: 0.9726
+    9. 8 + dump features to debug:
+        aliyun: done, still click to debug
+    10. make everything the same, test (no_type_cast, type cast in config, no ft cache):
         aliyun: running
 
 104 seperate ft gen + try few lines of data following public kernel:
@@ -627,8 +631,11 @@ _cvr']
         failed mem
     5.
 
-109 pub script: aliyun: 0.9777
-110 pub script + remove astype uint16: azzureyun: running
+109 pub script: aliyun: LB: 0.9777
+110 pub script + remove astype uint16: azzureyun: LB: 0.9777
+111 110 + use my train range: azzureyun: LB: 0.9786
+112 111 + my lgbm params: azzureyun: LB: 0.9784
+113 111 + add channel dimension in nextclick ft: azzureyun: running
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
