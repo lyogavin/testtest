@@ -583,9 +583,12 @@ _cvr']
         based on 103_4, use ft cache, no day, no type cast = False
         train_config_103_11
         aliyun:submission_notebook_22-04-2018_23-32-09.csv(moved to /mnt)
+            train's auc: 0.984493   valid's auc: 0.984067
             LB: 0.9779
     12. add mean, var, skew, min, qt98,qt02 of next click
-        aliyun: running
+        aliyun: stuck because of qt and skew too slow,
+        aliyun: removed skew, qt rerun: train's auc: 0.982707	valid's auc: 0.983598
+        LB: submitting
 
 104 seperate ft gen + try few lines of data following public kernel:
     use train_config_104

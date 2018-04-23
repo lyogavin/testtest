@@ -98,7 +98,7 @@ from pympler import summary
 
 dump_train_data = False
 
-use_sample = False
+use_sample = True
 debug = False
 persist_intermediate = False
 print_verbose = False
@@ -646,12 +646,12 @@ add_features_list_origin_no_channel_next_click_stnc = [
     {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
     # st nc:
-    {'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'qt0.98'},
-    {'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'qt0.02'},
+    #{'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'qt0.98'},
+    #{'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'qt0.02'},
     {'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'min'},
     {'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'var'},
-    {'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'mean'},
-    {'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'skew'}
+    {'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'mean'}
+    #,{'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'skew'}
     ]
 
 add_features_list_origin = [
@@ -1222,7 +1222,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_116')
+config_scheme_to_use = use_config_scheme('train_config_103_12')
 
 print('test log 116')
 
@@ -1387,6 +1387,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0, #0.98,
         tempstr = 'training[group_by_cols + [counting_col]].groupby(by=group_by_cols)[[counting_col]]'
         if len(op) > 2 and op[0:2] == 'qt':
             temp1 = eval('{}.quantile({})'.format(tempstr, float(op[2:])) )
+            #temp1 = eval('{}.apply(lambda x: np.percentile(x.sample(min(len(x), 100)), q={}))'.format(tempstr, float(op[2:])) )
         else:
             temp1 = eval(tempstr + '.' + op + '()')
 
