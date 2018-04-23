@@ -98,7 +98,7 @@ from pympler import summary
 
 dump_train_data = False
 
-use_sample = True
+use_sample = False
 debug = False
 persist_intermediate = False
 print_verbose = False
@@ -671,6 +671,26 @@ add_features_list_origin_no_channel_next_click_varnc = [
     {'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'var'},
     #,{'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'skew'}
     ]
+
+add_features_list_origin_no_channel_next_click_next_n_click = [
+
+    # ====================
+    # my best features
+    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextnclick'}
+    # st nc:
+    #{'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'qt0.98'},
+    #{'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'qt0.02'},
+    #{'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'var'},
+    #,{'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'skew'}
+    ]
+
 add_features_list_origin = [
 
     # ====================
@@ -741,7 +761,8 @@ class ConfigScheme:
                  new_predict = False,
                  run_theme = '',
                  add_features_list = add_features_list_origin,
-                 use_ft_cache = False):
+                 use_ft_cache = False,
+                 use_ft_cache_from = None):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -773,6 +794,7 @@ class ConfigScheme:
         self.run_theme = run_theme
         self.add_features_list = add_features_list
         self.use_ft_cache = use_ft_cache
+        self.use_ft_cache_from = use_ft_cache_from
 
 
 train_config_94_8 = ConfigScheme(False, False, False,
@@ -1187,6 +1209,21 @@ train_config_103_13 = ConfigScheme(False, False, False,
                                    use_ft_cache=True
                                    )
 
+train_config_103_14 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict',
+                                 add_features_list=add_features_list_origin_no_channel_next_click_next_n_click,
+                                   use_ft_cache=False
+                                   )
+
 train_config_106_10 = ConfigScheme(False, False, False,
                                 shuffle_sample_filter,
                                  shuffle_sample_filter,
@@ -1250,6 +1287,8 @@ def use_config_scheme(str):
         ret.val_to=debug_val_to
     print('using config var name: ', str)
     ret.config_name = str
+    if ret.use_ft_cache_from is None:
+        ret.use_ft_cache_from = ret.config_name
     print('config values: ')
     pprint(vars(ret))
 
@@ -1257,9 +1296,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_116')
+config_scheme_to_use = use_config_scheme('train_config_103_14')
 
-print('test log 116')
+print('test log 103_14')
 
 dtypes = {
     'ip': 'uint32',
@@ -1349,9 +1388,11 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0, #0.98,
                           astype=None):
     feature_name_added = '_'.join(group_by_cols) + op
 
-    ft_cache_file_name = config_scheme_to_use.config_name + "_" + ft_cache_prefix + '_' + feature_name_added
+    ft_cache_file_name = config_scheme_to_use.use_ft_cache_from + "_" + ft_cache_prefix + '_' + feature_name_added
     ft_cache_file_name = ft_cache_file_name + '_sample' if use_sample else ft_cache_file_name
     ft_cache_file_name = ft_cache_file_name + '.csv.bz2'
+
+    loaded_from_cache = False
 
     if use_ft_cache and Path(ft_cache_path + ft_cache_file_name).is_file():
         ft_cache_data = pd.read_csv(ft_cache_path + ft_cache_file_name,
@@ -1360,6 +1401,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0, #0.98,
                                     compression='bz2')
         training[feature_name_added] = ft_cache_data
         print('loaded {} from file {}'.format(feature_name_added, ft_cache_path + ft_cache_file_name))
+        loaded_from_cache=True
         return training, [feature_name_added], None
 
 
@@ -1373,6 +1415,57 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0, #0.98,
         gp = training[group_by_cols + [counting_col]].\
             groupby(by=group_by_cols)[[counting_col]].cumcount()
         training[feature_name_added] = gp.values
+    elif op=='nextnclick':
+        with timer("Adding next n click times"):
+            D = 2 ** 26
+            #data['category'] = (data['ip'].astype(str) + "_" + data['app'].astype(str) + "_" + \
+            #                    data['device'].astype(str) \
+            #                    + "_" + data['os'].astype(str) + "_" + data['channel'].astype(str)) \
+            #                       .apply(hash) % D
+            joint_col = None
+
+            for col in group_by_cols:
+                if joint_col is None:
+                    joint_col = training[col].astype(str)
+                else:
+                    joint_col = joint_col + "_" + training[col].astype(str)
+            if debug:
+                print('data:',training[0:10])
+                print('debug str',joint_col[0:10])
+                print('debug str', (training['ip'].astype(str) + "_" + training['app'].astype(str) + "_" + training['device'].astype(str) \
+            + "_" + training['os'].astype(str)+ "_" + training['channel'].astype(str))[0:10])
+
+            training['category'] = joint_col.apply(hash) % D
+            if debug:
+                print('debug category',training['category'][0:10])
+
+            del joint_col
+            gc.collect()
+
+            n = 3
+            click_buffers = []
+            for i in range(n):
+                click_buffers.append(np.full(D, 3000000000, dtype=np.uint32))
+            training['epochtime'] = training['click_time'].astype(np.int64) // 10 ** 9
+            next_clicks = []
+            for category, time in zip(reversed(training['category'].values),
+                                      reversed(training['epochtime'].values)):
+                # shift values in buffers queue and append new value from the tail
+                for i in range(n - 1):
+                    click_buffers[i][category] = click_buffers[i+1][category]
+                next_clicks.append(click_buffers[0][category] - time)
+                click_buffers[n-1][category] = time
+            del (click_buffers)
+            training[feature_name_added] = list(reversed(next_clicks))
+
+            training[feature_name_added+'_shift'] = pd.DataFrame(list(reversed(next_clicks))).shift(+1).values
+            features_added.append(feature_name_added+'_shift')
+
+            training.drop('epochtime', inplace=True, axis=1)
+            training.drop('category', inplace=True, axis=1)
+
+            #if print_verbose:
+            print('next click added:', training[feature_name_added].describe())
     elif op=='nextclick':
         with timer("Adding next click times"):
             D = 2 ** 26
@@ -1480,7 +1573,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0, #0.98,
 
     print('columns after added: ', training.columns.values)
 
-    if use_ft_cache:
+    if use_ft_cache and not loaded_from_cache:
         pd.DataFrame(training[feature_name_added]).to_csv(ft_cache_path + ft_cache_file_name,
                                                           index=False,compression='bz2')
         print('saved {} to file {}'.format(feature_name_added, ft_cache_path + ft_cache_file_name))

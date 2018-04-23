@@ -590,6 +590,9 @@ _cvr']
         aliyun: removed skew, qt rerun: train's auc: 0.982707	valid's auc: 0.983598
         LB: 0.9787
     13. 11 + use ft cache + keep only nc var:
+        googleyun: train's auc: 0.983751   valid's auc: 0.984041
+        LB: submitting: 0.9788
+    14. 11 + next n click ft:
         googleyun: running
 
 104 seperate ft gen + try few lines of data following public kernel:
@@ -656,6 +659,9 @@ _cvr']
     azzureyun: running
 
 116 streaming model
+    1. 1/10 to test: auc: 0.9749064944799741
+    2. full day to train:
+        aliyun:running
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
