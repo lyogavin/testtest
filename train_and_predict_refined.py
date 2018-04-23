@@ -1191,6 +1191,22 @@ train_config_115 = ConfigScheme(False, False, False,
                                  run_theme='lgbm_params_search',
                                  add_features_list=add_features_list_origin_no_channel_next_click
                                   )
+
+train_config_116 = ConfigScheme(False, False, False,
+                                shuffle_sample_filter_1_to_10,
+                                shuffle_sample_filter_1_to_10,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='online_model',
+                                new_predict=True,
+                                use_interactive_features=True,
+                                 add_features_list=add_features_list_origin_no_channel_next_click
+                                  )
+
 def use_config_scheme(str):
     ret = eval(str)
     if debug:
@@ -1206,9 +1222,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_115')
+config_scheme_to_use = use_config_scheme('train_config_116')
 
-print('test log 115')
+print('test log 116')
 
 dtypes = {
     'ip': 'uint32',
@@ -1272,6 +1288,7 @@ def gen_iteractive_categorical_features(data):
                                                       '_' + data[interactive_feature_item].astype(str)
             if not interactive_features_name in categorical:
                 categorical.append(interactive_features_name)
+                print('added iterative fts:',interactive_features_name )
     return data
 
 
@@ -1543,14 +1560,19 @@ def convert_features_to_text(data, predictors):
     with timer('convert_features_to_text'):
         i = 0
         str_array = None
+        assign_name_id = 0
         for feature in predictors:
+            acro_name_to_dump = ''
             if not feature in acro_names:
-                print('{} missing acronym'.format(feature))
-                exit(-1)
-            if str_array is None:
-                str_array = acro_names[feature] + "_" + data[feature].astype(str)
+                print('{} missing acronym, assign name AN{}'.format(feature, assign_name_id))
+                acro_name_to_dump = 'AN' + str(assign_name_id)
+                assign_name_id += 1
             else:
-                str_array = str_array + " " + acro_names[feature] + "_" + data[feature].astype(str)
+                acro_name_to_dump =  acro_names[feature]
+            if str_array is None:
+                str_array = acro_name_to_dump + "_" + data[feature].astype(str)
+            else:
+                str_array = str_array + " " + acro_name_to_dump + "_" + data[feature].astype(str)
 
             gc.collect()
             print('mem after gc:', cpuStats())
@@ -1754,6 +1776,266 @@ def get_combined_df(gen_test_data):
         gc.collect()
 
     return train, train_len, val_len
+
+
+def fit_batch(clf, X, y, w):
+    if not isinstance(clf, FM_FTRL):
+        clf.partial_fit(X, y)
+    else:
+        clf.partial_fit(X, y, sample_weight=w)
+
+def predict_batch(clf, X):  return clf.predict(X)
+
+def evaluate_batch(clf, X, y):
+    auc= roc_auc_score(y, predict_batch(clf, X))
+
+    print( "ROC AUC:", auc)
+    return auc
+
+class ThreadWithReturnValue(threading.Thread):
+    def __init__(self, group=None, target=None, name=None, args=(), kwargs=None, *, daemon=None):
+        threading.Thread.__init__(self, group, target, name, args, kwargs, daemon=daemon)
+        self._return = None
+    def run(self):
+        if self._target is not None:
+            self._return = self._target(*self._args, **self._kwargs)
+    def join(self):
+        threading.Thread.join(self)
+        return self._return
+
+
+def process_chunk_data(chunk, wb, new_features):
+    pick_hours = {4, 5, 10, 13, 14}
+    with timer('process chunk'):
+        print('start adding interactive features')
+        with timer('adding interactive features'):
+            if config_scheme_to_use.use_interactive_features:
+                print('gen_iteractive_categorical_features...')
+                chunk = gen_iteractive_categorical_features(chunk)
+        gc.collect()
+        print('mem after iter fts:', cpuStats())
+
+        predictors1 = categorical + new_features
+        print('converting chunk {} with features {}: '.format(chunk, predictors1))
+        with timer('to text'):
+            str_array = convert_features_to_text(chunk, predictors1)
+            print('converted to str array: ', str_array[10])
+
+        print('gen weighted labels and recycle chunk')
+        labels = []
+        weights = []
+
+        if 'is_attributed' in chunk.columns:
+            labels = chunk['is_attributed'].values
+            weights = np.multiply([1.0 if x == 1 else 0.2 for x in chunk['is_attributed'].values],
+                                  chunk['hour'].apply(lambda x: 1.0 if x in pick_hours else 0.5))
+        del (chunk)
+        gc.collect()
+        print('mem after converted to text and recycled chunk:', cpuStats())
+
+        print('wordbatch processing')
+        with timer('wordbatch processing'):
+            X = wb.transform(str_array)
+            del (str_array)
+            gc.collect()
+            print('mem after gc str array:', cpuStats())
+
+    return X, labels, weights
+
+def train_and_predict_online_model(com_fts_list, use_ft_cache=False):
+    batchsize = 10000000
+    D = 2 ** 22
+
+    with timer('load combined data df'):
+        combined_df, train_len, val_len = get_combined_df(config_scheme_to_use.new_predict)
+        print('total len: {}, train len: {}, val len: {}.'.format(len(combined_df), train_len, val_len))
+    with timer('gen categorical features'):
+        combined_df = gen_categorical_features(combined_df)
+    with timer('gen statistical hist features'):
+        combined_df, new_features, discretization_bins_used = \
+        generate_counting_history_features(combined_df,
+                                           discretization=config_scheme_to_use.discretization,
+                                           use_ft_cache = use_ft_cache,
+                                           add_features_list=com_fts_list)
+
+    train = combined_df[:train_len]
+    val = combined_df[train_len:train_len + val_len]
+    test = combined_df[train_len + val_len:]
+
+    # ensure intermediate dump dir
+    inter_dump_path = './inter_dump/'
+    try:
+        os.mkdir(inter_dump_path)
+        print('created dir', inter_dump_path)
+    except:
+        None
+
+    with timer('dump iter data'):
+        train.to_csv(inter_dump_path + "train_iter_dump.csv.bz2", compression='bz2',index=False)
+        val.to_csv(inter_dump_path + "val_iter_dump.csv.bz2", compression='bz2',index=False)
+        if config_scheme_to_use.new_predict:
+            test.to_csv(inter_dump_path + "test_iter_dump.csv.bz2", compression='bz2',index=False)
+
+        y = {k: str(v) for k, v in train.dtypes.to_dict().items()}
+        y1 = {k: str(v) for k, v in test.dtypes.to_dict().items()}
+
+        y.update(y1)
+        del y['click_time']
+
+        print('dyptes:', y)
+        dtypes = y
+
+    del train
+    del val
+    del test
+
+    gc.collect()
+    print('mem after dump data', cpuStats())
+
+
+
+    wb = None
+    clf = None
+    print('creating model...')
+    with timer('creating model'):
+        wb = wordbatch.WordBatch(None, extractor=(WordHash, {"ngram_range": (1, 1), "analyzer": "word",
+                                                             "lowercase": False, "n_features": D,
+                                                             "norm": None, "binary": True})
+                                 , minibatch_size=batchsize // 80, procs=8, freeze=True, timeout=1800, verbose=0)
+
+        clf = None
+        if config_scheme_to_use.wordbatch_model == 'FM_FTRL':
+            clf = FM_FTRL(alpha=0.05, beta=0.1, L1=0.0, L2=0.0, D=D, alpha_fm=0.02, L2_fm=0.0, init_fm=0.01,
+                          weight_fm=1.0,D_fm=8, e_noise=0.0, iters=3, inv_link="sigmoid", e_clip=1.0,
+                          threads=4, use_avx=1, verbose=0)
+        elif config_scheme_to_use.wordbatch_model == 'NN_ReLU_H1':
+            clf = NN_ReLU_H1(alpha=0.05, D = D, verbose=9, e_noise=0.0, threads=4, inv_link="sigmoid")
+        elif config_scheme_to_use.wordbatch_model == 'FTRL':
+            clf = FTRL(alpha=0.05, beta=0.1, L1=0.0, L2=0.0, D=D, iters=3, threads=4, verbose=9)
+        else:
+            print('invalid wordbatch_model param:', config_scheme_to_use.wordbatch_model)
+            exit(-1)
+
+
+    print('start streaming training...')
+    p = None
+    with timer('train wordbatch model...'):
+        train_chunks = pd.read_csv(inter_dump_path + "train_iter_dump.csv.bz2",
+                                   dtype=dtypes,
+                                   chunksize = batchsize,
+                                   header=0,
+                                   parse_dates=["click_time"]
+                                  )
+        for chunk in train_chunks:
+            X, labels, weights = process_chunk_data(chunk, wb, new_features)
+            del (chunk)
+            gc.collect()
+            print('mem after converted to text and recycled chunk:', cpuStats())
+
+            print('joining previous training threads...')
+            with timer('join previous training threads:'):
+                if p != None:
+                    p.join()
+                gc.collect()
+
+            print('start trainnig thread')
+            with timer('start training thread'):
+                p = threading.Thread(target=fit_batch, args=(clf, X, labels, weights))
+                p.start()
+
+        print('joining train threads')
+        if p != None:
+            p.join()
+
+        del train_chunks
+        del X
+        del labels
+        del weights
+        gc.collect()
+
+    print('evaling')
+    with timer('eval wordbatch model...'):
+        val_chunks = pd.read_csv(inter_dump_path + "val_iter_dump.csv.bz2",
+                                   dtype=dtypes,
+                                   chunksize = batchsize,
+                                   header=0,
+                                   parse_dates=["click_time"]
+                                  )
+        for chunk in val_chunks:
+            X, labels, weights = process_chunk_data(chunk, wb, new_features)
+            del (chunk)
+            gc.collect()
+            print('mem after converted to text and recycled chunk:', cpuStats())
+
+            print('joining previous eval threads...')
+            with timer('join previous eval threads:'):
+                if p != None:
+                    p.join()
+                gc.collect()
+
+            print('start eval thread')
+            with timer('start eval thread'):
+                p = threading.Thread(target=evaluate_batch, args=(clf, X, labels))
+                p.start()
+
+        print('joining eval threads')
+        if p != None:
+            p.join()
+
+        del val_chunks
+        del X
+        del labels
+        del weights
+        gc.collect()
+
+    if not config_scheme_to_use.new_predict:
+        return
+    print('predicting')
+    click_ids = []
+    test_preds = []
+    with timer('eval wordbatch model...'):
+        test_chunks = pd.read_csv(inter_dump_path + "test_iter_dump.csv.bz2",
+                                   dtype=dtypes,
+                                   chunksize = batchsize,
+                                   header=0,
+                                   parse_dates=["click_time"]
+                                  )
+        for chunk in test_chunks:
+            X, labels, weights = process_chunk_data(chunk, wb, new_features)
+            del (chunk)
+            gc.collect()
+            print('mem after converted to text and recycled chunk:', cpuStats())
+
+            print('joining previous eval threads...')
+            with timer('join previous eval threads:'):
+                if p != None:
+                    ret = p.join()
+                    if ret is not None:
+                        test_preds += list()
+                gc.collect()
+
+            print('start predict thread')
+            with timer('start predict thread'):
+                p = ThreadWithReturnValue(target=predict_batch, args=(clf, X))
+                p.start()
+
+        print('joining eval threads')
+        if p != None:
+            test_preds += list(p.join())
+
+        del test_chunks
+        del X
+        del labels
+        del weights
+        gc.collect()
+
+        df_sub = pd.read_csv(path_test_sample if use_sample else path_test,
+                           dtype='uint64',
+                           header=0,
+                           usecols=['click_id'])
+        df_sub['is_attributed'] = test_preds
+        df_sub.to_csv(get_dated_filename("wordbatch_fm_ftrl.csv"), index=False)
+        print('done streaming prediction')
 
 def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
                                          use_base_data_cache=False):
@@ -2159,6 +2441,10 @@ def run_model():
         print('add features list: ')
         pprint(config_scheme_to_use.add_features_list)
         train_and_predict_gen_fts_seperately(config_scheme_to_use.add_features_list)
+    elif config_scheme_to_use.run_theme == 'online_model':
+        print('add features list: ')
+        pprint(config_scheme_to_use.add_features_list)
+        train_and_predict_online_model(config_scheme_to_use.add_features_list)
     else:
         print("nothing to run... exit")
 
