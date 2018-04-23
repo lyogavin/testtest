@@ -98,7 +98,7 @@ from pympler import summary
 
 dump_train_data = False
 
-use_sample = True
+use_sample = False
 debug = False
 persist_intermediate = False
 print_verbose = False
@@ -654,6 +654,23 @@ add_features_list_origin_no_channel_next_click_stnc = [
     #,{'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'skew'}
     ]
 
+add_features_list_origin_no_channel_next_click_varnc = [
+
+    # ====================
+    # my best features
+    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+    # st nc:
+    #{'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'qt0.98'},
+    #{'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'qt0.02'},
+    {'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'var'},
+    #,{'group': ['ip', 'app', 'device', 'os', 'ip_app_device_os_is_attributednextclick'], 'op': 'skew'}
+    ]
 add_features_list_origin = [
 
     # ====================
@@ -723,7 +740,8 @@ class ConfigScheme:
                  val_to=None,
                  new_predict = False,
                  run_theme = '',
-                 add_features_list = add_features_list_origin):
+                 add_features_list = add_features_list_origin,
+                 use_ft_cache = False):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -754,6 +772,7 @@ class ConfigScheme:
         self.new_predict = new_predict
         self.run_theme = run_theme
         self.add_features_list = add_features_list
+        self.use_ft_cache = use_ft_cache
 
 
 train_config_94_8 = ConfigScheme(False, False, False,
@@ -1153,6 +1172,21 @@ train_config_103_12 = ConfigScheme(False, False, False,
                                  add_features_list=add_features_list_origin_no_channel_next_click_stnc
                                    )
 
+train_config_103_13 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict',
+                                 add_features_list=add_features_list_origin_no_channel_next_click_varnc,
+                                   use_ft_cache=True
+                                   )
+
 train_config_106_10 = ConfigScheme(False, False, False,
                                 shuffle_sample_filter,
                                  shuffle_sample_filter,
@@ -1214,17 +1248,18 @@ def use_config_scheme(str):
         ret.train_to = debug_train_to
         ret.val_from=debug_val_from
         ret.val_to=debug_val_to
+    print('using config var name: ', str)
+    ret.config_name = str
     print('config values: ')
     pprint(vars(ret))
-    print('using config var name: ', str)
 
 
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_103_12')
+config_scheme_to_use = use_config_scheme('train_config_103_13')
 
-print('test log 116')
+print('test log 103_13')
 
 dtypes = {
     'ip': 'uint32',
@@ -1314,7 +1349,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=0, #0.98,
                           astype=None):
     feature_name_added = '_'.join(group_by_cols) + op
 
-    ft_cache_file_name = ft_cache_prefix + '_' + feature_name_added
+    ft_cache_file_name = config_scheme_to_use.config_name + "_" + ft_cache_prefix + '_' + feature_name_added
     ft_cache_file_name = ft_cache_file_name + '_sample' if use_sample else ft_cache_file_name
     ft_cache_file_name = ft_cache_file_name + '.csv.bz2'
 
@@ -1857,6 +1892,7 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False):
         generate_counting_history_features(combined_df,
                                            discretization=config_scheme_to_use.discretization,
                                            use_ft_cache = use_ft_cache,
+                                           ft_cache_prefix='joint',
                                            add_features_list=com_fts_list)
 
     train = combined_df[:train_len]
@@ -2050,6 +2086,7 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
         generate_counting_history_features(combined_df,
                                            discretization=config_scheme_to_use.discretization,
                                            use_ft_cache = use_ft_cache,
+                                           ft_cache_prefix='joint',
                                            add_features_list=com_fts_list)
 
     train = combined_df[:train_len]
@@ -2386,7 +2423,8 @@ def lgbm_params_search(com_fts_list):
         combined_df, new_features, discretization_bins_used = \
         generate_counting_history_features(combined_df,
                                            discretization=config_scheme_to_use.discretization,
-                                           add_features_list=com_fts_list)
+                                           add_features_list=com_fts_list,
+                                           ft_cache_prefix='joint')
 
     train = combined_df[:train_len]
     val = combined_df[train_len:train_len + val_len]
@@ -2433,7 +2471,7 @@ def run_model():
     elif config_scheme_to_use.run_theme == 'train_and_predict':
         print('add features list: ')
         pprint(config_scheme_to_use.add_features_list)
-        train_and_predict(config_scheme_to_use.add_features_list, use_ft_cache =False)
+        train_and_predict(config_scheme_to_use.add_features_list, use_ft_cache=config_scheme_to_use.use_ft_cache)
     elif config_scheme_to_use.run_theme == 'lgbm_params_search':
         print('add features list: ')
         pprint(config_scheme_to_use.add_features_list)
@@ -2441,11 +2479,11 @@ def run_model():
     elif config_scheme_to_use.run_theme == 'train_and_predict_gen_fts_seperately':
         print('add features list: ')
         pprint(config_scheme_to_use.add_features_list)
-        train_and_predict_gen_fts_seperately(config_scheme_to_use.add_features_list)
+        train_and_predict_gen_fts_seperately(config_scheme_to_use.add_features_list, use_ft_cache=config_scheme_to_use.use_ft_cache)
     elif config_scheme_to_use.run_theme == 'online_model':
         print('add features list: ')
         pprint(config_scheme_to_use.add_features_list)
-        train_and_predict_online_model(config_scheme_to_use.add_features_list)
+        train_and_predict_online_model(config_scheme_to_use.add_features_list, use_ft_cache=config_scheme_to_use.use_ft_cache)
     else:
         print("nothing to run... exit")
 

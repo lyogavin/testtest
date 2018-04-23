@@ -584,11 +584,13 @@ _cvr']
         train_config_103_11
         aliyun:submission_notebook_22-04-2018_23-32-09.csv(moved to /mnt)
             train's auc: 0.984493   valid's auc: 0.984067
-            LB: 0.9779
+            LB: 0.9791
     12. add mean, var, skew, min, qt98,qt02 of next click
         aliyun: stuck because of qt and skew too slow,
         aliyun: removed skew, qt rerun: train's auc: 0.982707	valid's auc: 0.983598
-        LB: submitting
+        LB: 0.9787
+    13. 11 + use ft cache + keep only nc var:
+        googleyun: running
 
 104 seperate ft gen + try few lines of data following public kernel:
     use train_config_104
