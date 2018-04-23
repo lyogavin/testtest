@@ -178,7 +178,7 @@ base @20:
 66. 55+2 hist statis features:
     grid test 2: failed with mem
     new val test: testing per day version: train's auc: 0.984178	valid's auc: 0.97074
-67. 59 + no sample and predict
+67. FFM 59 + no sample and predict
     aliyun: 0.976217, predict: LB: 0.9688
     submission_notebook.csv.04-09-2018_11-50-46
 68. 65 + filter app/channel:
@@ -664,7 +664,12 @@ _cvr']
         auc: 0.9755348263944024
         aliyun:LB: 0.9707 wordbatch_fm_ftrl.csv_23-04-2018_22-25-34.csv
     3. log_discretization true
-        aliyun: running
+        auc:0.9790121278867547
+            wordbatch_fm_ftrl.csv_24-04-2018_01-12-29.csv
+        aliyun: LB: submitting
+
+117 FFM
+    1.
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE

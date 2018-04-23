@@ -1294,6 +1294,21 @@ train_config_116_3 = ConfigScheme(False, False, False,
                                  log_discretization=True
                                   )
 
+train_config_117_1 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                discretization=50,
+                                 run_theme='ffm_data_gen',
+                                  new_predict=True,
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                   use_ft_cache=False
+                                   )
+
 def use_config_scheme(str):
     ret = eval(str)
     if debug:
@@ -1312,9 +1327,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_116_3')
+config_scheme_to_use = use_config_scheme('train_config_117_1')
 
-print('test log 116_3')
+print('test log 117_1')
 
 dtypes = {
     'ip': 'uint32',
@@ -1987,6 +2002,56 @@ def process_chunk_data(chunk, wb, new_features):
 
     return X, labels, weights
 
+def ffm_data_gen(com_fts_list, use_ft_cache=False):
+
+    with timer('load combined data df'):
+        combined_df, train_len, val_len = get_combined_df(config_scheme_to_use.new_predict)
+        print('total len: {}, train len: {}, val len: {}.'.format(len(combined_df), train_len, val_len))
+    with timer('gen categorical features'):
+        combined_df = gen_categorical_features(combined_df)
+    with timer('gen statistical hist features'):
+        combined_df, new_features, discretization_bins_used = \
+        generate_counting_history_features(combined_df,
+                                           discretization=config_scheme_to_use.discretization,
+                                           use_ft_cache = use_ft_cache,
+                                           ft_cache_prefix='joint',
+                                           add_features_list=com_fts_list)
+
+    train = combined_df[:train_len]
+    val = combined_df[train_len:train_len + val_len]
+    test = combined_df[train_len + val_len:]
+
+    predictors1 = categorical + new_features + ['is_attributed']
+    print('dump train/val fe data for fts:', predictors1)
+
+    if use_sample:
+        train[predictors1].to_csv('train_fe_sample.csv', index=False)
+        val[predictors1].to_csv('val_fe_sample.csv', index=False)
+    else:
+        train[predictors1].to_csv('train_fe.csv', index=False)
+        val[predictors1].to_csv('val_fe.csv', index=False)
+
+    print('dump dtypes')
+
+    y = {k: str(v) for k, v in train.dtypes.to_dict().items()}
+    print(y)
+    del y['click_time']
+    # del y['Unnamed: 0']
+    pickle.dump(y, open(get_dated_filename('fe_dtypes.pickle'), 'wb'))
+
+    print('dump test fe data...')
+
+    click_id_df = pd.read_csv(path_test_sample if use_sample else path_test,
+                         dtype='uint64',
+                         header=0,
+                         usecols=['click_id'])
+    #pay attention to adding column of dataframe here, need to reset_index() first
+    test_to_dump = test[predictors1].copy(True).reset_index()
+    test_to_dump['click_id'] = click_id_df['click_id']
+    test_to_dump.to_csv('test_fe.csv' + '.sample' if use_sample else 'test_fe.csv', index=False)
+
+    print('gen fe data for ffm done.')
+
 def train_and_predict_online_model(com_fts_list, use_ft_cache=False):
     batchsize = 10000000
     D = 2 ** 22
@@ -2593,6 +2658,10 @@ def run_model():
         print('add features list: ')
         pprint(config_scheme_to_use.add_features_list)
         train_and_predict_online_model(config_scheme_to_use.add_features_list, use_ft_cache=config_scheme_to_use.use_ft_cache)
+    elif config_scheme_to_use.run_theme == 'ffm_data_gen':
+        print('add features list: ')
+        pprint(config_scheme_to_use.add_features_list)
+        ffm_data_gen(config_scheme_to_use.add_features_list, use_ft_cache=config_scheme_to_use.use_ft_cache)
     else:
         print("nothing to run... exit")
 
