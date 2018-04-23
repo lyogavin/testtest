@@ -1264,8 +1264,8 @@ train_config_115 = ConfigScheme(False, False, False,
                                   )
 
 train_config_116 = ConfigScheme(False, False, False,
-                                shuffle_sample_filter_1_to_10,
-                                shuffle_sample_filter_1_to_10,
+                                None,
+                                shuffle_sample_filter,
                                  None,
                                  lgbm_params=new_lgbm_params,
                                  train_from=id_9_4am,
@@ -1279,8 +1279,8 @@ train_config_116 = ConfigScheme(False, False, False,
                                   )
 
 train_config_116_3 = ConfigScheme(False, False, False,
-                                shuffle_sample_filter_1_to_10,
-                                shuffle_sample_filter_1_to_10,
+                                None,
+                                  shuffle_sample_filter,
                                  None,
                                  lgbm_params=new_lgbm_params,
                                  train_from=id_9_4am,
