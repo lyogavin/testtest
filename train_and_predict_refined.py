@@ -98,7 +98,7 @@ from pympler import summary
 
 dump_train_data = False
 
-use_sample = False
+use_sample = True
 debug = False
 persist_intermediate = False
 print_verbose = False
@@ -1257,9 +1257,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_103_13')
+config_scheme_to_use = use_config_scheme('train_config_116')
 
-print('test log 103_13')
+print('test log 116')
 
 dtypes = {
     'ip': 'uint32',
@@ -1852,7 +1852,7 @@ def process_chunk_data(chunk, wb, new_features):
         print('mem after iter fts:', cpuStats())
 
         predictors1 = categorical + new_features
-        print('converting chunk {} with features {}: '.format(chunk, predictors1))
+        print('converting chunk of len {} with features {}: '.format(len(chunk), predictors1))
         with timer('to text'):
             str_array = convert_features_to_text(chunk, predictors1)
             print('converted to str array: ', str_array[10])
@@ -2048,7 +2048,7 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False):
                 if p != None:
                     ret = p.join()
                     if ret is not None:
-                        test_preds += list()
+                        test_preds += list(ret)
                 gc.collect()
 
             print('start predict thread')
