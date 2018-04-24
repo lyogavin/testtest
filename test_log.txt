@@ -596,8 +596,14 @@ _cvr']
         googleyun: LB:0.9790
     15. try qcut:0.98
         googleyun: try1 killed OOM,
-            moved nc to the head, running
-    16. TODO: try smoothing of next click and next n click
+            moved nc to the head, LB:0.9788
+    16. try removing app in next click dimensions:
+        googleyun: running
+    17. try add cvr of ip+app+os+device+hour/10min
+    18. use next time range to fix last next click value too big(test supplyment and train next range)
+    19. TODO: try smoothing of next click and next n click
+        use average value to replace the too big value should be helpful
+
 
 104 seperate ft gen + try few lines of data following public kernel:
     use train_config_104
@@ -673,12 +679,13 @@ _cvr']
         aliyun: LB: 0.9728
     4. try discretization=50
         wordbatch_fm_ftrl.csv_24-04-2018_10-42-57.csv
-        aliyun: LB: submitting
+        aliyun: LB: 0.9719
     5. TODO: DNN
     6. TODO: FTRL
 
 117 FFM
     1.aliyun submitting: LB: failed
+        fixed and running
     2. TODO: remove shift feature and use 1/6 to rerun to test
 
 to do test:

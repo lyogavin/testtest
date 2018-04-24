@@ -337,6 +337,21 @@ add_features_list_origin_no_channel_next_click = [
     {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
     ]
 
+add_features_list_origin_no_channel_next_click_no_app = [
+
+    # ====================
+    # my best features
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+    {'group': ['ip', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
+    ]
+
+
 add_features_list_origin_no_channel_next_click_stnc = [
 
     # ====================
@@ -577,6 +592,20 @@ train_config_103_15 = ConfigScheme(False, False, False,
                                    qcut = 0.98
                                    )
 
+train_config_103_16 = ConfigScheme(False, False, False,
+                               None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict',
+                                 add_features_list=add_features_list_origin_no_channel_next_click_no_app,
+                                   use_ft_cache=False
+                                   )
 train_config_116 = ConfigScheme(False, False, False,
                                 None,
                                 shuffle_sample_filter,
@@ -656,9 +685,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_117_1')
+config_scheme_to_use = use_config_scheme('train_config_103_16')
 
-print('test log 117_1')
+print('test log 103_16')
 
 dtypes = {
     'ip': 'uint32',
