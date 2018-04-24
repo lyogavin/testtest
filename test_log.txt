@@ -591,9 +591,9 @@ _cvr']
         LB: 0.9787
     13. 11 + use ft cache + keep only nc var:
         googleyun: train's auc: 0.983751   valid's auc: 0.984041
-        LB: submitting: 0.9788
+        LB: 0.9788
     14. 11 + next n click ft:
-        googleyun: running
+        googleyun: LB:0.9790
 
 104 seperate ft gen + try few lines of data following public kernel:
     use train_config_104
@@ -666,10 +666,13 @@ _cvr']
     3. log_discretization true
         auc:0.9790121278867547
             wordbatch_fm_ftrl.csv_24-04-2018_01-12-29.csv
-        aliyun: LB: submitting
+        aliyun: LB: 0.9728
+    4. TODO: try discretization=50
+    5. TODO: DNN
+    6. TODO: FTRL
 
 117 FFM
-    1.
+    1.aliyun submitting: LB:
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
