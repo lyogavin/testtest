@@ -98,7 +98,7 @@ from pympler import summary
 
 dump_train_data = False
 
-use_sample = True
+use_sample = False
 debug = False
 persist_intermediate = False
 print_verbose = False
@@ -502,19 +502,6 @@ class ConfigScheme:
         self.qcut = qcut
 
 
-train_config_103_10 = ConfigScheme(False, False, False,
-                                 None,
-                                 None,
-                                 None,
-                                 lgbm_params=public_kernel_lgbm_params,
-                                 new_predict= True,
-                                 train_from=public_train_from,
-                                 train_to=public_train_to,
-                                 val_from=public_val_from,
-                                 val_to=public_val_to,
-                                 run_theme='train_and_predict',
-                                 add_features_list=ft_coms_from_public_astype_all_set_type
-                                 )
 
 train_config_103_11 = ConfigScheme(False, False, False,
                                  None,

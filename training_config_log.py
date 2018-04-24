@@ -1135,3 +1135,17 @@ lgbm_params_from_search_101 = {
     'scale_pos_weight': 29.983824928443436, 'colsample_bytree': 0.8639270134191158, 'min_child_samples': 200}
 
 
+
+train_config_103_10 = ConfigScheme(False, False, False,
+                                 None,
+                                 None,
+                                 None,
+                                 lgbm_params=public_kernel_lgbm_params,
+                                 new_predict= True,
+                                 train_from=public_train_from,
+                                 train_to=public_train_to,
+                                 val_from=public_val_from,
+                                 val_to=public_val_to,
+                                 run_theme='train_and_predict',
+                                 add_features_list=ft_coms_from_public_astype_all_set_type
+                                 )
