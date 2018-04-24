@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-python3 -u ./notebook.py 
+python3 -u ./train_and_predict_refined.py #./notebook.py 
 
 util/parallelizer.py -s 12 ffm_converter.py train_fe.csv val_fe.csv new_train.sp  new_val.sp
 
