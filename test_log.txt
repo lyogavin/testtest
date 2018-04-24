@@ -598,7 +598,8 @@ _cvr']
         googleyun: try1 killed OOM,
             moved nc to the head, LB:0.9788
     16. try removing app in next click dimensions:
-        googleyun: running
+        googleyun: train's auc: 0.985074	valid's auc: 0.984088
+        LB:0.9789
     17. try add cvr of ip+app+os+device+hour/10min
     18. use next time range to fix last next click value too big(test supplyment and train next range)
     19. TODO: try smoothing of next click and next n click
@@ -684,9 +685,9 @@ _cvr']
     6. TODO: FTRL
 
 117 FFM
-    1.aliyun submitting: LB: failed
-        fixed and running
-    2. TODO: remove shift feature and use 1/6 to rerun to test
+    1. aliyun submitting: LB: failed
+    2. aliyun: fixed and LB:0.9750 (ffm_117_2_submission.csv moved to /mnt)
+    3. TODO: remove shift feature and use 1/6 to rerun to test
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE

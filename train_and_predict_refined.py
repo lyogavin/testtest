@@ -652,6 +652,43 @@ train_config_116_4 = ConfigScheme(False, False, False,
                                  add_features_list=add_features_list_origin_no_channel_next_click,
                                   discretization=50,
                                   )
+
+
+train_config_116_5 = ConfigScheme(False, False, False,
+                                None,
+                                  shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='online_model',
+                                new_predict=True,
+                                  wordbatch_model='FTRL',
+                                use_interactive_features=True,
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                 log_discretization=True
+                                  )
+
+
+train_config_116_6 = ConfigScheme(False, False, False,
+                                None,
+                                  shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='online_model',
+                                  wordbatch_model='NN_ReLU_H1',
+                                  new_predict=True,
+                                use_interactive_features=True,
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                 log_discretization=True
+                                  )
+
 train_config_117_1 = ConfigScheme(False, False, False,
                                  None,
                                  shuffle_sample_filter,
@@ -685,9 +722,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_103_16')
+config_scheme_to_use = use_config_scheme('train_config_116_5')
 
-print('test log 103_16')
+print('test log 116_5')
 
 dtypes = {
     'ip': 'uint32',
