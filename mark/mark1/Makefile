@@ -1,4 +1,4 @@
-CXX = g++
+CXX=g++-7
 CXXFLAGS = -Wall -Wconversion -O3 -fPIC -std=c++0x -march=native -fopenmp
 MAIN = mark1
 FILES = common.cpp timer.cpp

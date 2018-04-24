@@ -594,7 +594,9 @@ _cvr']
         LB: 0.9788
     14. 11 + next n click ft:
         googleyun: LB:0.9790
-    15. TODO: try qcut
+    15. try qcut:0.98
+        googleyun: try1 killed OOM,
+            moved nc to the head, running
     16. TODO: try smoothing of next click and next n click
 
 104 seperate ft gen + try few lines of data following public kernel:
@@ -670,7 +672,8 @@ _cvr']
             wordbatch_fm_ftrl.csv_24-04-2018_01-12-29.csv
         aliyun: LB: 0.9728
     4. try discretization=50
-        aliyun: running
+        wordbatch_fm_ftrl.csv_24-04-2018_10-42-57.csv
+        aliyun: LB: submitting
     5. TODO: DNN
     6. TODO: FTRL
 
