@@ -762,7 +762,8 @@ class ConfigScheme:
                  run_theme = '',
                  add_features_list = add_features_list_origin,
                  use_ft_cache = False,
-                 use_ft_cache_from = None):
+                 use_ft_cache_from = None,
+                 qcut = 0):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -795,6 +796,7 @@ class ConfigScheme:
         self.add_features_list = add_features_list
         self.use_ft_cache = use_ft_cache
         self.use_ft_cache_from = use_ft_cache_from
+        self.qcut = qcut
 
 
 train_config_94_8 = ConfigScheme(False, False, False,
@@ -1224,6 +1226,22 @@ train_config_103_14 = ConfigScheme(False, False, False,
                                    use_ft_cache=False
                                    )
 
+train_config_103_15 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict',
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                   use_ft_cache=False,
+                                   qcut = 0.98
+                                   )
+
 train_config_106_10 = ConfigScheme(False, False, False,
                                 shuffle_sample_filter,
                                  shuffle_sample_filter,
@@ -1342,9 +1360,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_116_4')
+config_scheme_to_use = use_config_scheme('train_config_103_15')
 
-print('test log 116_4')
+print('test log 103_15')
 
 dtypes = {
     'ip': 'uint32',
@@ -1424,7 +1442,7 @@ def df_get_counts(df, cols):
     return counts[unqtags]
 
 
-def add_statistic_feature(group_by_cols, training, qcut_count=0, #0.98,
+def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_use.qcut, #0, #0.98,
                           discretization=0, discretization_bins=None,
                           log_discretization=False,
                           op='count',
