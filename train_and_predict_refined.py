@@ -1476,7 +1476,7 @@ class ThreadWithReturnValue(threading.Thread):
         return self._return
 
 
-def process_chunk_data(chunk, wb, new_features):
+def process_chunk_data(chunk, wb, new_features, additional_categorical):
     pick_hours = {4, 5, 10, 13, 14}
     with timer('process chunk'):
         print('start adding interactive features')
@@ -1487,7 +1487,7 @@ def process_chunk_data(chunk, wb, new_features):
         gc.collect()
         print('mem after iter fts:', cpuStats())
 
-        predictors1 = categorical + new_features
+        predictors1 = categorical + additional_categorical + new_features
         print('converting chunk of len {} with features {}: '.format(len(chunk), predictors1))
         with timer('to text'):
             str_array = convert_features_to_text(chunk, predictors1)
@@ -1642,6 +1642,7 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
 
     print('start streaming training...')
     p = None
+    lgbm_ft_categorical = []
     with timer('train wordbatch model...'):
         train_chunks = pd.read_csv(inter_dump_path + "train_iter_dump.csv.bz2",
                                    dtype=dtypes,
@@ -1656,9 +1657,11 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
                                    )
 
         for chunk in train_chunks:
-            chunk = pd.concat([chunk, next(train_lgbm_fts_chunks)], axis=1)
+            lgbm_ft_chunk = next(train_lgbm_fts_chunks)
+            lgbm_ft_categorical = list(lgbm_ft_chunk.columns)
+            chunk = pd.concat([chunk, lgbm_ft_chunk], axis=1)
 
-            X, labels, weights = process_chunk_data(chunk, wb, new_features)
+            X, labels, weights = process_chunk_data(chunk, wb, new_features, lgbm_ft_categorical)
             del (chunk)
             gc.collect()
             print('mem after converted to text and recycled chunk:', cpuStats())
@@ -1701,7 +1704,7 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
         for chunk in val_chunks:
             chunk = pd.concat([chunk, next(val_lgbm_fts_chunks)], axis=1)
 
-            X, labels, weights = process_chunk_data(chunk, wb, new_features)
+            X, labels, weights = process_chunk_data(chunk, wb, new_features,lgbm_ft_categorical)
             del (chunk)
             gc.collect()
             print('mem after converted to text and recycled chunk:', cpuStats())
@@ -1749,7 +1752,7 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
         for chunk in test_chunks:
             chunk = pd.concat([chunk, next(test_lgbm_fts_chunks)], axis=1)
 
-            X, labels, weights = process_chunk_data(chunk, wb, new_features)
+            X, labels, weights = process_chunk_data(chunk, wb, new_features,lgbm_ft_categorical)
             del (chunk)
             gc.collect()
             print('mem after converted to text and recycled chunk:', cpuStats())
