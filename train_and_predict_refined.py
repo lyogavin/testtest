@@ -98,7 +98,7 @@ from pympler import summary
 
 dump_train_data = False
 
-use_sample = False
+use_sample = True
 debug = False
 persist_intermediate = False
 print_verbose = False
@@ -124,6 +124,8 @@ path_train = path + 'train.csv'
 path_train_sample = path + 'train_sample.csv'
 path_test = path + 'test.csv'
 path_test_sample = path + 'test_sample.csv'
+path_test_supplement = path + 'test_supplement.csv'
+path_test_supplement_sample = path + 'test_supplement_sample.csv'
 
 train_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'is_attributed']
 test_cols = ['ip', 'app', 'device', 'os', 'channel', 'click_time', 'click_id']
@@ -665,6 +667,21 @@ train_config_103_21 = ConfigScheme(False, False, False,
                                    use_ft_cache=False
                                    )
 
+train_config_103_22 = ConfigScheme(False, False, False,
+                               None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_with_test_supplement',
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                   use_ft_cache=False
+                                   )
+
 train_config_119 = ConfigScheme(False, False, False,
                                None,
                                  shuffle_sample_filter,
@@ -796,9 +813,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_103_21')
+config_scheme_to_use = use_config_scheme('train_config_103_22')
 
-print('test log 103_21')
+print('test log 103_22')
 
 dtypes = {
     'ip': 'uint32',
@@ -829,7 +846,7 @@ def gen_categorical_features(data):
     print("Creating new time features in train: 'hour' and 'day'...")
     data['hour'] = data["click_time"].dt.hour.astype('uint8')
     data['day'] = data["click_time"].dt.day.astype('uint8')
-    if config_scheme_to_use:
+    if config_scheme_to_use.add_second_ft:
         data['second'] = data["click_time"].dt.second.astype('int8')
         categorical.append('second')
 
@@ -1355,9 +1372,20 @@ def get_test_df():
                        parse_dates=["click_time"])
     test['is_attributed'] = 0
     return test
+def get_test_supplement_df():
+    test_supplement = pd.read_csv(path_test_supplement,
+                       dtype=dtypes,
+                       header=0,
+                       skiprows=range(1,54583762),
+                       usecols=test_cols,
+                       nrows=1000 if use_sample else None,
+                       parse_dates=["click_time"])
+    test_supplement['is_attributed'] = 0
+    return test_supplement
 
-def get_combined_df(gen_test_data):
+def get_combined_df(gen_test_data, load_test_supplement=False):
 
+    test_len = 0
     print('loading train data...')
     train = get_train_df()
     train_len = len(train)
@@ -1374,11 +1402,18 @@ def get_combined_df(gen_test_data):
 
     if gen_test_data:
         test = get_test_df()
+        test_len = len(test)
         train = train.append(test)
         del test
         gc.collect()
 
-    return train, train_len, val_len
+        if load_test_supplement:
+            test_supplement = get_test_supplement_df()
+            train = train.append(test_supplement)
+            del test_supplement
+            gc.collect()
+
+    return train, train_len, val_len, test_len
 
 
 def fit_batch(clf, X, y, w):
@@ -1448,7 +1483,7 @@ def process_chunk_data(chunk, wb, new_features):
 def ffm_data_gen(com_fts_list, use_ft_cache=False):
 
     with timer('load combined data df'):
-        combined_df, train_len, val_len = get_combined_df(config_scheme_to_use.new_predict)
+        combined_df, train_len, val_len, test_len = get_combined_df(config_scheme_to_use.new_predict)
         print('total len: {}, train len: {}, val len: {}.'.format(len(combined_df), train_len, val_len))
     with timer('gen categorical features'):
         combined_df = gen_categorical_features(combined_df)
@@ -1500,7 +1535,7 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False):
     D = 2 ** 22
 
     with timer('load combined data df'):
-        combined_df, train_len, val_len = get_combined_df(config_scheme_to_use.new_predict)
+        combined_df, train_len, val_len, test_len = get_combined_df(config_scheme_to_use.new_predict)
         print('total len: {}, train len: {}, val len: {}.'.format(len(combined_df), train_len, val_len))
     with timer('gen categorical features'):
         combined_df = gen_categorical_features(combined_df)
@@ -1692,9 +1727,9 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False):
         print('done streaming prediction')
 
 def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
-                                         use_base_data_cache=False, gen_fts = False):
+                                         use_base_data_cache=False, gen_fts = False, load_test_supplement = False):
     with timer('load combined data df'):
-        combined_df, train_len, val_len = get_combined_df(config_scheme_to_use.new_predict)
+        combined_df, train_len, val_len, test_len = get_combined_df(config_scheme_to_use.new_predict, load_test_supplement = load_test_supplement)
         print('total len: {}, train len: {}, val len: {}.'.format(len(combined_df), train_len, val_len))
     with timer('gen categorical features'):
         combined_df = gen_categorical_features(combined_df)
@@ -1718,7 +1753,7 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
     if config_scheme_to_use.new_predict:
         with timer('predict test data:'):
             if not dump_train_data: # because for dump case, it'll be set above
-                test = combined_df[train_len + val_len:]
+                test = combined_df[train_len + val_len: train_len+val_len+test_len]
 
             predict_result = lgb_model.predict(test[predictors], num_iteration=lgb_model.best_iteration)
             submission = pd.DataFrame({'is_attributed':predict_result,
@@ -1733,7 +1768,7 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
     if gen_fts:
         with timer('predict LGBM features:'):
             num_leaf = config_scheme_to_use.lgbm_params['num_leaves']
-            predict_result = lgb_model.predict(combined_df[predictors], num_iteration=lgb_model.best_iteration, pred_leaf=True)
+            predict_result = lgb_model.predict(combined_df[:][predictors], num_iteration=lgb_model.best_iteration, pred_leaf=True)
 
         with timer('create df of LGBM features:'):
             ft_df = pd.DataFrame(predict_result, columns=['T' + str(i) for i in range(len(predict_result[0]))])
@@ -2056,7 +2091,7 @@ def lgbm_params_search(com_fts_list):
         )
 
     with timer('load combined data df'):
-        combined_df, train_len, val_len = get_combined_df(config_scheme_to_use.new_predict)
+        combined_df, train_len, val_len, test_len = get_combined_df(config_scheme_to_use.new_predict)
         print('total len: {}, train len: {}, val len: {}.'.format(len(combined_df), train_len, val_len))
     with timer('gen categorical features'):
         combined_df = gen_categorical_features(combined_df)
@@ -2113,6 +2148,12 @@ def run_model():
         print('add features list: ')
         pprint(config_scheme_to_use.add_features_list)
         train_and_predict(config_scheme_to_use.add_features_list, use_ft_cache=config_scheme_to_use.use_ft_cache)
+    elif config_scheme_to_use.run_theme == 'train_and_predict_with_test_supplement':
+        print('add features list: ')
+        pprint(config_scheme_to_use.add_features_list)
+        train_and_predict(config_scheme_to_use.add_features_list,
+                          use_ft_cache=config_scheme_to_use.use_ft_cache,
+                          load_test_supplement=True)
     elif config_scheme_to_use.run_theme == 'train_and_predict_gen_lgbm_fts':
         print('add features list: ')
         pprint(config_scheme_to_use.add_features_list)

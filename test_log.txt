@@ -605,8 +605,12 @@ _cvr']
     19. TODO: try smoothing of next click and next n click
         use average value to replace the too big value should be helpful
     20. add second feature
-        googleyun: running
+        googleyun: LB:0.9786
     21. try lgbm params from 115_0
+        azzureyun: running
+    22. add test data from test_supplyment to compute next_click:
+        gyun: running
+
 
 
 
@@ -705,7 +709,7 @@ _cvr']
         LB:0.9790
 
 119 LGBM features:
-    aliyun: running
+    test with 1/20 first, aliyun: running
 
 
 to do test:
