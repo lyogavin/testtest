@@ -309,6 +309,8 @@ new_lgbm_params1 = {
 
 
 shuffle_sample_filter = {'filter_type': 'sample', 'sample_count': 6}
+shuffle_sample_filter_1_to_6 = {'filter_type': 'sample', 'sample_count': 6}
+
 shuffle_sample_filter_1_to_2 = {'filter_type': 'sample', 'sample_count': 2}
 shuffle_sample_filter_1_to_3 = {'filter_type': 'sample', 'sample_count': 3}
 
@@ -481,7 +483,8 @@ class ConfigScheme:
                  add_features_list = add_features_list_origin,
                  use_ft_cache = False,
                  use_ft_cache_from = None,
-                 qcut = 0):
+                 qcut = 0,
+                 add_second_ft = False):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -515,6 +518,7 @@ class ConfigScheme:
         self.use_ft_cache = use_ft_cache
         self.use_ft_cache_from = use_ft_cache_from
         self.qcut = qcut
+        self.add_second_ft = add_second_ft
 
 
 
@@ -606,6 +610,38 @@ train_config_103_16 = ConfigScheme(False, False, False,
                                  add_features_list=add_features_list_origin_no_channel_next_click_no_app,
                                    use_ft_cache=False
                                    )
+
+train_config_103_20 = ConfigScheme(False, False, False,
+                               None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict',
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                   use_ft_cache=False,
+                                   add_second_ft=True
+                                   )
+
+train_config_119 = ConfigScheme(False, False, False,
+                               None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= False,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_gen_lgbm_fts',
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                   use_ft_cache=False
+                                   )
+
 train_config_116 = ConfigScheme(False, False, False,
                                 None,
                                 shuffle_sample_filter,
@@ -722,9 +758,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_116_5')
+config_scheme_to_use = use_config_scheme('train_config_103_20')
 
-print('test log 116_5')
+print('test log 103_20')
 
 dtypes = {
     'ip': 'uint32',
@@ -755,6 +791,9 @@ def gen_categorical_features(data):
     print("Creating new time features in train: 'hour' and 'day'...")
     data['hour'] = data["click_time"].dt.hour.astype('uint8')
     data['day'] = data["click_time"].dt.day.astype('uint8')
+    if config_scheme_to_use:
+        data['second'] = data["click_time"].dt.second.astype('int8')
+        categorical.append('second')
 
     add_hh_feature = True
     if add_hh_feature:
@@ -1615,7 +1654,7 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False):
         print('done streaming prediction')
 
 def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
-                                         use_base_data_cache=False):
+                                         use_base_data_cache=False, gen_fts = False):
     with timer('load combined data df'):
         combined_df, train_len, val_len = get_combined_df(config_scheme_to_use.new_predict)
         print('total len: {}, train len: {}, val len: {}.'.format(len(combined_df), train_len, val_len))
@@ -1652,6 +1691,30 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
             submission.to_csv(get_dated_filename("submission_notebook"), index=False)
 
             print("All done...")
+
+    if gen_fts:
+        with timer('predict LGBM features:'):
+            num_leaf = config_scheme_to_use.lgbm_params['num_leaves']
+            predict_result = lgb_model.predict(combined_df[predictors], num_iteration=lgb_model.best_iteration, pred_leaf=True)
+
+        with timer('create df of LGBM features:'):
+            ft_df = pd.DataFrame(predict_result, columns=['T' + str(i) for i in range(len(predict_result[0]))])
+
+
+        with timer('dump df of LGBM features:'):
+            # ensure lgbm ft dump dir
+            inter_dump_path = './lgbmft_dump/'
+            try:
+                os.mkdir(inter_dump_path)
+                print('created dir', inter_dump_path)
+            except:
+                None
+
+            ft_df[:train_len].to_csv(inter_dump_path + "train_lgbm_ft_dump.csv.bz2", compression='bz2',index=False)
+            ft_df[train_len:train_len + val_len].to_csv(inter_dump_path + "val_lgbm_ft_dump.csv.bz2", compression='bz2',index=False)
+            ft_df[train_len + val_len:].to_csv(inter_dump_path + "test_lgbm_ft_dump.csv.bz2", compression='bz2',index=False)
+
+        print('done gen lgbm fts')
 
     return importances, val_auc
 
@@ -2012,6 +2075,10 @@ def run_model():
         print('add features list: ')
         pprint(config_scheme_to_use.add_features_list)
         train_and_predict(config_scheme_to_use.add_features_list, use_ft_cache=config_scheme_to_use.use_ft_cache)
+    elif config_scheme_to_use.run_theme == 'train_and_predict_gen_lgbm_fts':
+        print('add features list: ')
+        pprint(config_scheme_to_use.add_features_list)
+        train_and_predict(config_scheme_to_use.add_features_list, use_ft_cache=config_scheme_to_use.use_ft_cache, gen_fts=True)
     elif config_scheme_to_use.run_theme == 'lgbm_params_search':
         print('add features list: ')
         pprint(config_scheme_to_use.add_features_list)
