@@ -847,9 +847,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_103_22')
+config_scheme_to_use = use_config_scheme('train_config_103_24')
 
-print('test log 103_22')
+print('test log 103_25_check_24_stat of nc')
 
 dtypes = {
     'ip': 'uint32',
@@ -1565,7 +1565,10 @@ def ffm_data_gen(com_fts_list, use_ft_cache=False):
     print('gen fe data for ffm done.')
 
 def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_fts =config_scheme_to_use.use_lgbm_fts):
-    batchsize = 10000000
+    batchsize = 10000000 // 2 # ATTENTION: in python3 / always returns float, for valid slice index ,it has to be int
+    # https://stackoverflow.com/questions/42646915/typeerror-slice-indices-must-be-integers-or-none-or-have-an-index-method
+    # wordbatch/batcher.py: 			data_split = [data.iloc[x * minibatch_size:(x + 1) * minibatch_size] for x in
+	#                       					  range(int(ceil(len_data / minibatch_size)))]
     D = 2 ** 22
 
     with timer('load combined data df'):
@@ -1819,6 +1822,8 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
         with timer('predict test data:'):
             if not dump_train_data: # because for dump case, it'll be set above
                 test = combined_df[train_len + val_len: train_len+val_len+test_len]
+
+            print('NAN next click count in test:', len(test.query('ip_app_device_os_is_attributednextclick > 1489000000')))
 
             predict_result = lgb_model.predict(test[predictors], num_iteration=lgb_model.best_iteration)
             submission = pd.DataFrame({'is_attributed':predict_result,

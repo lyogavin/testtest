@@ -600,20 +600,24 @@ _cvr']
     16. try removing app in next click dimensions:
         googleyun: train's auc: 0.985074	valid's auc: 0.984088
         LB:0.9789
+        2: use mmh to retry: azzure: running
     17. TODO:try add cvr of ip+app+os+device+hour/10min
     18. TODO: use next time range to fix last next click value too big(test supplyment and train next range)
     19. TODO: try smoothing of next click and next n click
         use average value to replace the too big value should be helpful
     20. add second feature
         googleyun: LB:0.9786
+        2. +mmh3 try again: gyun:LB:0.9788
     21. try lgbm params from 115_0
         azzureyun: LB:0.9760
     22. add test data from test_supplyment to compute next_click:
-        azzureyun: LB:0.9790, another run to try reproduce: running
+        azzureyun: LB:0.9790, another run to try reproduce: LB: 0.9791
     23. try murmur hash : install mmh3
-        gyun: LB:0.9791, another to check reproducibility: running
-    22 + mmh3
-        azzureyun: running
+        gyun: LB:0.9791, another to check reproducibility: 0.9791
+    24: 22 + mmh3
+        azzureyun: LB: 0.9791
+    25: based on 24 output some statistics of nc to make sure it's correctedly done
+        gyun: running
 
 
 
