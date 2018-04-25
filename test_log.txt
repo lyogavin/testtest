@@ -720,9 +720,11 @@ _cvr']
 119 LGBM features:
     test with 1/20 first, aliyun: OK
     changed to 30 trees to gen 30 fts.
-    aliyun: running
+    aliyun: done
 120 online model with 30 LGBM features:
-    aliyun:
+    aliyun: failed mem
+    2. sync mode
+    aliyun: running
 
 
 to do test:

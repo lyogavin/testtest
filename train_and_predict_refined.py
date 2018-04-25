@@ -99,7 +99,7 @@ from pympler import summary
 
 dump_train_data = False
 
-use_sample = False
+use_sample = True
 debug = False
 persist_intermediate = False
 print_verbose = False
@@ -494,7 +494,8 @@ class ConfigScheme:
                  use_ft_cache_from = None,
                  qcut = 0,
                  add_second_ft = False,
-                 use_lgbm_fts = False):
+                 use_lgbm_fts = False,
+                 sync_mode = False):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -530,6 +531,7 @@ class ConfigScheme:
         self.qcut = qcut
         self.add_second_ft = add_second_ft
         self.use_lgbm_fts = use_lgbm_fts
+        self.sync_mode = sync_mode
 
 
 
@@ -714,6 +716,7 @@ train_config_119 = ConfigScheme(False, False, False,
                                    use_ft_cache=False
                                    )
 
+
 train_config_120 = ConfigScheme(False, False, False,
                                 None,
                                  shuffle_sample_filter_1_to_6,
@@ -728,8 +731,26 @@ train_config_120 = ConfigScheme(False, False, False,
                                  add_features_list=add_features_list_origin_no_channel_next_click,
                                    use_ft_cache=False,
                                 use_lgbm_fts=True
-
                                    )
+
+
+train_config_120_2 = ConfigScheme(False, False, False,
+                                None,
+                                 shuffle_sample_filter_1_to_6,
+                                 None,
+                                 lgbm_params={**new_lgbm_params, **{'num_boost_round':30}},
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='online_model',
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                   use_ft_cache=False,
+                                use_lgbm_fts=True,
+                                  sync_mode=True
+                                   )
+
 
 train_config_116 = ConfigScheme(False, False, False,
                                 None,
@@ -847,9 +868,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_103_22')
+config_scheme_to_use = use_config_scheme('train_config_120_2')
 
-print('test log 103_25_check_24_stat of nc')
+print('test log 120_2')
 
 dtypes = {
     'ip': 'uint32',
@@ -1679,6 +1700,8 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
             with timer('start training thread'):
                 p = threading.Thread(target=fit_batch, args=(clf, X, labels, weights))
                 p.start()
+                if config_scheme_to_use.sync_mode:
+                    p.join()
 
         print('joining train threads')
         if p != None:
@@ -1722,6 +1745,8 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
             with timer('start eval thread'):
                 p = threading.Thread(target=evaluate_batch, args=(clf, X, labels))
                 p.start()
+                if config_scheme_to_use.sync_mode:
+                    p.join()
 
         print('joining eval threads')
         if p != None:
@@ -1740,7 +1765,7 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
     print('predicting')
     click_ids = []
     test_preds = []
-    with timer('eval wordbatch model...'):
+    with timer('predict wordbatch model...'):
         test_chunks = pd.read_csv(inter_dump_path + "test_iter_dump.csv.bz2",
                                    dtype=dtypes,
                                    chunksize = batchsize,
@@ -1760,8 +1785,8 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
             gc.collect()
             print('mem after converted to text and recycled chunk:', cpuStats())
 
-            print('joining previous eval threads...')
-            with timer('join previous eval threads:'):
+            print('joining previous predict threads...')
+            with timer('join previous predict threads:'):
                 if p != None:
                     ret = p.join()
                     if ret is not None:
@@ -1772,6 +1797,9 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
             with timer('start predict thread'):
                 p = ThreadWithReturnValue(target=predict_batch, args=(clf, X))
                 p.start()
+                if config_scheme_to_use.sync_mode:
+                    test_preds += list(p.join())
+                    p = None
 
         print('joining eval threads')
         if p != None:
