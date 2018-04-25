@@ -493,7 +493,8 @@ class ConfigScheme:
                  use_ft_cache = False,
                  use_ft_cache_from = None,
                  qcut = 0,
-                 add_second_ft = False):
+                 add_second_ft = False,
+                 use_lgbm_fts = False):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -528,6 +529,7 @@ class ConfigScheme:
         self.use_ft_cache_from = use_ft_cache_from
         self.qcut = qcut
         self.add_second_ft = add_second_ft
+        self.use_lgbm_fts = use_lgbm_fts
 
 
 
@@ -698,10 +700,10 @@ train_config_103_23 = ConfigScheme(False, False, False,
                                    )
 
 train_config_119 = ConfigScheme(False, False, False,
-                                shuffle_sample_filter_1_to_20,
-                                 shuffle_sample_filter_1_to_20,
+                                None,
+                                 shuffle_sample_filter_1_to_6,
                                  None,
-                                 lgbm_params=new_lgbm_params.update({'num_boost_round':30}),
+                                 lgbm_params={**new_lgbm_params, **{'num_boost_round':30}},
                                  new_predict= False,
                                  train_from=id_9_4am,
                                  train_to=id_9_3pm,
@@ -710,6 +712,23 @@ train_config_119 = ConfigScheme(False, False, False,
                                  run_theme='train_and_predict_gen_lgbm_fts',
                                  add_features_list=add_features_list_origin_no_channel_next_click,
                                    use_ft_cache=False
+                                   )
+
+train_config_120 = ConfigScheme(False, False, False,
+                                None,
+                                 shuffle_sample_filter_1_to_6,
+                                 None,
+                                 lgbm_params={**new_lgbm_params, **{'num_boost_round':30}},
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='online_model',
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                   use_ft_cache=False,
+                                use_lgbm_fts=True
+
                                    )
 
 train_config_116 = ConfigScheme(False, False, False,
@@ -828,9 +847,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_103_23')
+config_scheme_to_use = use_config_scheme('train_config_120')
 
-print('test log 103_23')
+print('test log 120')
 
 dtypes = {
     'ip': 'uint32',
@@ -1545,7 +1564,7 @@ def ffm_data_gen(com_fts_list, use_ft_cache=False):
 
     print('gen fe data for ffm done.')
 
-def train_and_predict_online_model(com_fts_list, use_ft_cache=False):
+def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_fts =config_scheme_to_use.use_lgbm_fts):
     batchsize = 10000000
     D = 2 ** 22
 
@@ -1630,7 +1649,15 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False):
                                    header=0,
                                    parse_dates=["click_time"]
                                   )
+        train_lgbm_fts_chunks = pd.read_csv("./lgbmft_dump/train_lgbm_ft_dump.csv.bz2",
+                                   dtype='uint8',
+                                   chunksize=batchsize,
+                                   header=0
+                                   )
+
         for chunk in train_chunks:
+            chunk = pd.concat([chunk, next(train_lgbm_fts_chunks)], axis=1)
+
             X, labels, weights = process_chunk_data(chunk, wb, new_features)
             del (chunk)
             gc.collect()
@@ -1652,6 +1679,7 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False):
             p.join()
 
         del train_chunks
+        del train_lgbm_fts_chunks
         del X
         del labels
         del weights
@@ -1665,7 +1693,14 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False):
                                    header=0,
                                    parse_dates=["click_time"]
                                   )
+        val_lgbm_fts_chunks = pd.read_csv("./lgbmft_dump/val_lgbm_ft_dump.csv.bz2",
+                                   dtype='uint8',
+                                   chunksize=batchsize,
+                                   header=0
+                                   )
         for chunk in val_chunks:
+            chunk = pd.concat([chunk, next(val_lgbm_fts_chunks)], axis=1)
+
             X, labels, weights = process_chunk_data(chunk, wb, new_features)
             del (chunk)
             gc.collect()
@@ -1687,6 +1722,8 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False):
             p.join()
 
         del val_chunks
+        del val_lgbm_fts_chunks
+
         del X
         del labels
         del weights
@@ -1704,7 +1741,14 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False):
                                    header=0,
                                    parse_dates=["click_time"]
                                   )
+        test_lgbm_fts_chunks = pd.read_csv("./lgbmft_dump/test_lgbm_ft_dump.csv.bz2",
+                                   dtype='uint8',
+                                   chunksize=batchsize,
+                                   header=0
+                                   )
         for chunk in test_chunks:
+            chunk = pd.concat([chunk, next(test_lgbm_fts_chunks)], axis=1)
+
             X, labels, weights = process_chunk_data(chunk, wb, new_features)
             del (chunk)
             gc.collect()
@@ -1728,6 +1772,8 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False):
             test_preds += list(p.join())
 
         del test_chunks
+        del test_lgbm_fts_chunks
+
         del X
         del labels
         del weights
