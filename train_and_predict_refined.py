@@ -847,7 +847,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_103_24')
+config_scheme_to_use = use_config_scheme('train_config_103_22')
 
 print('test log 103_25_check_24_stat of nc')
 
