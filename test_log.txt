@@ -606,6 +606,8 @@ _cvr']
         use average value to replace the too big value should be helpful
     20. add second feature
         googleyun: running
+    21. try lgbm params from 115_0
+
 
 
 104 seperate ft gen + try few lines of data following public kernel:
@@ -669,7 +671,11 @@ _cvr']
     no need
 
 115 lgbm param grid search: 08 val 09 train, sample 1/3
-    azzureyun: running
+    azzureyun: Best ROC-AUC: 0.9826
+    {'colsample_bytree': 1.0, 'learning_rate': 0.1773256374384233, 'max_depth': 3, 'min_child_samples': 200, 'min_child_weight': 0,
+    'min_split_gain': 0.0007911719321269061, 'n_estimators': 500, 'num_leaves': 11, 'reg_alpha': 2.355979159306278e-08,
+    'reg_lambda': 0.9016760858543618, 'scale_pos_weight': 260.6441151527916, 'subsample': 1.0, 'subsample_for_bin': 457694, 'subsample_freq': 0}
+    1. try this best params in 103_21
 
 116 streaming model
     1. 1/10 to test: auc: 0.9749064944799741
@@ -684,21 +690,22 @@ _cvr']
         wordbatch_fm_ftrl.csv_24-04-2018_10-42-57.csv
         aliyun: LB: 0.9719
     5. DNN
-        googleyun: running
+        googleyun: killed OOM
     6. FTRL
-        aliyun: running
+        aliyun: DONE
 
 117 FFM
-    1. aliyun submitting: LB: failed
-    2. aliyun: fixed and LB:0.9750 (ffm_117_2_submission.csv moved to /mnt)
-    3. TODO: remove shift feature and use 1/6 to rerun to test
+    0. aliyun submitting: LB: failed
+    1. aliyun: fixed and LB:0.9750 (ffm_117_2_submission.csv moved to /mnt)
+    2. TODO: remove shift feature and use 1/6 to rerun to test
 
 118 ensemble of: 117_2, 116_3, 103_11
     LB: 0.9783
     2. 117_2 + 103_11:
-        LB:submitting
+        LB:0.9790
 
 119 LGBM features:
+    aliyun: running
 
 
 to do test:

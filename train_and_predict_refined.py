@@ -282,6 +282,12 @@ public_kernel_lgbm_params.update({
         'early_stopping_round': 30
     })
 
+new_lagbm_params_from_115_0 = dict(new_lgbm_params)
+new_lagbm_params_from_115_0.update( \
+    {'colsample_bytree': 1.0, 'learning_rate': 0.1773256374384233, 'max_depth': 3, 'min_child_samples': 200, 'min_child_weight': 0,
+    'min_split_gain': 0.0007911719321269061, 'num_leaves': 11, 'reg_alpha': 2.355979159306278e-08,
+    'reg_lambda': 0.9016760858543618, 'scale_pos_weight': 260.6441151527916, 'subsample': 1.0, 'subsample_for_bin': 457694, 'subsample_freq': 0} )
+
 new_lgbm_params1 = {
     'boosting_type': 'gbdt',
     'objective': 'binary',
@@ -627,6 +633,38 @@ train_config_103_20 = ConfigScheme(False, False, False,
                                    add_second_ft=True
                                    )
 
+train_config_103_20 = ConfigScheme(False, False, False,
+                               None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict',
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                   use_ft_cache=False,
+                                   add_second_ft=True
+                                   )
+
+
+train_config_103_21 = ConfigScheme(False, False, False,
+                               None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lagbm_params_from_115_0,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict',
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                   use_ft_cache=False
+                                   )
+
 train_config_119 = ConfigScheme(False, False, False,
                                None,
                                  shuffle_sample_filter,
@@ -758,9 +796,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_103_20')
+config_scheme_to_use = use_config_scheme('train_config_103_21')
 
-print('test log 103_20')
+print('test log 103_21')
 
 dtypes = {
     'ip': 'uint32',
