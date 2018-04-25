@@ -99,7 +99,7 @@ from pympler import summary
 
 dump_train_data = False
 
-use_sample = True
+use_sample = False
 debug = False
 persist_intermediate = False
 print_verbose = False
@@ -849,7 +849,20 @@ train_config_117_1 = ConfigScheme(False, False, False,
                                  add_features_list=add_features_list_origin_no_channel_next_click,
                                    use_ft_cache=False
                                    )
-
+train_config_121_1 = ConfigScheme(False, False, False,
+                                  shuffle_sample_filter_1_to_3,
+                                 shuffle_sample_filter_1_to_3,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='grid_search_ft_coms',
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                   use_ft_cache=False
+                                   )
 def use_config_scheme(str):
     ret = eval(str)
     if debug:
@@ -868,9 +881,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_120_2')
+config_scheme_to_use = use_config_scheme('train_config_121_1')
 
-print('test log 120_2')
+print('test log 121_1')
 
 dtypes = {
     'ip': 'uint32',
@@ -2033,8 +2046,8 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
     com_fts_list_to_use = []
     raw_cols0 = ['app', 'device', 'os', 'channel', 'hour', 'ip']
     raw_cols1 = ['app', 'device', 'os', 'channel', 'in_test_hh', 'ip']
-    ops = ['mean','var','nextclick','nunique','cumcount']
-    #ops = ['mean','var','skew','nunique','cumcount']
+    #ops = ['mean','var','nextclick','nunique','cumcount']
+    ops = ['mean','var','skew','nunique','cumcount']
     #ops = ['mean','var','nunique','cumcount']
 
     raw_cols_groups = [raw_cols0]
