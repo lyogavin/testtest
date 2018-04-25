@@ -698,10 +698,10 @@ train_config_103_23 = ConfigScheme(False, False, False,
                                    )
 
 train_config_119 = ConfigScheme(False, False, False,
-                               None,
-                                 shuffle_sample_filter,
+                                shuffle_sample_filter_1_to_20,
+                                 shuffle_sample_filter_1_to_20,
                                  None,
-                                 lgbm_params=new_lgbm_params,
+                                 lgbm_params=new_lgbm_params.update({'num_boost_round':30}),
                                  new_predict= False,
                                  train_from=id_9_4am,
                                  train_to=id_9_3pm,
@@ -1744,7 +1744,8 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False):
 def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
                                          use_base_data_cache=False, gen_fts = False, load_test_supplement = False):
     with timer('load combined data df'):
-        combined_df, train_len, val_len, test_len = get_combined_df(config_scheme_to_use.new_predict, load_test_supplement = load_test_supplement)
+        combined_df, train_len, val_len, test_len = get_combined_df(config_scheme_to_use.new_predict or gen_fts,
+                                                                    load_test_supplement = load_test_supplement)
         print('total len: {}, train len: {}, val len: {}.'.format(len(combined_df), train_len, val_len))
     with timer('gen categorical features'):
         combined_df = gen_categorical_features(combined_df)
