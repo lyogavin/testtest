@@ -607,7 +607,7 @@ _cvr']
     20. add second feature
         googleyun: LB:0.9786
     21. try lgbm params from 115_0
-        azzureyun: running
+        azzureyun: LB:0.9760
     22. add test data from test_supplyment to compute next_click:
         gyun: running
 
