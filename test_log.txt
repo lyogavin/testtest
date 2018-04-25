@@ -611,7 +611,9 @@ _cvr']
     22. add test data from test_supplyment to compute next_click:
         azzureyun: LB:0.9790, another run to try reproduce: running
     23. try murmur hash : install mmh3
-        gyun:running
+        gyun: LB:0.9791, another to check reproducibility: running
+    22 + mmh3
+        azzureyun: running
 
 
 
