@@ -828,9 +828,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_103_22')
+config_scheme_to_use = use_config_scheme('train_config_103_23')
 
-print('test log 103_22')
+print('test log 103_23')
 
 dtypes = {
     'ip': 'uint32',
