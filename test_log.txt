@@ -609,7 +609,10 @@ _cvr']
     21. try lgbm params from 115_0
         azzureyun: LB:0.9760
     22. add test data from test_supplyment to compute next_click:
-        gyun: running
+        azzureyun: running
+    23. try murmur hash : install mmh3
+        gyun:running
+
 
 
 

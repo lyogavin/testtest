@@ -30,6 +30,7 @@ from sklearn.model_selection import StratifiedKFold
 # from wordbatch.data_utils import *
 import threading
 from sklearn.metrics import roc_auc_score
+import mmh3
 
 matplotlib.use('Agg')
 
@@ -681,6 +682,20 @@ train_config_103_22 = ConfigScheme(False, False, False,
                                  add_features_list=add_features_list_origin_no_channel_next_click,
                                    use_ft_cache=False
                                    )
+train_config_103_23 = ConfigScheme(False, False, False,
+                               None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict',
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                   use_ft_cache=False
+                                   )
 
 train_config_119 = ConfigScheme(False, False, False,
                                None,
@@ -955,7 +970,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
                 print('debug str', (training['ip'].astype(str) + "_" + training['app'].astype(str) + "_" + training['device'].astype(str) \
             + "_" + training['os'].astype(str)+ "_" + training['channel'].astype(str))[0:10])
 
-            training['category'] = joint_col.apply(hash) % D
+            training['category'] = joint_col.apply(mmh3.hash) % D
             if debug:
                 print('debug category',training['category'][0:10])
 
@@ -1006,7 +1021,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
                 print('debug str', (training['ip'].astype(str) + "_" + training['app'].astype(str) + "_" + training['device'].astype(str) \
             + "_" + training['os'].astype(str)+ "_" + training['channel'].astype(str))[0:10])
 
-            training['category'] = joint_col.apply(hash) % D
+            training['category'] = joint_col.apply(mmh3.hash) % D
             if debug:
                 print('debug category',training['category'][0:10])
 
@@ -1152,7 +1167,7 @@ def generate_counting_history_features(data,
             D = 2 ** 26
             data['category'] = (data['ip'].astype(str) + "_" + data['app'].astype(str) + "_" + \
                                 data['device'].astype(str) \
-                                + "_" + data['os'].astype(str) + "_" + data['channel'].astype(str)).apply(hash) % D
+                                + "_" + data['os'].astype(str) + "_" + data['channel'].astype(str)).apply(mmh3.hash) % D
             click_buffer = np.full(D, 3000000000, dtype=np.uint32)
             data['epochtime'] = data['click_time'].astype(np.int64) // 10 ** 9
             next_clicks = []
@@ -1186,7 +1201,7 @@ def generate_counting_history_features(data,
             D = 2 ** 26
             data['category'] = (data['ip'].astype(str) + "_" + data['app'].astype(str) + "_" + \
                                 data['device'].astype(str) \
-                                + "_" + data['os'].astype(str) + "_" + data['channel'].astype(str)).apply(hash) % D
+                                + "_" + data['os'].astype(str) + "_" + data['channel'].astype(str)).apply(mmh3.hash) % D
             click_count_buffer = np.full(D, 0, dtype=np.uint16)
             click_count_later = []
             for category in reversed(data['category'].values):
