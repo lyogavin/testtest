@@ -705,7 +705,7 @@ train_config_119 = ConfigScheme(False, False, False,
                                 None,
                                  shuffle_sample_filter_1_to_6,
                                  None,
-                                 lgbm_params={**new_lgbm_params, **{'num_boost_round':30}},
+                                 lgbm_params={**new_lgbm_params, **{'num_boost_round':20}},
                                  new_predict= False,
                                  train_from=id_9_4am,
                                  train_to=id_9_3pm,
@@ -721,7 +721,7 @@ train_config_120 = ConfigScheme(False, False, False,
                                 None,
                                  shuffle_sample_filter_1_to_6,
                                  None,
-                                 lgbm_params={**new_lgbm_params, **{'num_boost_round':30}},
+                                 lgbm_params={**new_lgbm_params, **{'num_boost_round':20}},
                                  new_predict= True,
                                  train_from=id_9_4am,
                                  train_to=id_9_3pm,
@@ -896,9 +896,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_121_1')
+config_scheme_to_use = use_config_scheme('train_config_119')
 
-print('test log 121_1')
+print('test log 119')
 
 dtypes = {
     'ip': 'uint32',
@@ -1893,15 +1893,15 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
             print("All done...")
 
     if gen_fts:
-        with timer('predict LGBM features:'):
-            num_leaf = config_scheme_to_use.lgbm_params['num_leaves']
-            predict_result = lgb_model.predict(combined_df[:][predictors], num_iteration=lgb_model.best_iteration, pred_leaf=True)
+        #train
+        with timer('predict train LGBM features:'):
+            predict_result = lgb_model.predict(train[predictors], num_iteration=lgb_model.best_iteration, pred_leaf=True)
 
-        with timer('create df of LGBM features:'):
+        with timer('create df of train LGBM features:'):
             ft_df = pd.DataFrame(predict_result, columns=['T' + str(i) for i in range(len(predict_result[0]))])
 
 
-        with timer('dump df of LGBM features:'):
+        with timer('dump df of train LGBM features:'):
             # ensure lgbm ft dump dir
             inter_dump_path = './lgbmft_dump/'
             try:
@@ -1910,11 +1910,48 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
             except:
                 None
 
-            ft_df[:train_len].to_csv(inter_dump_path + "train_lgbm_ft_dump.csv.bz2", compression='bz2',index=False)
-            ft_df[train_len:train_len + val_len].to_csv(inter_dump_path + "val_lgbm_ft_dump.csv.bz2", compression='bz2',index=False)
-            ft_df[train_len + val_len:].to_csv(inter_dump_path + "test_lgbm_ft_dump.csv.bz2", compression='bz2',index=False)
+            ft_df.to_csv(inter_dump_path + "train_lgbm_ft_dump.csv.bz2", compression='bz2',index=False)
 
-        print('done gen lgbm fts')
+        del predict_result
+        del ft_df
+        gc.collect(
+        )
+        print('mem after train lgbm fts gen', cpuStats())
+
+        with timer('predict val LGBM features:'):
+            predict_result = lgb_model.predict(val[predictors], num_iteration=lgb_model.best_iteration, pred_leaf=True)
+
+        with timer('create df of val LGBM features:'):
+            ft_df = pd.DataFrame(predict_result, columns=['T' + str(i) for i in range(len(predict_result[0]))])
+
+
+        with timer('dump df of val LGBM features:'):
+            # ensure lgbm ft dump dir
+            inter_dump_path = './lgbmft_dump/'
+            ft_df.to_csv(inter_dump_path + "val_lgbm_ft_dump.csv.bz2", compression='bz2',index=False)
+
+
+        del predict_result
+        del ft_df
+        gc.collect(
+        )
+        print('mem after val lgbm fts gen', cpuStats())
+
+        with timer('predict test LGBM features:'):
+            test = combined_df[train_len + val_len: train_len + val_len + test_len]
+            predict_result = lgb_model.predict(test[predictors], num_iteration=lgb_model.best_iteration, pred_leaf=True)
+
+        with timer('create df of test LGBM features:'):
+            ft_df = pd.DataFrame(predict_result, columns=['T' + str(i) for i in range(len(predict_result[0]))])
+
+
+        with timer('dump df of test LGBM features:'):
+            # ensure lgbm ft dump dir
+            inter_dump_path = './lgbmft_dump/'
+
+            ft_df.to_csv(inter_dump_path + "test_lgbm_ft_dump.csv.bz2", compression='bz2',index=False)
+
+        print('done gen test lgbm fts')
 
     return importances, val_auc
 
