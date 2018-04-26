@@ -620,6 +620,7 @@ _cvr']
         gyun:
         with supplement: NAN next click count in test: 4556206
         without: running
+        NAN next click count in test: 5332803
 
 
 
@@ -725,12 +726,18 @@ _cvr']
     test with 1/20 first, aliyun: OK
     changed to 30 trees to gen 30 fts.
     aliyun: done
+    2. aliyun: changed to 1/2 to run again. failed mem, 1/6 4 thread: OOM still OOM
+    3. gyun run 1day running
 120 online model with 30 LGBM features:
     aliyun: failed mem
     2. sync mode
-    aliyun: running
+    aliyun: failed mem
+    3. changed to 1/2 to run,
 121 ft coms search:
-    1. gyun: running
+    1. azzure: 1/3 with predict with predict failed OOM
+       gyun: failed OOM
+    2. 1/20 no predict , test next click instead of skew, no cumcount, aliyun: running
+
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE

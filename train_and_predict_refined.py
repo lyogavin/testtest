@@ -863,6 +863,21 @@ train_config_121_1 = ConfigScheme(False, False, False,
                                  add_features_list=add_features_list_origin_no_channel_next_click,
                                    use_ft_cache=False
                                    )
+train_config_121_2 = ConfigScheme(False, False, False,
+                                  shuffle_sample_filter_1_to_10,
+                                 shuffle_sample_filter_1_to_10,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= False,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='grid_search_ft_coms',
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                   use_ft_cache=False
+                                   )
+
 def use_config_scheme(str):
     ret = eval(str)
     if debug:
@@ -1667,7 +1682,8 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
         if config_scheme_to_use.wordbatch_model == 'FM_FTRL':
             clf = FM_FTRL(alpha=0.05, beta=0.1, L1=0.0, L2=0.0, D=D, alpha_fm=0.02, L2_fm=0.0, init_fm=0.01,
                           weight_fm=1.0,D_fm=8, e_noise=0.0, iters=3, inv_link="sigmoid", e_clip=1.0,
-                          threads=4, use_avx=1, verbose=0)
+                          threads=2, use_avx=1, verbose=9)
+                          #threads=4, use_avx=1, verbose=0)
         elif config_scheme_to_use.wordbatch_model == 'NN_ReLU_H1':
             clf = NN_ReLU_H1(alpha=0.05, D = D, verbose=9, e_noise=0.0, threads=4, inv_link="sigmoid")
         elif config_scheme_to_use.wordbatch_model == 'FTRL':
@@ -2046,8 +2062,10 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
     com_fts_list_to_use = []
     raw_cols0 = ['app', 'device', 'os', 'channel', 'hour', 'ip']
     raw_cols1 = ['app', 'device', 'os', 'channel', 'in_test_hh', 'ip']
+    ops = ['mean','var','nextclick','nunique']
     #ops = ['mean','var','nextclick','nunique','cumcount']
-    ops = ['mean','var','skew','nunique','cumcount']
+
+    #ops = ['mean','var','skew','nunique','cumcount']
     #ops = ['mean','var','nunique','cumcount']
 
     raw_cols_groups = [raw_cols0]
