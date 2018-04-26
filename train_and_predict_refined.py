@@ -896,9 +896,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_116_3')
+config_scheme_to_use = use_config_scheme('train_config_116_6')
 
-print('test log 116_7')
+print('test log 116_6')
 
 dtypes = {
     'ip': 'uint32',
@@ -1525,8 +1525,16 @@ class ThreadWithReturnValue(threading.Thread):
         return self._return
 
 
-def process_chunk_data(chunk, wb, new_features, additional_categorical):
+def process_chunk_data(chunk, wb1, new_features, additional_categorical):
     pick_hours = {4, 5, 10, 13, 14}
+    D = 2 ** 20 # changed from 2**22 from 116_7
+    batchsize = 10000000 // 2 # ATTENTION: in python3 / always returns float, for valid slice index ,it has to be int
+
+    wb = wordbatch.WordBatch(None, extractor=(WordHash, {"ngram_range": (1, 1), "analyzer": "word",
+                                                         "lowercase": False, "n_features": D,
+                                                         "norm": None, "binary": True})
+                             , minibatch_size=batchsize // 80, procs=8, freeze=True, timeout=1800, verbose=0)
+
     with timer('process chunk'):
         print('start adding interactive features')
         with timer('adding interactive features'):
@@ -1560,6 +1568,10 @@ def process_chunk_data(chunk, wb, new_features, additional_categorical):
             del (str_array)
             gc.collect()
             print('mem after gc str array:', cpuStats())
+
+    del wb
+    gc.collect()
+    print('mem after gc wb', cpuStats())
 
     return X, labels, weights
 
@@ -1705,16 +1717,18 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
                                    header=0,
                                    parse_dates=["click_time"]
                                   )
-        train_lgbm_fts_chunks = pd.read_csv("./lgbmft_dump/train_lgbm_ft_dump.csv.bz2",
+        if use_lgbm_fts:
+            train_lgbm_fts_chunks = pd.read_csv("./lgbmft_dump/train_lgbm_ft_dump.csv.bz2",
                                    dtype='uint8',
                                    chunksize=batchsize,
                                    header=0
                                    )
 
         for chunk in train_chunks:
-            lgbm_ft_chunk = next(train_lgbm_fts_chunks)
-            lgbm_ft_categorical = list(lgbm_ft_chunk.columns)
-            chunk = pd.concat([chunk, lgbm_ft_chunk], axis=1)
+            if use_lgbm_fts:
+                lgbm_ft_chunk = next(train_lgbm_fts_chunks)
+                lgbm_ft_categorical = list(lgbm_ft_chunk.columns)
+                chunk = pd.concat([chunk, lgbm_ft_chunk], axis=1)
 
             X, labels, weights = process_chunk_data(chunk, wb, new_features, lgbm_ft_categorical)
             del (chunk)
@@ -1739,7 +1753,8 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
             p.join()
 
         del train_chunks
-        del train_lgbm_fts_chunks
+        if use_lgbm_fts:
+            del train_lgbm_fts_chunks
         del X
         del labels
         del weights
@@ -1753,13 +1768,15 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
                                    header=0,
                                    parse_dates=["click_time"]
                                   )
-        val_lgbm_fts_chunks = pd.read_csv("./lgbmft_dump/val_lgbm_ft_dump.csv.bz2",
+        if use_lgbm_fts:
+            val_lgbm_fts_chunks = pd.read_csv("./lgbmft_dump/val_lgbm_ft_dump.csv.bz2",
                                    dtype='uint8',
                                    chunksize=batchsize,
                                    header=0
                                    )
         for chunk in val_chunks:
-            chunk = pd.concat([chunk, next(val_lgbm_fts_chunks)], axis=1)
+            if use_lgbm_fts:
+                chunk = pd.concat([chunk, next(val_lgbm_fts_chunks)], axis=1)
 
             X, labels, weights = process_chunk_data(chunk, wb, new_features,lgbm_ft_categorical)
             del (chunk)
@@ -1784,7 +1801,8 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
             p.join()
 
         del val_chunks
-        del val_lgbm_fts_chunks
+        if use_lgbm_fts:
+            del val_lgbm_fts_chunks
 
         del X
         del labels
@@ -1803,13 +1821,15 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
                                    header=0,
                                    parse_dates=["click_time"]
                                   )
-        test_lgbm_fts_chunks = pd.read_csv("./lgbmft_dump/test_lgbm_ft_dump.csv.bz2",
+        if use_lgbm_fts:
+            test_lgbm_fts_chunks = pd.read_csv("./lgbmft_dump/test_lgbm_ft_dump.csv.bz2",
                                    dtype='uint8',
                                    chunksize=batchsize,
                                    header=0
                                    )
         for chunk in test_chunks:
-            chunk = pd.concat([chunk, next(test_lgbm_fts_chunks)], axis=1)
+            if use_lgbm_fts:
+                chunk = pd.concat([chunk, next(test_lgbm_fts_chunks)], axis=1)
 
             X, labels, weights = process_chunk_data(chunk, wb, new_features,lgbm_ft_categorical)
             del (chunk)
@@ -1837,7 +1857,8 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
             test_preds += list(p.join())
 
         del test_chunks
-        del test_lgbm_fts_chunks
+        if use_lgbm_fts:
+            del test_lgbm_fts_chunks
 
         del X
         del labels
