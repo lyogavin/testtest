@@ -619,7 +619,7 @@ _cvr']
     25: based on 24 output some statistics of nc to make sure it's correctedly done
         gyun:
         with supplement: NAN next click count in test: 4556206
-        without: running
+        without: done:
         NAN next click count in test: 5332803
 
 
@@ -714,6 +714,7 @@ _cvr']
         aliyun: DONE LB: 0.9727
     7. following pub kernel's new updates:
         wb's D from 2** 22->2**20, FM_FTRL iter 3 -> 2, add ip feature
+        gyun: running
 
 117 FFM
     0. aliyun submitting: LB: failed
@@ -730,17 +731,20 @@ _cvr']
     changed to 30 trees to gen 30 fts.
     aliyun: done
     2. aliyun: changed to 1/2 to run again. failed mem, 1/6 4 thread: OOM still OOM
-    3. gyun run 1day running
+    3. gyun run 1day done
 120 online model with 30 LGBM features:
     aliyun: failed mem
     2. sync mode
     aliyun: failed mem
     3. changed to 1/2 to run,
+    4. 1day gyun: LB: 0.9726
+        wordbatch_fm_ftrl.csv_26-04-2018_08-47-35.csv
 121 ft coms search:
     1. azzure: 1/3 with predict with predict failed OOM
        gyun: failed OOM
     2. 1/20 no predict , test next click instead of skew, no cumcount, aliyun: running
-
+122 onine gen ffm data:
+    1.
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE

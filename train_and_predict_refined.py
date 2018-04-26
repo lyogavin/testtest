@@ -93,6 +93,7 @@ from sklearn.model_selection import train_test_split
 import lightgbm as lgb
 import sys
 import gc
+import csv
 
 from pympler import muppy
 from pympler import summary
@@ -878,6 +879,23 @@ train_config_121_2 = ConfigScheme(False, False, False,
                                    use_ft_cache=False
                                    )
 
+train_config_121 = ConfigScheme(False, False, False,
+                                None,
+                                  shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='online_model_ffm',
+                                new_predict=True,
+                                use_interactive_features=True,
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                 log_discretization=True
+                                  )
+
+
 def use_config_scheme(str):
     ret = eval(str)
     if debug:
@@ -896,9 +914,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_116_6')
+config_scheme_to_use = use_config_scheme('train_config_121')
 
-print('test log 116_6')
+print('test log 121')
 
 dtypes = {
     'ip': 'uint32',
@@ -1525,7 +1543,7 @@ class ThreadWithReturnValue(threading.Thread):
         return self._return
 
 
-def process_chunk_data(chunk, wb1, new_features, additional_categorical):
+def process_chunk_data(chunk, wb1, new_features, additional_categorical, ffm_data_file_handle=None, with_click_id = False):
     pick_hours = {4, 5, 10, 13, 14}
     D = 2 ** 20 # changed from 2**22 from 116_7
     batchsize = 10000000 // 2 # ATTENTION: in python3 / always returns float, for valid slice index ,it has to be int
@@ -1549,6 +1567,20 @@ def process_chunk_data(chunk, wb1, new_features, additional_categorical):
         with timer('to text'):
             str_array = convert_features_to_text(chunk, predictors1)
             print('converted to str array: ', str_array[10])
+
+        if ffm_data_file_handle is not None:
+            with timer('writing to str array csv file'):
+                if with_click_id:
+                    to_output = chunk[['click_id', 'is_attributed']].copy(True)
+                    to_output['click_id'] = to_output['click_id'].astype(int)
+                    to_output = to_output.set_index('click_id')
+                else:
+                    to_output = pd.DataFrame(chunk['is_attributed']).copy(True)
+                to_output['str'] = to_output.index.astype(str) + ' ' + to_output['is_attributed'].astype(str) + ' ' + str_array
+
+                np.savetxt(ffm_data_file_handle, to_output['str'].values, '%s')
+                #to_output.to_csv(ffm_data_file_handle, header=False, index=False)
+                return None, None, None
 
         print('gen weighted labels and recycle chunk')
         labels = []
@@ -1625,7 +1657,8 @@ def ffm_data_gen(com_fts_list, use_ft_cache=False):
 
     print('gen fe data for ffm done.')
 
-def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_fts =config_scheme_to_use.use_lgbm_fts):
+def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_fts =config_scheme_to_use.use_lgbm_fts,
+                                   gen_ffm_data = False):
     batchsize = 10000000 // 2 # ATTENTION: in python3 / always returns float, for valid slice index ,it has to be int
     # https://stackoverflow.com/questions/42646915/typeerror-slice-indices-must-be-integers-or-none-or-have-an-index-method
     # wordbatch/batcher.py: 			data_split = [data.iloc[x * minibatch_size:(x + 1) * minibatch_size] for x in
@@ -1724,13 +1757,17 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
                                    header=0
                                    )
 
+        gen_ffm_data_file_handle = None
+        if gen_ffm_data:
+            gen_ffm_data_file_handle = open('train_fe.csv', 'w')
+
         for chunk in train_chunks:
             if use_lgbm_fts:
                 lgbm_ft_chunk = next(train_lgbm_fts_chunks)
                 lgbm_ft_categorical = list(lgbm_ft_chunk.columns)
                 chunk = pd.concat([chunk, lgbm_ft_chunk], axis=1)
 
-            X, labels, weights = process_chunk_data(chunk, wb, new_features, lgbm_ft_categorical)
+            X, labels, weights = process_chunk_data(chunk, wb, new_features, lgbm_ft_categorical, gen_ffm_data_file_handle)
             del (chunk)
             gc.collect()
             print('mem after converted to text and recycled chunk:', cpuStats())
@@ -1741,12 +1778,17 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
                     p.join()
                 gc.collect()
 
-            print('start trainnig thread')
-            with timer('start training thread'):
-                p = threading.Thread(target=fit_batch, args=(clf, X, labels, weights))
-                p.start()
-                if config_scheme_to_use.sync_mode:
-                    p.join()
+            if not gen_ffm_data:
+                print('start trainnig thread')
+                with timer('start training thread'):
+                    p = threading.Thread(target=fit_batch, args=(clf, X, labels, weights))
+                    p.start()
+                    if config_scheme_to_use.sync_mode:
+                        p.join()
+
+        if gen_ffm_data:
+            gen_ffm_data_file_handle.close()
+            gen_ffm_data_file_handle = None
 
         print('joining train threads')
         if p != None:
@@ -1774,11 +1816,13 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
                                    chunksize=batchsize,
                                    header=0
                                    )
+        if gen_ffm_data:
+            gen_ffm_data_file_handle = open('val_fe.csv', 'w')
         for chunk in val_chunks:
             if use_lgbm_fts:
                 chunk = pd.concat([chunk, next(val_lgbm_fts_chunks)], axis=1)
 
-            X, labels, weights = process_chunk_data(chunk, wb, new_features,lgbm_ft_categorical)
+            X, labels, weights = process_chunk_data(chunk, wb, new_features,lgbm_ft_categorical, gen_ffm_data_file_handle)
             del (chunk)
             gc.collect()
             print('mem after converted to text and recycled chunk:', cpuStats())
@@ -1789,12 +1833,17 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
                     p.join()
                 gc.collect()
 
-            print('start eval thread')
-            with timer('start eval thread'):
-                p = threading.Thread(target=evaluate_batch, args=(clf, X, labels))
-                p.start()
-                if config_scheme_to_use.sync_mode:
-                    p.join()
+            if not gen_ffm_data:
+                print('start eval thread')
+                with timer('start eval thread'):
+                    p = threading.Thread(target=evaluate_batch, args=(clf, X, labels))
+                    p.start()
+                    if config_scheme_to_use.sync_mode:
+                        p.join()
+
+        if gen_ffm_data:
+            gen_ffm_data_file_handle.close()
+            gen_ffm_data_file_handle = None
 
         print('joining eval threads')
         if p != None:
@@ -1827,11 +1876,13 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
                                    chunksize=batchsize,
                                    header=0
                                    )
+        if gen_ffm_data:
+            gen_ffm_data_file_handle = open('test_fe.csv', 'w')
         for chunk in test_chunks:
             if use_lgbm_fts:
                 chunk = pd.concat([chunk, next(test_lgbm_fts_chunks)], axis=1)
 
-            X, labels, weights = process_chunk_data(chunk, wb, new_features,lgbm_ft_categorical)
+            X, labels, weights = process_chunk_data(chunk, wb, new_features,lgbm_ft_categorical, gen_ffm_data_file_handle, with_click_id = True)
             del (chunk)
             gc.collect()
             print('mem after converted to text and recycled chunk:', cpuStats())
@@ -1844,13 +1895,18 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
                         test_preds += list(ret)
                 gc.collect()
 
-            print('start predict thread')
-            with timer('start predict thread'):
-                p = ThreadWithReturnValue(target=predict_batch, args=(clf, X))
-                p.start()
-                if config_scheme_to_use.sync_mode:
-                    test_preds += list(p.join())
-                    p = None
+            if not gen_ffm_data:
+                print('start predict thread')
+                with timer('start predict thread'):
+                    p = ThreadWithReturnValue(target=predict_batch, args=(clf, X))
+                    p.start()
+                    if config_scheme_to_use.sync_mode:
+                        test_preds += list(p.join())
+                        p = None
+
+        if gen_ffm_data:
+            gen_ffm_data_file_handle.close()
+            gen_ffm_data_file_handle = None
 
         print('joining eval threads')
         if p != None:
@@ -1865,13 +1921,14 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
         del weights
         gc.collect()
 
-        df_sub = pd.read_csv(path_test_sample if use_sample else path_test,
-                           dtype='uint64',
-                           header=0,
-                           usecols=['click_id'])
-        df_sub['is_attributed'] = test_preds
-        df_sub.to_csv(get_dated_filename("wordbatch_fm_ftrl.csv"), index=False)
-        print('done streaming prediction')
+        if not gen_ffm_data:
+            df_sub = pd.read_csv(path_test_sample if use_sample else path_test,
+                               dtype='uint64',
+                               header=0,
+                               usecols=['click_id'])
+            df_sub['is_attributed'] = test_preds
+            df_sub.to_csv(get_dated_filename("wordbatch_fm_ftrl.csv"), index=False)
+        print('done streaming prediction', ' for gen_ffm_data' if gen_ffm_data else '')
 
 def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
                                          use_base_data_cache=False, gen_fts = False, load_test_supplement = False):
@@ -2359,6 +2416,16 @@ def run_model():
         print('add features list: ')
         pprint(config_scheme_to_use.add_features_list)
         train_and_predict_online_model(config_scheme_to_use.add_features_list, use_ft_cache=config_scheme_to_use.use_ft_cache)
+    elif config_scheme_to_use.run_theme == 'online_model_ffm':
+        print('add features list: ')
+        pprint(config_scheme_to_use.add_features_list)
+        train_and_predict_online_model(config_scheme_to_use.add_features_list, use_ft_cache=config_scheme_to_use.use_ft_cache, gen_ffm_data=True)
+        gc.collect()
+        print('train_fe.csv, test_fe.csv generated for ffm to train, mem after:', cpuStats())
+
+        print('running ffm model in another process: ./mark/mark1/mark1 -r 0.11 -s 12 -t 40 test_fe.csv train_fe.csv')
+        os.system('./mark/mark1/mark1 -r 0.11 -s 12 -t 40 test_fe.csv train_fe.csv')
+        print('done...')
     elif config_scheme_to_use.run_theme == 'ffm_data_gen':
         print('add features list: ')
         pprint(config_scheme_to_use.add_features_list)
