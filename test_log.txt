@@ -709,8 +709,11 @@ _cvr']
         aliyun: LB: 0.9719
     5. DNN
         googleyun: killed OOM
+        azzure cloud: running
     6. FTRL
-        aliyun: DONE
+        aliyun: DONE LB: 0.9727
+    7. following pub kernel's new updates:
+        wb's D from 2** 22->2**20, FM_FTRL iter 3 -> 2, add ip feature
 
 117 FFM
     0. aliyun submitting: LB: failed

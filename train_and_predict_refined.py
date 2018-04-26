@@ -896,9 +896,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_119')
+config_scheme_to_use = use_config_scheme('train_config_116_3')
 
-print('test log 119')
+print('test log 116_7')
 
 dtypes = {
     'ip': 'uint32',
@@ -1618,7 +1618,7 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
     # https://stackoverflow.com/questions/42646915/typeerror-slice-indices-must-be-integers-or-none-or-have-an-index-method
     # wordbatch/batcher.py: 			data_split = [data.iloc[x * minibatch_size:(x + 1) * minibatch_size] for x in
 	#                       					  range(int(ceil(len_data / minibatch_size)))]
-    D = 2 ** 22
+    D = 2 ** 20 # changed from 2**22 from 116_7
 
     with timer('load combined data df'):
         combined_df, train_len, val_len, test_len = get_combined_df(config_scheme_to_use.new_predict)
@@ -1682,7 +1682,7 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
         if config_scheme_to_use.wordbatch_model == 'FM_FTRL':
             clf = FM_FTRL(alpha=0.05, beta=0.1, L1=0.0, L2=0.0, D=D, alpha_fm=0.02, L2_fm=0.0, init_fm=0.01,
                           weight_fm=1.0,D_fm=8, e_noise=0.0, iters=3, inv_link="sigmoid", e_clip=1.0,
-                          threads=2, use_avx=1, verbose=9)
+                          threads=4, use_avx=1, verbose=9) # iters changed to 2 from 116_7
                           #threads=4, use_avx=1, verbose=0)
         elif config_scheme_to_use.wordbatch_model == 'NN_ReLU_H1':
             clf = NN_ReLU_H1(alpha=0.05, D = D, verbose=9, e_noise=0.0, threads=4, inv_link="sigmoid")
@@ -1692,6 +1692,8 @@ def train_and_predict_online_model(com_fts_list, use_ft_cache=False, use_lgbm_ft
             print('invalid wordbatch_model param:', config_scheme_to_use.wordbatch_model)
             exit(-1)
 
+    print('adding ip to categorical feature only in non lgbm models')
+    categorical.append('ip')
 
     print('start streaming training...')
     p = None
