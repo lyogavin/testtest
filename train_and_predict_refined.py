@@ -100,7 +100,7 @@ from pympler import summary
 
 dump_train_data = False
 
-use_sample = False
+use_sample = True
 debug = False
 persist_intermediate = False
 print_verbose = False
@@ -206,7 +206,7 @@ val_time_range_end = '2017-11-08 15:00:00'
 
 test_time_range_start = '2017-11-10 04:00:00'
 test_time_range_end = '2017-11-10 15:00:00'
-
+9308569
 id_8_4am = 82259195
 id_8_3pm = 118735619
 id_9_4am = 144708152
@@ -879,7 +879,7 @@ train_config_121_2 = ConfigScheme(False, False, False,
                                    use_ft_cache=False
                                    )
 
-train_config_121 = ConfigScheme(False, False, False,
+train_config_122 = ConfigScheme(False, False, False,
                                 None,
                                   shuffle_sample_filter,
                                  None,
@@ -914,9 +914,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_121')
+config_scheme_to_use = use_config_scheme('train_config_122')
 
-print('test log 121')
+print('test log 122')
 
 dtypes = {
     'ip': 'uint32',
@@ -1306,7 +1306,13 @@ def generate_counting_history_features(data,
 # test['day'] = test["click_time"].dt.day.astype('uint8')
 
 
-def convert_features_to_text(data, predictors):
+def convert_features_to_text(data, predictors, hash = False):
+    NR_BINS = 1000000
+
+    def hashstr(input):
+        #return str(int(hashlib.md5(input.encode('utf8')).hexdigest(), 16) % (NR_BINS - 1) + 1)
+        return str(mmh3.hash_from_buffer(input, signed=False) % (NR_BINS - 1) + 1)
+
     with timer('convert_features_to_text'):
         i = 0
         str_array = None
@@ -1321,8 +1327,15 @@ def convert_features_to_text(data, predictors):
                 acro_name_to_dump =  acro_names[feature]
             if str_array is None:
                 str_array = acro_name_to_dump + "_" + data[feature].astype(str)
+                if hash:
+                    str_array = str_array.apply(hashstr)
             else:
-                str_array = str_array + " " + acro_name_to_dump + "_" + data[feature].astype(str)
+                if not hash:
+                    str_array = str_array + " " + acro_name_to_dump + "_" + data[feature].astype(str)
+                else:
+                    temp = (acro_name_to_dump + "_" + data[feature].astype(str)). \
+                        apply(hashstr)
+                    str_array = str_array + " " + temp
 
             gc.collect()
             print('mem after gc:', cpuStats())
@@ -1565,7 +1578,7 @@ def process_chunk_data(chunk, wb1, new_features, additional_categorical, ffm_dat
         predictors1 = categorical + additional_categorical + new_features
         print('converting chunk of len {} with features {}: '.format(len(chunk), predictors1))
         with timer('to text'):
-            str_array = convert_features_to_text(chunk, predictors1)
+            str_array = convert_features_to_text(chunk, predictors1, hash= ffm_data_file_handle is not None)
             print('converted to str array: ', str_array[10])
 
         if ffm_data_file_handle is not None:
@@ -1576,7 +1589,7 @@ def process_chunk_data(chunk, wb1, new_features, additional_categorical, ffm_dat
                     to_output = to_output.set_index('click_id')
                 else:
                     to_output = pd.DataFrame(chunk['is_attributed']).copy(True)
-                to_output['str'] = to_output.index.astype(str) + ' ' + to_output['is_attributed'].astype(str) + ' ' + str_array
+                to_output['str'] = to_output.index.astype(str) + ' ' + to_output['is_attributed'].astype(str) + ' ' + str_array.astype(str)
 
                 np.savetxt(ffm_data_file_handle, to_output['str'].values, '%s')
                 #to_output.to_csv(ffm_data_file_handle, header=False, index=False)

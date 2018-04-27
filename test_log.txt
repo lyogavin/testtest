@@ -709,12 +709,12 @@ _cvr']
         aliyun: LB: 0.9719
     6. DNN
         googleyun: killed OOM
-        azzure cloud: testing renew wb every time(inherited ip, iter and D changes from 7.): running
+        azzure cloud: testing renew wb every time(inherited ip, iter and D changes from 7.): LB: 0.9718
     5. FTRL
         aliyun: DONE LB: 0.9727
     7. following pub kernel's new updates:
         wb's D from 2** 22->2**20, FM_FTRL iter 3 -> 2, add ip feature
-        gyun: running
+        gyun: 0.9729
 
 117 FFM
     0. aliyun submitting: LB: failed
@@ -742,9 +742,14 @@ _cvr']
 121 ft coms search:
     1. azzure: 1/3 with predict with predict failed OOM
        gyun: failed OOM
-    2. 1/20 no predict , test next click instead of skew, no cumcount, aliyun: running
+    2. 1/20 no predict , test next click instead of skew, no cumcount, aliyun: done in aliyun:nohup.log.0426
+    3. 1/3, only keep count, nunique, next click: aliyun: OOM
+    4. 1/3, only count and nextclick aliyun :running
 122 onine gen ffm data:
-    1.
+    1. gyun: running
+123 pub fm_ftrl kernel 09769, seems like it's the training data size.
+    try decrease to skip from 144708152 to test, forked kernel:
+    batch size 1/2-> LB: 0.9718
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
