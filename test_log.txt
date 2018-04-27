@@ -621,6 +621,7 @@ _cvr']
         with supplement: NAN next click count in test: 4556206
         without: done:
         NAN next click count in test: 5332803
+    26. TODO: fix the time order confusion of val appended to train
 
 
 
@@ -746,21 +747,27 @@ _cvr']
     3. 1/3, only keep count, nunique, next click: aliyun: OOM
     4. 1/3, only count and nextclick aliyun :OOM
 122 onine gen ffm data:
-    1. gyun: running
+    1. gyun: OOM
+    2. TODO: try again
+        gyun: running
 123 pub fm_ftrl kernel 09769, seems like it's the training data size.
     try decrease to skip from 144708152 to test, forked kernel:
     batch size 1/2-> LB: 0.9718
     1. forked kernel: changed to skip from 144708152 and 1/2 batch size: 0.9701
     2. azzureyun: changed only skip from 144708152, full batchsize to test perf: LB: 0.9701
     3. pub kernel: only 1/2 batch size,failed
-        azzureyun: running
+        azzureyun: failed
     4. full batchsize, full data, normalization of features: pub kernel: running
 124: LGBM seperately:
     0. train seperately with best params:
     aliyun: submission_notebook_27-04-2018_12-52-44.csv: LB:0.9792
     1. add 'day' dimension in all counting fts, and add day 8(4am-3pm) in training, use day 7 to test
-        aliyun: running
+        aliyun: LB: 0.9792
     2. 1+ add 7 also in training, use 6 in val
+        gyun: LB:0.9791
+    3. try train from midnight 08/3pm, val 08
+        aliyun: running
+    4. TODO: normalization
 125:
 
 to do test:
@@ -782,3 +789,4 @@ to do test:
     id features, st features,
     lgbm params
 15. for group by dimensions, next_click times forms a sequience, the mean, var skew of this sequence
+16. TODO:

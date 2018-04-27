@@ -214,6 +214,7 @@ id_9_4am = 144708152
 id_9_3pm = 181878211
 id_7_4am = 22536989
 id_7_3pm = 56845833
+id_8_4pm = 184903891 -1
 
 sample_from_list = [0, 50000]
 sample_to_list = [49998, 90000]
@@ -960,6 +961,19 @@ train_config_124_2 = ConfigScheme(False, False, False,
                                  run_theme='train_and_predict_gen_fts_seperately',
                                  add_features_list=add_features_list_origin_no_channel_next_click_days
                                    )
+train_config_124_3 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_8_3pm,
+                                 train_to=id_9_4pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_list_origin_no_channel_next_click_days
+                                   )
 def use_config_scheme(str):
     ret = eval(str)
     if debug:
@@ -978,9 +992,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_2')
+config_scheme_to_use = use_config_scheme('train_config_124_3')
 
-print('test log 124_2')
+print('test log 124_3')
 
 dtypes = {
     'ip': 'uint32',

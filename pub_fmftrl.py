@@ -44,7 +44,7 @@ def evaluate_batch(clf, X, y, rcount):
 	return auc
 
 def df_add_counts(df, cols, tag="_count"):
-	rate = len(df) / batchsize
+	rate = batchsize / len(df)
 	arr_slice = df[cols].values
 	unq, unqtags, counts = np.unique(np.ravel_multi_index(arr_slice.T, arr_slice.max(0) + 1),
 									 return_inverse=True, return_counts=True)
@@ -53,7 +53,7 @@ def df_add_counts(df, cols, tag="_count"):
 	return df
 
 def df_add_uniques(df, cols, tag="_unique"):
-	rate = len(df) / batchsize
+	rate = batchsize / len(df)
 	gp = df[cols].groupby(by=cols[0:len(cols) - 1])[cols[len(cols) - 1]].nunique().reset_index(). \
 		rename(index=str, columns={cols[len(cols) - 1]: "_".join(cols)+tag})
 	df= df.merge(gp, on=cols[0:len(cols) - 1], how='left')
