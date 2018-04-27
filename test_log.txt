@@ -758,6 +758,7 @@ _cvr']
     aliyun: submission_notebook_27-04-2018_12-52-44.csv: LB:0.9792
     1. add 'day' dimension in all counting fts, and add day 8(4am-3pm) in training, use day 7 to test
         aliyun: running
+    2. 1+ add 7 also in training, use 6 in val
 125:
 
 to do test:

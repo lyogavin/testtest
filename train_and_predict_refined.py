@@ -36,7 +36,7 @@ matplotlib.use('Agg')
 
 
 def get_dated_filename(filename):
-    print 'got file name: {}_{}.csv'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S"))
+    print('got file name: {}_{}.csv'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S")))
     return '{}_{}.csv'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S"))
     # return filename
 
@@ -947,6 +947,19 @@ train_config_124_1 = ConfigScheme(False, False, False,
                                  add_features_list=add_features_list_origin_no_channel_next_click_days
                                    )
 
+train_config_124_2 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=[id_7_4am, id_8_4am,id_9_4am],
+                                 train_to=[id_7_3pm, id_8_3pm, id_9_3pm],
+                                 val_from=1,
+                                 val_to=id_7_4am - 1,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_list_origin_no_channel_next_click_days
+                                   )
 def use_config_scheme(str):
     ret = eval(str)
     if debug:
@@ -965,9 +978,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_1')
+config_scheme_to_use = use_config_scheme('train_config_124_2')
 
-print('test log 124_1')
+print('test log 124_2')
 
 dtypes = {
     'ip': 'uint32',
