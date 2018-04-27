@@ -931,6 +931,20 @@ train_config_121_5 = ConfigScheme(False, False, False,
                                  add_features_list=add_features_list_origin_no_channel_next_click,
                                    use_ft_cache=False
                                    )
+train_config_121_6 = ConfigScheme(False, False, False,
+                                  shuffle_sample_filter_1_to_3,
+                                 shuffle_sample_filter_1_to_3,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= False,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='grid_search_ft_coms',
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                   use_ft_cache=False
+                                   )
 train_config_122 = ConfigScheme(False, False, False,
                                 None,
                                   shuffle_sample_filter,
@@ -1039,9 +1053,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_121_5')
+config_scheme_to_use = use_config_scheme('train_config_121_6')
 
-print('test log 121 5')
+print('test log 121 6')
 
 dtypes = {
     'ip': 'uint32',
@@ -2348,7 +2362,7 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
     com_fts_list_to_use = []
     raw_cols0 = ['app', 'device', 'os', 'channel', 'hour', 'ip']
     raw_cols1 = ['app', 'device', 'os', 'channel', 'in_test_hh', 'ip']
-    ops = ['nextclick','nunique']
+    ops = ['nunique', 'var']
     #ops = ['mean','var','nextclick','nunique','cumcount']
 
     #ops = ['mean','var','skew','nunique','cumcount']
@@ -2368,12 +2382,15 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
 
         print('\n\n\n')
         #for count():
-        for cols_count in range(1, 7):
-            for cols_coms in itertools.combinations(raw_cols, cols_count):
-                temp = []
-                temp.extend(cols_coms)
-                temp.append('is_attributed')
-                com_fts_list_to_use.append({'group': list(temp), 'op': 'count'})
+
+        add_count = False
+        if add_count:
+            for cols_count in range(1, 7):
+                for cols_coms in itertools.combinations(raw_cols, cols_count):
+                    temp = []
+                    temp.extend(cols_coms)
+                    temp.append('is_attributed')
+                    com_fts_list_to_use.append({'group': list(temp), 'op': 'count'})
 
     #print('added count coms(len: {}): {}'.format(len(com_fts_list_to_use), com_fts_list_to_use))
 
@@ -2404,8 +2421,8 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
         else:
             with timer('------training------' + str(i)):
                 additional_groups= [
-                    {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'],'op': 'nextclick'}
-                    #, {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
+                    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],'op': 'nextclick'},
+                    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
                     ]
 
                 if use_lgbm_searcher:

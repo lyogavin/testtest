@@ -750,6 +750,10 @@ _cvr']
     4. 1/3, only count and nextclick aliyun :OOM
     5. 1/3, only keep count, nunique, next click:
         gyun: running
+    6. try different features set such as no count, only nunique, etc for better ensemble.
+        1/3, only var and nunique, with nextclick and inhh:
+        azzureyun: running
+
 122 onine gen ffm data:
     1. gyun: OOM
     2. TODO: try again
