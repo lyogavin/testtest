@@ -214,7 +214,7 @@ id_9_4am = 144708152
 id_9_3pm = 181878211
 id_7_4am = 22536989
 id_7_3pm = 56845833
-id_8_4pm = 184903891 -1
+id_9_4pm = 184903891 -1
 
 sample_from_list = [0, 50000]
 sample_to_list = [49998, 90000]
@@ -518,7 +518,8 @@ class ConfigScheme:
                  qcut = 0,
                  add_second_ft = False,
                  use_lgbm_fts = False,
-                 sync_mode = False):
+                 sync_mode = False,
+                 normalization = False):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -555,6 +556,7 @@ class ConfigScheme:
         self.add_second_ft = add_second_ft
         self.use_lgbm_fts = use_lgbm_fts
         self.sync_mode = sync_mode
+        self.normalization = normalization
 
 
 
@@ -915,7 +917,20 @@ train_config_121_2 = ConfigScheme(False, False, False,
                                  add_features_list=add_features_list_origin_no_channel_next_click,
                                    use_ft_cache=False
                                    )
-
+train_config_121_5 = ConfigScheme(False, False, False,
+                                  shuffle_sample_filter_1_to_3,
+                                 shuffle_sample_filter_1_to_3,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= False,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='grid_search_ft_coms',
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                   use_ft_cache=False
+                                   )
 train_config_122 = ConfigScheme(False, False, False,
                                 None,
                                   shuffle_sample_filter,
@@ -989,6 +1004,23 @@ train_config_124_3 = ConfigScheme(False, False, False,
                                  run_theme='train_and_predict_gen_fts_seperately',
                                  add_features_list=add_features_list_origin_no_channel_next_click_days
                                    )
+
+train_config_124_4 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                  normalization=True
+                                   )
+
+
 def use_config_scheme(str):
     ret = eval(str)
     if debug:
@@ -1007,9 +1039,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_103_26')
+config_scheme_to_use = use_config_scheme('train_config_121_5')
 
-print('test log 103 26')
+print('test log 121 5')
 
 dtypes = {
     'ip': 'uint32',
@@ -1100,6 +1132,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
                           ft_cache_prefix = '',
                           only_ft_cache = False,
                           astype=None):
+    input_len = len(training)
     feature_name_added = '_'.join(group_by_cols) + op
 
     ft_cache_file_name = config_scheme_to_use.use_ft_cache_from + "_" + ft_cache_prefix + '_' + feature_name_added
@@ -1237,6 +1270,15 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
         training = training.merge(n_chans, on=group_by_cols if len(group_by_cols) >1 else group_by_cols[0],
                                   how='left')
         del n_chans
+
+        if config_scheme_to_use.normalization and op == 'count':
+            if hasattr(add_statistic_feature, first_df_count):
+                rate = add_statistic_feature.first_df_count / input_len
+            else:
+                add_statistic_feature.first_df_count = input_len
+                rate = 1.0
+            training[feature_name_added] = (training[feature_name_added] * rate).astype('uint32')
+
 
     gc.collect()
     no_type_cast = False
@@ -2306,7 +2348,7 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
     com_fts_list_to_use = []
     raw_cols0 = ['app', 'device', 'os', 'channel', 'hour', 'ip']
     raw_cols1 = ['app', 'device', 'os', 'channel', 'in_test_hh', 'ip']
-    ops = ['mean','var','nextclick','nunique']
+    ops = ['nextclick','nunique']
     #ops = ['mean','var','nextclick','nunique','cumcount']
 
     #ops = ['mean','var','skew','nunique','cumcount']
@@ -2335,7 +2377,9 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
 
     #print('added count coms(len: {}): {}'.format(len(com_fts_list_to_use), com_fts_list_to_use))
 
-    shuffle(com_fts_list_to_use)
+    do_shuffle = False
+    if do_shuffle:
+        shuffle(com_fts_list_to_use)
     #print('shuffled coms(len: {}): {}'.format(len(com_fts_list_to_use), com_fts_list_to_use))
     #exit(0)
 
@@ -2369,7 +2413,7 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
                     importances = {}
                     auc = 0
                 else:
-                    jointly = True
+                    jointly = False
                     if jointly:
                         importances, auc = train_and_predict(additional_groups +
                                                             com_fts_list_to_use[pos:pos + size],

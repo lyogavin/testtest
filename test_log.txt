@@ -748,10 +748,12 @@ _cvr']
     2. 1/20 no predict , test next click instead of skew, no cumcount, aliyun: done in aliyun:nohup.log.0426
     3. 1/3, only keep count, nunique, next click: aliyun: OOM
     4. 1/3, only count and nextclick aliyun :OOM
+    5. 1/3, only keep count, nunique, next click:
+        gyun: running
 122 onine gen ffm data:
     1. gyun: OOM
     2. TODO: try again
-        gyun: running
+        gyun: OOM
 123 pub fm_ftrl kernel 09769, seems like it's the training data size.
     try decrease to skip from 144708152 to test, forked kernel:
     batch size 1/2-> LB: 0.9718
@@ -759,7 +761,10 @@ _cvr']
     2. azzureyun: changed only skip from 144708152, full batchsize to test perf: LB: 0.9701
     3. pub kernel: only 1/2 batch size,failed
         azzureyun: failed
-    4. full batchsize, full data, normalization of features: pub kernel: running
+    4. full batchsize, full data, normalization of features: pub kernel: LB: 0.9765/0.9767, worse
+    5. skip from: 108735619, no norm, pub kernal: running
+    6. use my best features:
+        gyun: TODO
 124: LGBM seperately:
     0. train seperately with best params:
     aliyun: submission_notebook_27-04-2018_12-52-44.csv: LB:0.9792
@@ -770,6 +775,7 @@ _cvr']
     3. try train from midnight 08/3pm, val 08
         aliyun: running
     4. TODO: normalization
+        gyuN: TODO
 125:
 
 to do test:
