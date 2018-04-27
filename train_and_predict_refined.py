@@ -36,6 +36,7 @@ matplotlib.use('Agg')
 
 
 def get_dated_filename(filename):
+    print 'got file name: {}_{}.csv'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S"))
     return '{}_{}.csv'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S"))
     # return filename
 
@@ -100,7 +101,7 @@ from pympler import summary
 
 dump_train_data = False
 
-use_sample = True
+use_sample = False
 debug = False
 persist_intermediate = False
 print_verbose = False
@@ -211,6 +212,11 @@ id_8_4am = 82259195
 id_8_3pm = 118735619
 id_9_4am = 144708152
 id_9_3pm = 181878211
+id_7_4am = 22536989
+id_7_3pm = 56845833
+
+sample_from_list = [0, 50000]
+sample_to_list = [49998, 90000]
 
 public_train_from = 109903890
 public_train_to =  147403890
@@ -348,6 +354,21 @@ add_features_list_origin_no_channel_next_click = [
     {'group': ['app', 'day', 'hour', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
     ]
+
+
+add_features_list_origin_no_channel_next_click_days = [
+
+    # ====================
+    # my best features
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day','in_test_hh', 'is_attributed'], 'op': 'count'}
+    ]
+
 
 add_features_list_origin_no_channel_next_click_no_app = [
 
@@ -896,6 +917,36 @@ train_config_122 = ConfigScheme(False, False, False,
                                   )
 
 
+train_config_124 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_list_origin_no_channel_next_click
+                                   )
+
+
+
+train_config_124_1 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=[id_8_4am,id_9_4am],
+                                 train_to=[id_8_3pm, id_9_3pm],
+                                 val_from=id_7_4am,
+                                 val_to=id_7_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_list_origin_no_channel_next_click_days
+                                   )
+
 def use_config_scheme(str):
     ret = eval(str)
     if debug:
@@ -914,9 +965,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_122')
+config_scheme_to_use = use_config_scheme('train_config_124_1')
 
-print('test log 122')
+print('test log 124_1')
 
 dtypes = {
     'ip': 'uint32',
@@ -1217,9 +1268,11 @@ def generate_counting_history_features(data,
     new_features = []
 
     discretization_bins_used = None
-
+    i = -1
     for add_feature in add_features_list:
-        with timer('adding feature:' + str(add_feature)):
+        i += 1
+        #with timer('adding feature:' + str(add_feature)):
+        with timer('adding feature: {}/{}, {}'.format(i, len(add_features_list), str(add_feature))):
             data, features_added, discretization_bins_used_current_feature = add_statistic_feature(
                 add_feature['group'],
                 data,
@@ -1434,15 +1487,34 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
 
 
 def get_train_df():
-    train = pd.read_csv(path_train_sample if use_sample else path_train,
-                        dtype=dtypes,
-                        header=0,
-                        usecols=train_cols,
-                        skiprows=range(1, config_scheme_to_use.train_from) \
-                            if not use_sample and config_scheme_to_use.train_from is not None else None,
-                        nrows=config_scheme_to_use.train_to - config_scheme_to_use.train_from \
-                            if not use_sample and config_scheme_to_use.train_from is not None else None,
-                        parse_dates=["click_time"])
+    train = None
+    if config_scheme_to_use.train_from is not None and isinstance(config_scheme_to_use.train_from, list):
+        for data_from, data_to in \
+                zip(sample_from_list, sample_to_list) if use_sample else \
+                zip(config_scheme_to_use.train_from, config_scheme_to_use.train_to):
+            train0 = pd.read_csv(path_train_sample if use_sample else path_train,
+                                dtype=dtypes,
+                                header=0,
+                                usecols=train_cols,
+                                skiprows=range(1, data_from),
+                                nrows=data_to - data_from,
+                                parse_dates=["click_time"])
+            if train is None:
+                train = train0
+            else:
+                train = train.append(train0)
+
+            del train0
+    else:
+        train = pd.read_csv(path_train_sample if use_sample else path_train,
+                            dtype=dtypes,
+                            header=0,
+                            usecols=train_cols,
+                            skiprows=range(1, config_scheme_to_use.train_from) \
+                                if not use_sample and config_scheme_to_use.train_from is not None else None,
+                            nrows=config_scheme_to_use.train_to - config_scheme_to_use.train_from \
+                                if not use_sample and config_scheme_to_use.train_from is not None else None,
+                            parse_dates=["click_time"])
 
     print('mem after loaded train data:', cpuStats())
 
