@@ -621,7 +621,9 @@ _cvr']
         with supplement: NAN next click count in test: 4556206
         without: done:
         NAN next click count in test: 5332803
-    26. TODO: fix the time order confusion of val appended to train
+    26. fix the time order confusion of val appended to train:
+        use 09 3pm-09 4pm as val:
+            azzureyun: running
 
 
 

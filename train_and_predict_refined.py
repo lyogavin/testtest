@@ -724,6 +724,21 @@ train_config_103_23 = ConfigScheme(False, False, False,
                                    use_ft_cache=False
                                    )
 
+train_config_103_26 = ConfigScheme(False, False, False,
+                               None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_9_3pm,
+                                 val_to=id_9_4pm,
+                                 run_theme='train_and_predict_with_test_supplement',
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                   use_ft_cache=False
+                                   )
+
 train_config_119 = ConfigScheme(False, False, False,
                                 None,
                                  shuffle_sample_filter_1_to_6,
@@ -992,9 +1007,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_3')
+config_scheme_to_use = use_config_scheme('train_config_103_26')
 
-print('test log 124_3')
+print('test log 103 26')
 
 dtypes = {
     'ip': 'uint32',
