@@ -751,8 +751,10 @@ _cvr']
     try decrease to skip from 144708152 to test, forked kernel:
     batch size 1/2-> LB: 0.9718
     1. forked kernel: changed to skip from 144708152 and 1/2 batch size: 0.9701
-    2. azzureyun: changed only skip from 144708152, full batchsize to test perf: running
-    3. pub kernel: only 1/2 batch size running
+    2. azzureyun: changed only skip from 144708152, full batchsize to test perf: LB: 0.9701
+    3. pub kernel: only 1/2 batch size,failed
+        azzureyun: running
+    4. full batchsize, full data, normalization of features: pub kernel: running
 124: LGBM seperately:
     0. train seperately with best params:
     aliyun: submission_notebook_27-04-2018_12-52-44.csv: LB:0.9792

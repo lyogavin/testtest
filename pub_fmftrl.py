@@ -27,7 +27,7 @@ def cpuStats():
 	print('memory GB:', memoryUse)
 
 start_time = time.time()
-
+batchsize = 10000000
 mean_auc= 0
 
 def fit_batch(clf, X, y, w):  clf.partial_fit(X, y, sample_weight=w)
@@ -44,16 +44,21 @@ def evaluate_batch(clf, X, y, rcount):
 	return auc
 
 def df_add_counts(df, cols, tag="_count"):
+	rate = len(df) / batchsize
 	arr_slice = df[cols].values
 	unq, unqtags, counts = np.unique(np.ravel_multi_index(arr_slice.T, arr_slice.max(0) + 1),
 									 return_inverse=True, return_counts=True)
-	df["_".join(cols)+tag] = counts[unqtags]
+	# normalize the count...
+	df["_".join(cols) + tag] = (counts[unqtags] * rate).astype(int)
 	return df
 
 def df_add_uniques(df, cols, tag="_unique"):
+	rate = len(df) / batchsize
 	gp = df[cols].groupby(by=cols[0:len(cols) - 1])[cols[len(cols) - 1]].nunique().reset_index(). \
 		rename(index=str, columns={cols[len(cols) - 1]: "_".join(cols)+tag})
 	df= df.merge(gp, on=cols[0:len(cols) - 1], how='left')
+	# normalize the nunique count
+	df["_".join(cols) + tag] = (df["_".join(cols) + tag] * rate).astype(int)
 	return df
 
 def df2csr(wb, df, pick_hours=None):
@@ -131,7 +136,6 @@ class ThreadWithReturnValue(threading.Thread):
 		threading.Thread.join(self)
 		return self._return
 
-batchsize = 10000000 // 2
 D = 2 ** 20
 
 wb = wordbatch.WordBatch(None, extractor=(WordHash, {"ngram_range": (1, 1), "analyzer": "word",

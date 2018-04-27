@@ -360,7 +360,7 @@ add_features_list_origin_no_channel_next_click_days = [
 
     # ====================
     # my best features
-    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+    {'group': ['ip', 'app', 'device', 'os', 'day', 'is_attributed'], 'op': 'nextclick'},
     {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'day', 'hour', 'os', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'day', 'hour', 'app', 'is_attributed'], 'op': 'count'},
