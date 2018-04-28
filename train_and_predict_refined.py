@@ -277,6 +277,30 @@ new_lgbm_params = {
     'scale_pos_weight': 99.0
 }
 
+new_lgbm_params_100_cat_smooth = {
+    'boosting_type': 'gbdt',
+    'objective': 'binary',
+    'metric': 'auc',
+    'learning_rate': 0.1,
+    'num_leaves': 9,
+    'max_depth': 5,
+    'min_child_samples': 100,
+    'max_bin': 150,
+    'subsample': 0.9,
+    'subsample_freq': 1,
+    'colsample_bytree': 0.7,
+    'min_child_weight': 0,
+    'subsample_for_bin': 200000,
+    'min_split_gain': 0,
+    'reg_alpha': 0,
+    'reg_lambda': 0,
+    'nthread': 10,
+    'verbose': 9,
+    'early_stopping_round': 20,
+    # 'is_unbalance': True,
+    'scale_pos_weight': 99.0,
+    'cat_smooth':100
+}
 new_lgbm_params_early_300 = {
     'boosting_type': 'gbdt',
     'objective': 'binary',
@@ -1315,6 +1339,23 @@ train_config_121_7 = ConfigScheme(False, False, False,
                                    use_ft_cache=False
                                    )
 
+train_config_121_8 = train_config_121_7
+
+train_config_126_9 = ConfigScheme(False, False, False,
+                                  random_sample_filter_0_5,
+                                 random_sample_filter_0_5,
+                                 None,
+                                 lgbm_params=new_lgbm_params_100_cat_smooth,
+                                 new_predict= False,
+                                 train_from=id_8_4am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_list_origin_no_channel_next_click
+                                   )
+
+
 def use_config_scheme(str):
     ret = eval(str)
     if debug:
@@ -1333,7 +1374,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_121_7')
+config_scheme_to_use = use_config_scheme('train_config_121_8')
 
 
 dtypes = {
@@ -2667,7 +2708,11 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
     raw_cols0 = ['app', 'device', 'os', 'channel', 'hour', 'ip']
     raw_cols1 = ['app', 'device', 'os', 'channel', 'in_test_hh', 'ip']
     #for train_config_121_7
-    ops = ['nunique']
+    #ops = ['nunique']
+    # for train_config_121_8
+    # ops = ['mean']
+
+
     #ops = ['mean','var','nextclick','nunique','cumcount']
 
     #ops = ['mean','var','skew','nunique','cumcount']
@@ -2688,7 +2733,7 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
         print('\n\n\n')
         #for count():
 
-        #train_config_121_7
+        #train_config_121_7,train_config_121_8
         add_count = False
         if add_count:
             for cols_count in range(1, 7):

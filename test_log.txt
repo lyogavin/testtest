@@ -760,6 +760,9 @@ _cvr']
     7. 1/2 random sample, 08 train 09 val:
         nunique, 1 nextclick, 1 in hh
         gyun: running
+    8. based on 7, use mean
+        azzureyun: running
+
 
 122 onine gen ffm data:
     1. gyun: OOM
@@ -777,7 +780,7 @@ _cvr']
     6. use my best features:
         pub kernel: LB:0.9662
     7. full batchsize, skip from58735619: pub ker: OOM
-    8. full batchsize, skip from 8 4am: azzureyun: running
+    8. full batchsize, skip from 8 4am: azzureyun: OOM
 
 124: LGBM seperately:
     0. train seperately with best params:
@@ -820,14 +823,17 @@ _cvr']
     4. 124 9. gyun:
     [148]	train's auc: 0.981603	valid's auc: 0.97152
     5. similar to 124 3, train: 073pm-083pm, val: 09
-        azzure:running
+        azzure:
+    [367]	train's auc: 0.983063	valid's auc: 0.972114
     6. similar to 124 8, train: 073pm-083pm, val: 09, with pick hours weighted
         aliyun: running
     7. changed hour to 2 hours:
         grid test4: running
     8. changed hour to 3 hours:
-        grid test3: running
-    9.
+        grid test3:
+    [305]	train's auc: 0.983763	valid's auc: 0.971294
+    9. 126.1 + cat_smooth=100
+        grid test3:running
 
 
 
@@ -851,3 +857,6 @@ to do test:
     lgbm params
 15. for group by dimensions, next_click times forms a sequience, the mean, var skew of this sequence
 16. TODO: try only train from night hours.
+17. TODO: clustering categorical features, and use clusters instead of each single value(given 2hours might work)
+18. TODO: in non-tree models, remove too rare categorical items
+19. TODO: cat_smooth in LGBM
