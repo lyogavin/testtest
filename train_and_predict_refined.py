@@ -1090,12 +1090,26 @@ train_config_124_4 = ConfigScheme(False, False, False,
                                    )
 
 
+train_config_124_5 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params_early_300,
+                                 new_predict= True,
+                                 train_from=id_8_4am,
+                                 train_to=id_9_4pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_list_origin_no_channel_next_click
+                                  )
+
 train_config_125 = ConfigScheme(False, False, False,
-                                shuffle_sample_filter,
+                                None,
                                  shuffle_sample_filter,
                                  None,
                                  lgbm_params=new_lgbm_params,
-                                 new_predict= False,
+                                 new_predict= True,
                                  train_from=id_9_4am,
                                  train_to=id_9_3pm,
                                  val_from=id_8_4am,
@@ -1123,9 +1137,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_125')
+config_scheme_to_use = use_config_scheme('train_config_124_5')
 
-print('test log 125')
+print('test log 124_5')
 
 dtypes = {
     'ip': 'uint32',
