@@ -790,6 +790,7 @@ _cvr']
     1. add number of 10 minutes feature
     2. add average cvr of the current 10min
     3. ip day 10min count
+    aliyun: running
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
