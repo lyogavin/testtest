@@ -138,7 +138,7 @@ categorical = ['app', 'device', 'os', 'channel', 'hour']
 # with ip:
 # categorical = ['app', 'device', 'os', 'channel', 'hour', 'ip']
 
-
+pick_hours={4, 5, 10, 13, 14}
 cvr_columns_lists = [
     ['ip', 'app', 'device', 'os', 'channel'],
     # ['app', 'os'],
@@ -559,7 +559,8 @@ class ConfigScheme:
                  use_lgbm_fts = False,
                  sync_mode = False,
                  normalization = False,
-                 add_10min_ft = False):
+                 add_10min_ft = False,
+                 pick_hours_weighted = False):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -598,6 +599,7 @@ class ConfigScheme:
         self.sync_mode = sync_mode
         self.normalization = normalization
         self.add_10min_ft = add_10min_ft
+        self.pick_hours_weighted = pick_hours_weighted
 
 
 
@@ -1146,6 +1148,36 @@ train_config_125_4 = ConfigScheme(False, False, False,
                                 add_10min_ft=True
                                    )
 
+
+train_config_124_7 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_8_3pm,
+                                 train_to=id_9_4am,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_list_origin_no_channel_next_click
+                                  )
+
+train_config_124_8 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_8_3pm,
+                                 train_to=id_9_4pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_list_origin_no_channel_next_click_days,
+                                 pick_hours_weighted = True
+                                   )
+
 def use_config_scheme(str):
     ret = eval(str)
     if debug:
@@ -1164,9 +1196,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_125_4')
+config_scheme_to_use = use_config_scheme('train_config_124_8')
 
-print('test log 125_4')
+print('test log 124_8')
 
 dtypes = {
     'ip': 'uint32',
@@ -1642,11 +1674,15 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
 
         dtrain = lgb.Dataset(train[predictors].values.astype(np.float32), label=train[target].values,
                              feature_name=predictors,
-                             categorical_feature=categorical
+                             categorical_feature=categorical,
+                             weight=train['hour'].apply(lambda x: 1.0 if x in pick_hours else 0.5) \
+                                if config_scheme_to_use.pick_hours_weighted else None
                              )
         dvalid = lgb.Dataset(val[predictors].values.astype(np.float32), label=val[target].values,
                              feature_name=predictors,
-                             categorical_feature=categorical
+                             categorical_feature=categorical,
+                             weight=val['hour'].apply(lambda x: 1.0 if x in pick_hours else 0.5) \
+                                if config_scheme_to_use.pick_hours_weighted else None
                              )
 
         evals_results = {}
