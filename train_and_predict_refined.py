@@ -297,7 +297,7 @@ new_lgbm_params_early_300 = {
     'nthread': 10,
     'verbose': 9,
     'num_boost_round':300,
-    'early_stopping_round': 0,
+    'early_stopping_round': 300,
     # 'is_unbalance': True,
     'scale_pos_weight': 99.0
 }
@@ -1096,6 +1096,20 @@ train_config_124_5 = ConfigScheme(False, False, False,
                                  None,
                                  lgbm_params=new_lgbm_params_early_300,
                                  new_predict= True,
+                                 train_from=id_7_3pmm,
+                                 train_to=id_9_3pm,
+                                 val_from=id_9_3pm,
+                                 val_to=id_9_4pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_list_origin_no_channel_next_click
+                                  )
+
+train_config_124_6 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params_early_300,
+                                 new_predict= True,
                                  train_from=id_8_4am,
                                  train_to=id_9_4pm,
                                  val_from=id_8_4am,
@@ -1103,7 +1117,6 @@ train_config_124_5 = ConfigScheme(False, False, False,
                                  run_theme='train_and_predict_gen_fts_seperately',
                                  add_features_list=add_features_list_origin_no_channel_next_click
                                   )
-
 train_config_125 = ConfigScheme(False, False, False,
                                 None,
                                  shuffle_sample_filter,
@@ -1137,9 +1150,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_103_27')
+config_scheme_to_use = use_config_scheme('train_config_124_6')
 
-print('test log 103_27')
+print('test log 124_6')
 
 dtypes = {
     'ip': 'uint32',

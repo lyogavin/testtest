@@ -625,7 +625,8 @@ _cvr']
         use 09 3pm-09 4pm as val:
             azzureyun: LB:0.9781
     27. 26+ early stopping: 300
-        grid test4: running
+        grid test4: OOM
+        azzureyun: LB:0.9791
 
 
 
@@ -771,7 +772,7 @@ _cvr']
     5. skip from: 108735619, no norm, pub kernal, 1/2 batchsize: LB:0.9724
     6. use my best features:
         gyun: TODO
-    7. full batchsize, skip from58735619: pub ker: running
+    7. full batchsize, skip from58735619: pub ker: OOM
 124: LGBM seperately:
     0. train seperately with best params:
     aliyun: submission_notebook_27-04-2018_12-52-44.csv: LB:0.9792
@@ -785,12 +786,14 @@ _cvr']
         gyuN: TODO
     5. TODO: following 3, use more trainning data, see if we can play similar hour trick
         try train from 08/4am, to 9 4pm, 350 trees
-        gyun: running
+        gyun: LB:0.9789
+    6. more data: 5+ train from 7/3pm: 350 trees:
+        gyun:
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature
     2. add average cvr of the current 10min
     3. ip day 10min count
-    aliyun: running
+    aliyun: LB:0.9774
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
