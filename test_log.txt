@@ -623,7 +623,9 @@ _cvr']
         NAN next click count in test: 5332803
     26. fix the time order confusion of val appended to train:
         use 09 3pm-09 4pm as val:
-            azzureyun: running
+            azzureyun: LB:0.9781
+    27. 26+ early stopping: 300
+        grid test4: running
 
 
 
@@ -766,7 +768,7 @@ _cvr']
     3. pub kernel: only 1/2 batch size,failed
         azzureyun: failed
     4. full batchsize, full data, normalization of features: pub kernel: LB: 0.9765/0.9767, worse
-    5. skip from: 108735619, no norm, pub kernal: running
+    5. skip from: 108735619, no norm, pub kernal: LB:submitting
     6. use my best features:
         gyun: TODO
 124: LGBM seperately:
@@ -777,10 +779,13 @@ _cvr']
     2. 1+ add 7 also in training, use 6 in val
         gyun: LB:0.9791
     3. try train from midnight 08/3pm, val 08
-        aliyun: running
+        aliyun: LB:0.9793
     4. TODO: normalization
         gyuN: TODO
-125:
+    5. TODO: following 3, use more trainning data, see if we can play similar hour trick
+125:TODO: how to incorperate the timeseries pattern from the pub kernel?
+    1. add number of 10 minutes feature
+    2. add average cvr of the current 10min
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE

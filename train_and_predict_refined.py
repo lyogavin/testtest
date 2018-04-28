@@ -277,6 +277,30 @@ new_lgbm_params = {
     'scale_pos_weight': 99.0
 }
 
+new_lgbm_params_early_300 = {
+    'boosting_type': 'gbdt',
+    'objective': 'binary',
+    'metric': 'auc',
+    'learning_rate': 0.1,
+    'num_leaves': 9,
+    'max_depth': 5,
+    'min_child_samples': 100,
+    'max_bin': 150,
+    'subsample': 0.9,
+    'subsample_freq': 1,
+    'colsample_bytree': 0.7,
+    'min_child_weight': 0,
+    'subsample_for_bin': 200000,
+    'min_split_gain': 0,
+    'reg_alpha': 0,
+    'reg_lambda': 0,
+    'nthread': 10,
+    'verbose': 9,
+    'num_boost_round':300,
+    'early_stopping_round': 0,
+    # 'is_unbalance': True,
+    'scale_pos_weight': 99.0
+}
 public_kernel_lgbm_params = dict(new_lgbm_params)
 public_kernel_lgbm_params.update({
         'learning_rate': 0.20,
@@ -355,6 +379,21 @@ add_features_list_origin_no_channel_next_click = [
     {'group': ['app', 'day', 'hour', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
     ]
+
+add_features_list_origin_no_channel_next_click_10mincvr = [
+
+    # ====================
+    # my best features
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
+    {'group': ['id_10min', 'is_attributed'], 'op': 'mean'}
+]
+
 
 
 add_features_list_origin_no_channel_next_click_days = [
@@ -519,7 +558,8 @@ class ConfigScheme:
                  add_second_ft = False,
                  use_lgbm_fts = False,
                  sync_mode = False,
-                 normalization = False):
+                 normalization = False,
+                 add_10min_ft = False):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -557,6 +597,7 @@ class ConfigScheme:
         self.use_lgbm_fts = use_lgbm_fts
         self.sync_mode = sync_mode
         self.normalization = normalization
+        self.add_10min_ft = add_10min_ft
 
 
 
@@ -731,6 +772,20 @@ train_config_103_26 = ConfigScheme(False, False, False,
                                  shuffle_sample_filter,
                                  None,
                                  lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_9_3pm,
+                                 val_to=id_9_4pm,
+                                 run_theme='train_and_predict_with_test_supplement',
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                   use_ft_cache=False
+                                   )
+train_config_103_27 = ConfigScheme(False, False, False,
+                               None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params_early_300,
                                  new_predict= True,
                                  train_from=id_9_4am,
                                  train_to=id_9_3pm,
@@ -1035,6 +1090,21 @@ train_config_124_4 = ConfigScheme(False, False, False,
                                    )
 
 
+train_config_125 = ConfigScheme(False, False, False,
+                                shuffle_sample_filter,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= False,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_list_origin_no_channel_next_click_10mincvr,
+                                add_10min_ft=True
+                                   )
+
 def use_config_scheme(str):
     ret = eval(str)
     if debug:
@@ -1053,9 +1123,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_121_6')
+config_scheme_to_use = use_config_scheme('train_config_125')
 
-print('test log 121 6')
+print('test log 125')
 
 dtypes = {
     'ip': 'uint32',
@@ -1364,6 +1434,12 @@ def generate_counting_history_features(data,
     print('discretization bins to use:', discretization_bins)
 
     new_features = []
+
+    if config_scheme_to_use.add_10min_ft:
+        with timer('adding 10min feature:'):
+            data['id_10min'] = data.click_time.astype(int) // (10 ** 9 * 600)
+            new_features.append('id_10min')
+
 
     discretization_bins_used = None
     i = -1
