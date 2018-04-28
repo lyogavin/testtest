@@ -380,6 +380,22 @@ add_features_list_origin_no_channel_next_click = [
     {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
     ]
 
+add_features_from_pub_ftrl = [
+
+    # ====================
+    # my best features
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+
+    {'group': ['ip', 'app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'device', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'channel', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'channel'], 'op': 'nunique'}
+    ]
+
+
 add_features_list_origin_no_channel_next_click_10mincvr = [
 
     # ====================
@@ -1119,6 +1135,24 @@ train_config_124_6 = ConfigScheme(False, False, False,
                                  run_theme='train_and_predict_gen_fts_seperately',
                                  add_features_list=add_features_list_origin_no_channel_next_click
                                   )
+
+
+train_config_124_9 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_from_pub_ftrl
+                                   )
+
+
+
 train_config_125 = ConfigScheme(False, False, False,
                                 None,
                                  shuffle_sample_filter,

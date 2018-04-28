@@ -762,7 +762,7 @@ _cvr']
     1. gyun: OOM
     2. TODO: try again
         gyun: OOM
-123 pub fm_ftrl kernel 09769, seems like it's the training data size.
+123 pub fm_ftrl kernel 09769, seems like it's the training data size. (original 0.9769)
     try decrease to skip from 144708152 to test, forked kernel:
     batch size 1/2-> LB: 0.9718
     1. forked kernel: changed to skip from 144708152 and 1/2 batch size: 0.9701
@@ -772,7 +772,7 @@ _cvr']
     4. full batchsize, full data, normalization of features: pub kernel: LB: 0.9765/0.9767, worse
     5. skip from: 108735619, no norm, pub kernal, 1/2 batchsize: LB:0.9724
     6. use my best features:
-        pub kernel: running
+        pub kernel: LB:0.9662
     7. full batchsize, skip from58735619: pub ker: OOM
     8. full batchsize, skip from 8 4am: azzureyun: running
 
@@ -791,10 +791,13 @@ _cvr']
         try train from 08/4am, to 9 4pm, 350 trees
         gyun: LB:0.9789
     6. more data: 5+ train from 7/3pm: 350 trees:
-        gyun:running
+        gyun:LB: submitting
     7. try only try from night hours:
-        grid test 4: running
+        grid test 4: OOM
     8. 3 + test hours weighted
+        grid test 3: OOM
+        gyun: running
+    9. 0 + pub FTRL features
         grid test 3: running
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature
@@ -803,6 +806,7 @@ _cvr']
     aliyun: LB:0.9774
     4. make it 30 min, change 30min to categorical feature and retry: aliyun: LB:0.9779
     5. TODO: make it 2hours and retry
+        Grid test4:running
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
