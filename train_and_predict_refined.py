@@ -1635,11 +1635,16 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
             print('dumping done')
             exit(0)
         print('training with :', predictors)
-        dtrain = lgb.Dataset(train[predictors].values, label=train[target].values,
+        # based on pub discussion, convert to float32 reduce half of mem spike of lgbm
+        # https://www.kaggle.com/c/talkingdata-adtracking-fraud-detection/discussion/55325
+
+        # dtrain = lgb.Dataset(train[predictors].values, label=train[target].values,
+
+        dtrain = lgb.Dataset(train[predictors].values.astype(np.float32), label=train[target].values,
                              feature_name=predictors,
                              categorical_feature=categorical
                              )
-        dvalid = lgb.Dataset(val[predictors].values, label=val[target].values,
+        dvalid = lgb.Dataset(val[predictors].values.astype(np.float32), label=val[target].values,
                              feature_name=predictors,
                              categorical_feature=categorical
                              )
