@@ -796,7 +796,7 @@ _cvr']
         grid test 4: OOM
     8. 3 + test hours weighted
         grid test 3: OOM
-        gyun: running
+        gyun: copied to ~/, TODO: to submit
     9. 0 + pub FTRL features
         grid test 3: LB:0.9785
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
@@ -810,9 +810,15 @@ _cvr']
 126. find best offline validation method:
     use 09-4am-3pm as val set
         08-4am-3pm as train, randomly sample 33%:
-    1. 124 0.
-    2. 124 2
-    3. 124 3
+    1. 124 0. azzure: [283]   train's auc: 0.983571   valid's auc: 0.972195
+    2. 124 2. gyun:killed
+    3. 124 3. aliyun:killed
+    4. 124 9. gyun: running
+    5. similar to 124 3, train: 073pm-083pm, val: 09
+        azzure:running
+    6. similar to 124 8, train: 073pm-083pm, val: 09, with pick hours weighted
+        aliyun: running
+    7.
 
 
 

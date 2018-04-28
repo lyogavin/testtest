@@ -1257,6 +1257,48 @@ train_config_126_3 = ConfigScheme(False, False, False,
                                  add_features_list=add_features_list_origin_no_channel_next_click
                                    )
 
+train_config_126_4 = ConfigScheme(False, False, False,
+                                  random_sample_filter_0_5,
+                                 random_sample_filter_0_5,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= False,
+                                 train_from=id_8_4am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_from_pub_ftrl
+                                   )
+
+train_config_126_5 = ConfigScheme(False, False, False,
+                                  random_sample_filter_0_5,
+                                 random_sample_filter_0_5,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= False,
+                                 train_from=id_7_3am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_list_origin_no_channel_next_click
+                                   )
+
+train_config_126_6 = ConfigScheme(False, False, False,
+                                  random_sample_filter_0_5,
+                                 random_sample_filter_0_5,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= False,
+                                 train_from=id_7_3am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                 pick_hours_weighted = True
+                                  )
 def use_config_scheme(str):
     ret = eval(str)
     if debug:
@@ -1275,9 +1317,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_8')
+config_scheme_to_use = use_config_scheme('train_config_126_4')
 
-print('test log 124_8')
+print('test log 126_4')
 
 dtypes = {
     'ip': 'uint32',
