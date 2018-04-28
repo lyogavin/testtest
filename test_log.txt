@@ -757,6 +757,9 @@ _cvr']
         1/3, only var and nunique, with nextclick and inhh:
         azzureyun: OOM in training
         aliyun: retry after fix lgbm mem, OOM
+    7. 1/2 random sample, 08 train 09 val:
+        nunique, 1 nextclick, 1 in hh
+        gyun: running
 
 122 onine gen ffm data:
     1. gyun: OOM
@@ -810,15 +813,21 @@ _cvr']
 126. find best offline validation method:
     use 09-4am-3pm as val set
         08-4am-3pm as train, randomly sample 33%:
-    1. 124 0. azzure: [283]   train's auc: 0.983571   valid's auc: 0.972195
+    1. 124 0. azzure:
+    [283]   train's auc: 0.983571   valid's auc: 0.972195
     2. 124 2. gyun:killed
     3. 124 3. aliyun:killed
-    4. 124 9. gyun: running
+    4. 124 9. gyun:
+    [148]	train's auc: 0.981603	valid's auc: 0.97152
     5. similar to 124 3, train: 073pm-083pm, val: 09
         azzure:running
     6. similar to 124 8, train: 073pm-083pm, val: 09, with pick hours weighted
         aliyun: running
-    7.
+    7. changed hour to 2 hours:
+        grid test4: running
+    8. changed hour to 3 hours:
+        grid test3: running
+    9.
 
 
 

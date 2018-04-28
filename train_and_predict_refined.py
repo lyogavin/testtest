@@ -1299,6 +1299,22 @@ train_config_126_6 = ConfigScheme(False, False, False,
                                  add_features_list=add_features_list_origin_no_channel_next_click,
                                  pick_hours_weighted = True
                                   )
+
+train_config_121_7 = ConfigScheme(False, False, False,
+                                  random_sample_filter_0_5,
+                                 random_sample_filter_0_5,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= False,
+                                 train_from=id_8_4am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='grid_search_ft_coms',
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                   use_ft_cache=False
+                                   )
+
 def use_config_scheme(str):
     ret = eval(str)
     if debug:
@@ -1317,7 +1333,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_126_5')
+config_scheme_to_use = use_config_scheme('train_config_121_7')
 
 
 dtypes = {
@@ -1359,6 +1375,10 @@ def gen_categorical_features(data):
                               - 2 * data['hour'].isin(most_freq_hours_in_test_data)
                               - 1 * data['hour'].isin(least_freq_hours_in_test_data)).astype('uint8')
         # categorical.append('in_test_hh')
+
+    #126 8
+    data['hour'] = data['hour'] // 3
+
     return data
 
 
@@ -2646,7 +2666,8 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
     com_fts_list_to_use = []
     raw_cols0 = ['app', 'device', 'os', 'channel', 'hour', 'ip']
     raw_cols1 = ['app', 'device', 'os', 'channel', 'in_test_hh', 'ip']
-    ops = ['nunique', 'var']
+    #for train_config_121_7
+    ops = ['nunique']
     #ops = ['mean','var','nextclick','nunique','cumcount']
 
     #ops = ['mean','var','skew','nunique','cumcount']
@@ -2667,6 +2688,7 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
         print('\n\n\n')
         #for count():
 
+        #train_config_121_7
         add_count = False
         if add_count:
             for cols_count in range(1, 7):
