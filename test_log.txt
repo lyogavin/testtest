@@ -756,7 +756,7 @@ _cvr']
     6. try different features set such as no count, only nunique, etc for better ensemble.
         1/3, only var and nunique, with nextclick and inhh:
         azzureyun: OOM in training
-        aliyun: retry after fix lgbm mem, running
+        aliyun: retry after fix lgbm mem, OOM
 
 122 onine gen ffm data:
     1. gyun: OOM
@@ -791,14 +791,14 @@ _cvr']
         try train from 08/4am, to 9 4pm, 350 trees
         gyun: LB:0.9789
     6. more data: 5+ train from 7/3pm: 350 trees:
-        gyun:LB: submitting
+        gyun:LB: 0.9789
     7. try only try from night hours:
         grid test 4: OOM
     8. 3 + test hours weighted
         grid test 3: OOM
         gyun: running
     9. 0 + pub FTRL features
-        grid test 3: running
+        grid test 3: LB:0.9785
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature
     2. add average cvr of the current 10min
@@ -806,7 +806,15 @@ _cvr']
     aliyun: LB:0.9774
     4. make it 30 min, change 30min to categorical feature and retry: aliyun: LB:0.9779
     5. TODO: make it 2hours and retry
-        Grid test4:running
+        Grid test4:LB:0.9787
+126. find best offline validation method:
+    use 09-4am-3pm as val set
+        08-4am-3pm as train, randomly sample 33%:
+    1. 124 0.
+    2. 124 2
+    3. 124 3
+
+
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE

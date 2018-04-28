@@ -361,6 +361,9 @@ shuffle_sample_filter_1_to_10k = {'filter_type': 'sample', 'sample_count': 1}
 
 hist_ft_sample_filter = {'filter_type': 'hist_ft'}
 
+random_sample_filter_0_5 = {'filter_type': 'random_sample', 'frac': 0.5}
+
+
 skip = range(1, 140000000)
 print("Loading Data")
 # skiprows=skip,
@@ -1212,6 +1215,48 @@ train_config_124_8 = ConfigScheme(False, False, False,
                                  pick_hours_weighted = True
                                    )
 
+train_config_126_1 = ConfigScheme(False, False, False,
+                                  random_sample_filter_0_5,
+                                 random_sample_filter_0_5,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= False,
+                                 train_from=id_8_4am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_list_origin_no_channel_next_click
+                                   )
+
+train_config_126_2 = ConfigScheme(False, False, False,
+                                  random_sample_filter_0_5,
+                                 random_sample_filter_0_5,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= False,
+                                 train_from=[id_7_4am, id_8_4am,id_9_4am],
+                                 train_to=[id_7_3pm, id_8_3pm, id_9_3pm],
+                                 val_from=1,
+                                 val_to=id_7_4am - 1,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_list_origin_no_channel_next_click
+                                   )
+
+train_config_126_3 = ConfigScheme(False, False, False,
+                                  random_sample_filter_0_5,
+                                 random_sample_filter_0_5,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= False,
+                                 train_from=id_8_3pm,
+                                 train_to=id_9_4pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_list_origin_no_channel_next_click
+                                   )
+
 def use_config_scheme(str):
     ret = eval(str)
     if debug:
@@ -1814,6 +1859,9 @@ def get_train_df():
         train = train.set_index('ip').loc[lambda x: (x.index + 401) % sample_count == 0].reset_index()
         gc.collect()
         print('mem after filtered train data:', cpuStats())
+    elif config_scheme_to_use.train_filter and \
+                    config_scheme_to_use.train_filter['filter_type'] == 'random_sample':
+        train = train.sample(frac = config_scheme_to_use.train_filter['frac'])
 
     gc.collect()
     return train
@@ -1837,6 +1885,9 @@ def get_val_df():
         val = val.set_index('ip').loc[lambda x: (x.index + 401) % sample_count == 0].reset_index()
         gc.collect()
         print('mem after filtered val data:', cpuStats())
+    elif config_scheme_to_use.val_filter and \
+                    config_scheme_to_use.val_filter['filter_type'] == 'random_sample':
+        val = val.sample(frac = config_scheme_to_use.val_filter['frac'])
     gc.collect()
     return val
 
