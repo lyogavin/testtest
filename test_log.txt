@@ -795,6 +795,7 @@ _cvr']
     2. add average cvr of the current 10min
     3. ip day 10min count
     aliyun: LB:0.9774
+    4. make it 30 min, change 30min to categorical feature and retry: aliyun: running
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE

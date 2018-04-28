@@ -1131,6 +1131,20 @@ train_config_125 = ConfigScheme(False, False, False,
                                  add_features_list=add_features_list_origin_no_channel_next_click_10mincvr,
                                 add_10min_ft=True
                                    )
+train_config_125_4 = ConfigScheme(False, False, False,
+                                None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_list_origin_no_channel_next_click_10mincvr,
+                                add_10min_ft=True
+                                   )
 
 def use_config_scheme(str):
     ret = eval(str)
@@ -1150,9 +1164,9 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_6')
+config_scheme_to_use = use_config_scheme('train_config_125_4')
 
-print('test log 124_6')
+print('test log 125_4')
 
 dtypes = {
     'ip': 'uint32',
@@ -1464,8 +1478,8 @@ def generate_counting_history_features(data,
 
     if config_scheme_to_use.add_10min_ft:
         with timer('adding 10min feature:'):
-            data['id_10min'] = data.click_time.astype(int) // (10 ** 9 * 600)
-            new_features.append('id_10min')
+            data['id_10min'] = data.click_time.astype(int) // (10 ** 9 * 600 *5)
+            categorical.append('id_10min')
 
 
     discretization_bins_used = None
