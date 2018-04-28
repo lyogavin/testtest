@@ -161,8 +161,8 @@ p = None
 rcount = 0
 for df_c in pd.read_csv('../input/talkingdata-adtracking-fraud-detection/train.csv', engine='c', chunksize=batchsize,
 #for df_c in pd.read_csv('../input/train.csv', engine='c', chunksize=batchsize, 
-						#skiprows= range(1,144708152), sep=",", dtype=dtypes):
-						skiprows= range(1,9308569), sep=",", dtype=dtypes):
+						skiprows= range(1,82259195), sep=",", dtype=dtypes):
+						#skiprows= range(1,9308569), sep=",", dtype=dtypes):
 
 	rcount += batchsize
 	if rcount== 130000000:

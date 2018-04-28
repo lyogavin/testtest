@@ -773,6 +773,7 @@ _cvr']
     6. use my best features:
         gyun: TODO
     7. full batchsize, skip from58735619: pub ker: OOM
+    8. full batchsize, skip from 8 4am: azzureyun: running
 124: LGBM seperately:
     0. train seperately with best params:
     aliyun: submission_notebook_27-04-2018_12-52-44.csv: LB:0.9792
@@ -788,7 +789,7 @@ _cvr']
         try train from 08/4am, to 9 4pm, 350 trees
         gyun: LB:0.9789
     6. more data: 5+ train from 7/3pm: 350 trees:
-        gyun:
+        gyun:running
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature
     2. add average cvr of the current 10min
