@@ -2710,7 +2710,7 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
     #for train_config_121_7
     #ops = ['nunique']
     # for train_config_121_8
-    # ops = ['mean']
+    ops = ['mean']
 
 
     #ops = ['mean','var','nextclick','nunique','cumcount']
