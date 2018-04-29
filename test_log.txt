@@ -843,6 +843,9 @@ _cvr']
         grid test 3: LB:0.9785
     10. based on 8, 600 iters:
         gyun: running
+    11. add best nunique fts from 121.7:
+        grid test4: running
+
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature
     2. add average cvr of the current 10min
