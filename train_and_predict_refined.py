@@ -280,8 +280,11 @@ new_lgbm_params = {
     # 'is_unbalance': True,
     'scale_pos_weight': 99.0
 }
-
-lgbm_params_pub_asraful_kernel = dict(new_lgbm_params)
+lgbm_params_l1 = dict(new_lgbm_params)
+lgbm_params_l1.update({
+    'reg_alpha': 1.0
+})
+    lgbm_params_pub_asraful_kernel = dict(new_lgbm_params)
 lgbm_params_pub_asraful_kernel.update({
         'learning_rate': 0.10,
         #'is_unbalance': 'true', # replaced with scale_pos_weight argument
@@ -1583,6 +1586,7 @@ train_config_121_7 = ConfigScheme(False, False, False,
 train_config_121_8 = train_config_121_7
 train_config_121_9 = train_config_121_7
 train_config_121_10 = train_config_121_7
+train_config_121_10.lgbm_params=lgbm_params_l1
 
 train_config_126_9 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
@@ -1617,7 +1621,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_17')
+config_scheme_to_use = use_config_scheme('train_config_121_10')
 
 
 dtypes = {

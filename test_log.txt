@@ -823,7 +823,8 @@ _cvr']
  ('channel', 347)]
     9. based on 7, try cvr with combined
         grid test3: OOM
-    10.
+    10.based on 8, set L1 to 1.0
+        aliyun: running
 
 
 
