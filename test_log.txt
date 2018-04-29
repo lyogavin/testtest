@@ -795,7 +795,10 @@ _cvr']
  ('app', 275),
  ('channel', 396)]
     8. based on 7, use mean
-        azzureyun: OOM
+        azzureyun: TODO:
+    9. based on 7, try cvr with combined
+        grid test3: OOM
+
 
 
 122 onine gen ffm data:
@@ -841,10 +844,21 @@ _cvr']
     [316]   train's auc: 0.984059   valid's auc: 0.983935
     9. 0 + pub FTRL features
         grid test 3: LB:0.9785
-    10. based on 8, 600 iters:
-        gyun: running
+    10. based on 8, 600 iters, + change hour to 3 hours:
+        gyun:  LB: 0.9785
+    [600]   train's auc: 0.985895   valid's auc: 0.982256
+
     11. add best nunique fts from 121.7:
+        grid test4: 0.9787
+    12. TODO: based on 8, 600 iters,
+
+    13. try all pub fts:
+    14. 11+ feature_fraction 0.7
+        grid test4: LB:0.9787
+        [LightGBM] [Warning] feature_fraction is set=0.7, colsample_bytree=0.7 will be ignored. Current value: feature_fraction=0.7.
+    15. 11+ feature fraction 0.6
         grid test4: running
+
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature

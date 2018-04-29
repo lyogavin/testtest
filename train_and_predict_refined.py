@@ -281,7 +281,9 @@ new_lgbm_params = {
     'scale_pos_weight': 99.0
 }
 
-
+new_lgbm_params_feature_fraction = {**new_lgbm_params, ** {
+    'feature_fraction': 0.7
+}}
 
 new_lgbm_params_iter_600 = {
     'boosting_type': 'gbdt',
@@ -1362,6 +1364,21 @@ train_config_124_11 = ConfigScheme(False, False, False,
                                  add_features_list=add_features_add_best_nunique
                                    )
 
+train_config_124_12 = train_config_124_10
+
+train_config_124_14 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params_feature_fraction,
+                                 new_predict= True,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_add_best_nunique
+                                   )
 
 train_config_126_1 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
@@ -1464,6 +1481,8 @@ train_config_121_7 = ConfigScheme(False, False, False,
                                    )
 
 train_config_121_8 = train_config_121_7
+train_config_121_9 = train_config_121_7
+train_config_121_10 = train_config_121_7
 
 train_config_126_9 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
@@ -2945,6 +2964,15 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
                     temp.extend(cols_coms)
                     temp.append('is_attributed')
                     com_fts_list_to_use.append({'group': list(temp), 'op': 'count'})
+
+        add_cvr = False # has to use with combined
+        if add_cvr:
+            for cols_count in range(1, 7):
+                for cols_coms in itertools.combinations(raw_cols, cols_count):
+                    temp = []
+                    temp.extend(cols_coms)
+                    temp.append('is_attributed')
+                    com_fts_list_to_use.append({'group': list(temp), 'op': 'mean'})
 
     #print('added count coms(len: {}): {}'.format(len(com_fts_list_to_use), com_fts_list_to_use))
 

@@ -22,6 +22,7 @@ from os import walk
 import time
 
 def get_dated_filename(filename):
+    print('file name used:', '{}.{}'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S")))
     return '{}.{}'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S"))
 
 #print(os.listdir("../input"))
@@ -67,7 +68,7 @@ dtypes = {
     'device': 'uint16',
     'os': 'uint16',
     'channel': 'uint16',
-    'is_attributed': 'uint8',
+    'is_attributed': 'float64',
     'click_id': 'uint32'
 }
 
@@ -167,35 +168,28 @@ for (dirpath, dirnames, filenames) in walk(ensemble_dir_path):
     f.extend(filenames)
     break
 
+sum = None
+scale = 1/len(f)
+
 for filename in f:
     print('processing ', filename)
-    lgbm_submission = pd.read_csv('%s/%s' % (ensemble_dir_path,filename), header = 0)
+    lgbm_submission = pd.read_csv('%s/%s' % (ensemble_dir_path,filename), header = 0,dtype=dtypes)
     #ffm_submision = pd.read_csv('new_test.sp.prd', header = 0, usecols=['click'])
     #ffm_submision = pd.read_csv('submission_notebook.csv.02-04-2018_22:48:59', header = 0)
     #print('min:', lgbm_submission['is_attributed'].min())
-    #if sum is None:
-    #    sum = lgbm_submission
-    #else:
-    #    sum['is_attributed'] = vlogit(sum['is_attributed']) + vlogit(lgbm_submission['is_attributed'])
 
-    i = 0
-    for index, row in lgbm_submission.reset_index().iterrows():
-        i = i+1
-        if i % 10000 ==0:
-            print('processing... ', i)
+    if filename[-10:-3] == '_SCALE_':
+        scale = int(filename[-3:]) / 1000
 
-        value = row['is_attributed']
-        if value == 0:
-            value = 0.00001
-        mprd[row['click_id']].append(value)
+    print('scale using: ', scale)
+    if sum is None:
+        sum = lgbm_submission
+        sum['is_attributed'] = vlogit(sum['is_attributed']) * scale
+    else:
+        sum['is_attributed'] = sum['is_attributed'] + vlogit(lgbm_submission['is_attributed']) * scale
 
+sum['is_attributed'] = vlogistic(sum['is_attributed'])
 
-for key in mprd:
-    mprd[key] = logistic_func(sum(map(inv_logistic_func, mprd[key]))/len(mprd[key]))
+sum.to_csv(get_dated_filename('ensemble_submission.csv'), index=False)
 
-    
-
-res = pd.DataFrame({'click_id':list(mprd.keys()),'is_attributed':list(mprd.values())})
-res['click_id'] = res['click_id'].astype('uint32')
-
-res.to_csv(get_dated_filename('ensemble_submission.csv'), index=False)
+print('ensemble done')
