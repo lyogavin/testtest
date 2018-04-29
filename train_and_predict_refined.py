@@ -1702,11 +1702,11 @@ def gen_categorical_features(data):
                               - 1 * data['hour'].isin(least_freq_hours_in_test_data)).astype('uint8')
         # categorical.append('in_test_hh')
 
-    if config_scheme_to_use.add_in_test_frequent_dimensions is not None:
-        for dimension in config_scheme_to_use.add_in_test_frequent_dimensions:
-            data['in_test_frequent_' + dimension] =(3
-                              - 2 * data[dimension].isin(most_freq_values_in_test_data[dimension])
-                              - 1 * data[dimension].isin(least_freq_values_in_test_data[dimension])).astype('uint8')
+    #if config_scheme_to_use.add_in_test_frequent_dimensions is not None:
+    #    for dimension in config_scheme_to_use.add_in_test_frequent_dimensions:
+    #        data['in_test_frequent_' + dimension] =(3
+    #                          - 2 * data[dimension].isin(most_freq_values_in_test_data[dimension])
+    #                          - 1 * data[dimension].isin(least_freq_values_in_test_data[dimension])).astype('uint8')
     #126 8
     #data['hour'] = data['hour'] // 3
 
