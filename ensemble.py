@@ -18,6 +18,7 @@ from sklearn import metrics
 #from ggplot import *
 
 from os import walk
+import gc
 
 import time
 
@@ -187,6 +188,9 @@ for filename in f:
         sum['is_attributed'] = vlogit(sum['is_attributed']) * scale
     else:
         sum['is_attributed'] = sum['is_attributed'] + vlogit(lgbm_submission['is_attributed']) * scale
+
+    del lgbm_submission
+    gc.collect()
 
 sum['is_attributed'] = vlogistic(sum['is_attributed'])
 

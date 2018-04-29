@@ -282,7 +282,7 @@ new_lgbm_params = {
 }
 
 new_lgbm_params_feature_fraction = {**new_lgbm_params, ** {
-    'feature_fraction': 0.7
+    'feature_fraction': 0.5
 }}
 
 new_lgbm_params_iter_600 = {
@@ -357,6 +357,12 @@ new_lgbm_params_early_300 = {
     # 'is_unbalance': True,
     'scale_pos_weight': 99.0
 }
+
+new_lgbm_params_early_415 = dict(new_lgbm_params)
+new_lgbm_params_early_415['num_boost_round'] = 415
+new_lgbm_params_early_415['early_stopping_round'] = 415
+
+
 public_kernel_lgbm_params = dict(new_lgbm_params)
 public_kernel_lgbm_params.update({
         'learning_rate': 0.20,
@@ -1380,6 +1386,21 @@ train_config_124_14 = ConfigScheme(False, False, False,
                                  add_features_list=add_features_add_best_nunique
                                    )
 
+train_config_124_16 = ConfigScheme(False, False, False,
+                                 None,
+                                 None,
+                                 None,
+                                 lgbm_params=new_lgbm_params_early_415,
+                                 new_predict= True,
+                                 train_from=id_8_3pm,
+                                 train_to=id_9_4pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_list_origin_no_channel_next_click_days,
+                                 pick_hours_weighted = True
+                                   )
+
 train_config_126_1 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
                                  random_sample_filter_0_5,
@@ -1465,6 +1486,20 @@ train_config_126_6 = ConfigScheme(False, False, False,
                                  pick_hours_weighted = True
                                   )
 
+train_config_126_11 = ConfigScheme(False, False, False,
+                                  random_sample_filter_0_5,
+                                 random_sample_filter_0_5,
+                                 None,
+                                 lgbm_params=new_lgbm_params_feature_fraction,
+                                 new_predict= False,
+                                 train_from=id_8_4am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_list_origin_no_channel_next_click
+                                   )
+
 train_config_121_7 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
                                  random_sample_filter_0_5,
@@ -1517,7 +1552,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_117_4')
+config_scheme_to_use = use_config_scheme('train_config_124_16')
 
 
 dtypes = {

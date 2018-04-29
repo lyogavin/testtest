@@ -794,10 +794,11 @@ _cvr']
  ('os', 267),
  ('app', 275),
  ('channel', 396)]
-    8. based on 7, use mean
-        azzureyun: TODO:
+    8. based on 7, use count
+        gyun: TODO:
     9. based on 7, try cvr with combined
         grid test3: OOM
+    10.
 
 
 
@@ -858,6 +859,8 @@ _cvr']
         [LightGBM] [Warning] feature_fraction is set=0.7, colsample_bytree=0.7 will be ignored. Current value: feature_fraction=0.7.
     15. 11+ feature fraction 0.6
         grid test4: running
+    16. based on 8, try 415 iters, no val sample:
+        gyun: running
 
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
@@ -895,10 +898,14 @@ _cvr']
     10. change hour to 30 min:
         grid test2:
     [340]	train's auc: 0.984575	valid's auc: 0.971484
+    11. feature_faction 0.5:
+        grid test3: running
 
 127. ensembles:
     1. ensemble of 123.0 + 124.3
     aliyun: LB:0.9795
+    2. ensemble of 124.9 + 123.0 + 124.3
+    aliyun: LB:submitting
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
