@@ -729,7 +729,7 @@ _cvr']
     3. gen data seperately:
         azzure: running
     4. try pub fmftrl features:
-        aliyun: running
+        aliyun: submitting
     5. try use 083pm-093pm to train
     6. TODO: try log discretizatoin
 
@@ -795,7 +795,7 @@ _cvr']
  ('app', 275),
  ('channel', 396)]
     8. based on 7, use count
-        gyun: TODO:
+        aliyun: running
     9. based on 7, try cvr with combined
         grid test3: OOM
     10.
@@ -905,7 +905,7 @@ _cvr']
     1. ensemble of 123.0 + 124.3
     aliyun: LB:0.9795
     2. ensemble of 124.9 + 123.0 + 124.3
-    aliyun: LB:submitting
+    aliyun: LB:0.9797
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE

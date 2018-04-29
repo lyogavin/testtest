@@ -1552,7 +1552,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_16')
+config_scheme_to_use = use_config_scheme('train_config_121_8')
 
 
 dtypes = {
@@ -2967,7 +2967,7 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
     #for train_config_121_7
     #ops = ['nunique']
     # for train_config_121_8
-    ops = ['mean']
+    ops = []
 
 
     #ops = ['mean','var','nextclick','nunique','cumcount']
@@ -2991,7 +2991,7 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
         #for count():
 
         #train_config_121_7,train_config_121_8
-        add_count = False
+        add_count = True
         if add_count:
             for cols_count in range(1, 7):
                 for cols_coms in itertools.combinations(raw_cols, cols_count):
