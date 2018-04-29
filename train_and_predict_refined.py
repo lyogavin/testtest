@@ -36,8 +36,12 @@ matplotlib.use('Agg')
 
 
 def get_dated_filename(filename):
-    print('got file name: {}_{}.csv'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S")))
-    return '{}_{}.csv'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S"))
+    #print('got file name: {}_{}.csv'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S")))
+    #return '{}_{}.csv'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S"))
+
+
+    print('got file name: {}_{}.csv'.format(filename, config_scheme_to_use.config_name))
+    return '{}_{}.csv'.format(filename, config_scheme_to_use.config_name)
     # return filename
 
 

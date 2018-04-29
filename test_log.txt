@@ -727,7 +727,7 @@ _cvr']
     1. aliyun: fixed and LB:0.9750 (ffm_117_2_submission.csv moved to /mnt)
     2. TODO: remove shift feature and use 1/6 to rerun to test
     3. gen data seperately:
-
+        azzure: running
     4. try pub fmftrl features:
 
     5. try use 083pm-093pm to train
