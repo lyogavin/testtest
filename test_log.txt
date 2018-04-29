@@ -759,9 +759,37 @@ _cvr']
         aliyun: retry after fix lgbm mem, OOM
     7. 1/2 random sample, 08 train 09 val:
         nunique, 1 nextclick, 1 in hh
-        gyun: running
+        gyun:
+    [213]	train's auc: 0.980657	valid's auc: 0.968698
+     ('hour_ipnunique', 8),
+ ('os_channel_hour_ipnunique', 8),
+ ('app_os_channelnunique', 9),
+ ('app_device_channel_hour_ipnunique', 9),
+ ('app_os_channel_ipnunique', 10),
+ ('device_channel_hour_ipnunique', 10),
+ ('app_os_ipnunique', 11),
+ ('device_os_hour_ipnunique', 13),
+ ('app_os_channel_hour_ipnunique', 13),
+ ('app_hour_ipnunique', 14),
+ ('device_os_ipnunique', 14),
+ ('app_device_os_ipnunique', 14),
+ ('app_os_hour_ipnunique', 14),
+ ('app_device_os_channel_hour_ipnunique', 16),
+ ('hour', 17),
+ ('channel_ipnunique', 17),
+ ('device_hour_ipnunique', 18),
+ ('app_device_os_hour_ipnunique', 18),
+ ('os_hour_ipnunique', 20),
+ ('app_channel_hour_ipnunique', 24),
+ ('app_channel_ipnunique', 34),
+ ('device', 41),
+ ('ip_app_device_os_is_attributednextclick', 134),
+ ('ip_in_test_hh_is_attributedcount', 201),
+ ('os', 267),
+ ('app', 275),
+ ('channel', 396)]
     8. based on 7, use mean
-        azzureyun: running
+        azzureyun: OOM
 
 
 122 onine gen ffm data:
@@ -791,6 +819,7 @@ _cvr']
         gyun: LB:0.9791
     3. try train from midnight 08/3pm, val 08
         aliyun: LB:0.9793
+    [388]   train's auc: 0.984364   valid's auc: 0.983894
     4. TODO: normalization
         gyuN: TODO
     5. TODO: following 3, use more trainning data, see if we can play similar hour trick
@@ -802,9 +831,12 @@ _cvr']
         grid test 4: OOM
     8. 3 + test hours weighted
         grid test 3: OOM
-        gyun: copied to ~/, TODO: to submit
+        gyun: copied to ~/, LB:0.9792
+    [316]   train's auc: 0.984059   valid's auc: 0.983935
     9. 0 + pub FTRL features
         grid test 3: LB:0.9785
+    10. based on 8, 600 iters:
+        gyun: running
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature
     2. add average cvr of the current 10min
@@ -826,14 +858,20 @@ _cvr']
         azzure:
     [367]	train's auc: 0.983063	valid's auc: 0.972114
     6. similar to 124 8, train: 073pm-083pm, val: 09, with pick hours weighted
-        aliyun: running
+        aliyun:
+    [415]	train's auc: 0.984266	valid's auc: 0.973415
     7. changed hour to 2 hours:
-        grid test4: running
+        grid test4:
+    [297]	train's auc: 0.984024	valid's auc: 0.97134
     8. changed hour to 3 hours:
         grid test3:
     [305]	train's auc: 0.983763	valid's auc: 0.971294
     9. 126.1 + cat_smooth=100
-        grid test3:running
+        grid test3:
+    [324]	train's auc: 0.984396	valid's auc: 0.971413
+    10. change hour to 30 min:
+        grid test2:
+    [340]	train's auc: 0.984575	valid's auc: 0.971484
 
 
 
@@ -860,3 +898,4 @@ to do test:
 17. TODO: clustering categorical features, and use clusters instead of each single value(given 2hours might work)
 18. TODO: in non-tree models, remove too rare categorical items
 19. TODO: cat_smooth in LGBM
+20. TODO: similar to weighting in pick hours, give more recent labels bigger weight

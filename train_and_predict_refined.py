@@ -276,7 +276,30 @@ new_lgbm_params = {
     # 'is_unbalance': True,
     'scale_pos_weight': 99.0
 }
-
+new_lgbm_params_iter_600 = {
+    'boosting_type': 'gbdt',
+    'objective': 'binary',
+    'metric': 'auc',
+    'learning_rate': 0.1,
+    'num_leaves': 9,
+    'max_depth': 5,
+    'min_child_samples': 100,
+    'max_bin': 150,
+    'subsample': 0.9,
+    'subsample_freq': 1,
+    'colsample_bytree': 0.7,
+    'min_child_weight': 0,
+    'subsample_for_bin': 200000,
+    'min_split_gain': 0,
+    'reg_alpha': 0,
+    'reg_lambda': 0,
+    'nthread': 10,
+    'verbose': 9,
+    'early_stopping_round': 600,
+    'num_boost_round': 600,
+    # 'is_unbalance': True,
+    'scale_pos_weight': 99.0
+}
 new_lgbm_params_100_cat_smooth = {
     'boosting_type': 'gbdt',
     'objective': 'binary',
@@ -1239,6 +1262,21 @@ train_config_124_8 = ConfigScheme(False, False, False,
                                  pick_hours_weighted = True
                                    )
 
+train_config_124_10 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params_iter_600,
+                                 new_predict= True,
+                                 train_from=id_8_3pm,
+                                 train_to=id_9_4pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_list_origin_no_channel_next_click_days,
+                                 pick_hours_weighted = True
+                                   )
+
 train_config_126_1 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
                                  random_sample_filter_0_5,
@@ -1363,7 +1401,7 @@ def use_config_scheme(str):
         ret.train_to = debug_train_to
         ret.val_from=debug_val_from
         ret.val_to=debug_val_to
-    print('using config var name: ', str)
+    print('using config var name and test log: ', str)
     ret.config_name = str
     if ret.use_ft_cache_from is None:
         ret.use_ft_cache_from = ret.config_name
@@ -1374,7 +1412,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_121_8')
+config_scheme_to_use = use_config_scheme('train_config_124_10')
 
 
 dtypes = {
