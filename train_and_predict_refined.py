@@ -1012,6 +1012,64 @@ train_config_117_1 = ConfigScheme(False, False, False,
                                  add_features_list=add_features_list_origin_no_channel_next_click,
                                    use_ft_cache=False
                                    )
+
+train_config_117_3 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                discretization=50,
+                                 run_theme='ffm_data_gen_seperately',
+                                  new_predict=True,
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                   use_ft_cache=False
+                                   )
+train_config_117_4 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                discretization=50,
+                                 run_theme='ffm_data_gen_seperately',
+                                  new_predict=True,
+                                 add_features_list=add_features_from_pub_ftrl,
+                                   use_ft_cache=False
+                                   )
+
+train_config_117_6 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 train_from=id_8_3pm,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                discretization=50,
+                                 run_theme='ffm_data_gen_seperately',
+                                  new_predict=True,
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                   use_ft_cache=False
+                                   )
+train_config_117_6 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 train_from=id_9_4am,
+                                 train_to=id_9_3pm,
+                                 val_from=id_8_4am,
+                                 val_to=id_8_3pm,
+                                log_discretization=True,
+                                 run_theme='ffm_data_gen_seperately',
+                                  new_predict=True,
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                   use_ft_cache=False
+                                   )
 train_config_121_1 = ConfigScheme(False, False, False,
                                   shuffle_sample_filter_1_to_3,
                                  shuffle_sample_filter_1_to_3,
@@ -1412,7 +1470,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_10')
+config_scheme_to_use = use_config_scheme('train_config_117_3')
 
 
 dtypes = {
@@ -2637,6 +2695,89 @@ def gen_ft_caches_seperately(com_fts_list):
                                            only_ft_cache = True)
     gc.collect()
 
+def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
+    with timer('loading train df:'):
+        train = get_train_df()
+    with timer('gen categorical features for train'):
+        train = gen_categorical_features(train)
+
+    with timer('gen statistical hist features for train'):
+        train, new_features, discretization_bins_used = \
+        generate_counting_history_features(train,
+                                           discretization=config_scheme_to_use.discretization,
+                                           add_features_list=com_fts_list,
+                                           use_ft_cache = use_ft_cache,
+                                           ft_cache_prefix='train')
+
+    predictors1 = categorical + new_features + ['is_attributed']
+    print('dump train fe data for fts:', predictors1)
+
+    if use_sample:
+        train[predictors1].to_csv('train_fe_sample.csv', index=False)
+    else:
+        train[predictors1].to_csv('train_fe.csv', index=False)
+
+    print('dump dtypes')
+
+    y = {k: str(v) for k, v in train.dtypes.to_dict().items()}
+    print(y)
+    del y['click_time']
+    # del y['Unnamed: 0']
+    pickle.dump(y, open('output_dtypes.pickle', 'wb'))
+
+    del train
+    gc.collect()
+    print('mem after train dump:', cpuStats())
+
+    with timer('loading val df:'):
+        val = get_val_df()
+    with timer('gen categorical features for val'):
+        val = gen_categorical_features(val)
+    with timer('gen statistical hist features for val'):
+        val, _, _ = \
+        generate_counting_history_features(val,
+                                           discretization=config_scheme_to_use.discretization,
+                                           add_features_list=com_fts_list,
+                                           discretization_bins=discretization_bins_used,
+                                           use_ft_cache = use_ft_cache,
+                                           ft_cache_prefix='val')
+
+    print('dump val fe data for fts:', predictors1)
+
+    if use_sample:
+        val[predictors1].to_csv('val_fe_sample.csv', index=False)
+    else:
+        val[predictors1].to_csv('val_fe.csv', index=False)
+
+    del val
+    gc.collect()
+    print('mem after val dump:', cpuStats())
+
+    print('dump test fe data...')
+    with timer('loading test df:'):
+        test = get_test_df()
+    with timer('gen categorical features for test'):
+        test = gen_categorical_features(test)
+    with timer('gen statistical hist features for test'):
+        test, _, _ = \
+            generate_counting_history_features(test,
+                                               discretization=config_scheme_to_use.discretization,
+                                               add_features_list=com_fts_list,
+                                               discretization_bins=discretization_bins_used,
+                                               use_ft_cache = use_ft_cache,
+                                               ft_cache_prefix='test')
+
+    click_id_df = pd.read_csv(path_test_sample if use_sample else path_test,
+                         dtype='uint64',
+                         header=0,
+                         usecols=['click_id'])
+    #pay attention to adding column of dataframe here, need to reset_index() first
+    test_to_dump = test[predictors1].copy(True).reset_index(drop=True)
+    test_to_dump['click_id'] = click_id_df['click_id']
+    test_to_dump.to_csv('test_fe.csv' + '.sample' if use_sample else 'test_fe.csv', index=False)
+
+    print('gen fe data for ffm done.')
+
 def train_and_predict_gen_fts_seperately(com_fts_list, use_ft_cache = False, only_cache=False,
                                          use_base_data_cache=False):
 
@@ -2731,10 +2872,6 @@ def train_and_predict_gen_fts_seperately(com_fts_list, use_ft_cache = False, onl
     else:
         return importances, val_auc
 
-
-
-if config_scheme_to_use.ffm_data_gen:
-    gen_ffm_data()
 
 
 def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searcher = False):
@@ -3007,6 +3144,11 @@ def run_model():
         print('add features list: ')
         pprint(config_scheme_to_use.add_features_list)
         ffm_data_gen(config_scheme_to_use.add_features_list, use_ft_cache=config_scheme_to_use.use_ft_cache)
+    elif config_scheme_to_use.run_theme == 'ffm_data_gen_seperately':
+        print('add features list: ')
+        pprint(config_scheme_to_use.add_features_list)
+        ffm_data_gen_seperately(config_scheme_to_use.add_features_list,
+                                use_ft_cache=config_scheme_to_use.use_ft_cache)
     else:
         print("nothing to run... exit")
 
