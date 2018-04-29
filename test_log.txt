@@ -849,7 +849,7 @@ _cvr']
  ('app', 178),
  ('channel', 249)]
     11. based on 7 L1 1.0:
-        aliyun: running
+        aliyun: killed for run 117_6 first
 
 
 
