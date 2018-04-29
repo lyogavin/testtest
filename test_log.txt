@@ -729,7 +729,7 @@ _cvr']
     3. gen data seperately:
         azzure: running
     4. try pub fmftrl features:
-        aliyun: submitting
+        aliyun: LB:0.9762
     5. try use 083pm-093pm to train
     6. TODO: try log discretizatoin
 
@@ -794,8 +794,33 @@ _cvr']
  ('os', 267),
  ('app', 275),
  ('channel', 396)]
-    8. based on 7, use count
-        aliyun: running
+    8. based on 7, use count, 1/2 sample OOM, use 1/3 sample
+        aliyun:
+  [188]   train's auc: 0.9842     valid's auc: 0.971278
+  ('device_os_is_attributedcount', 10),
+ ('app_channel_hour_is_attributedcount', 10),
+ ('device_os_ip_is_attributedcount', 10),
+ ('app_device_os_channel_ip_is_attributedcount', 10),
+ ('device_os_hour_ip_is_attributedcount', 11),
+ ('app_is_attributedcount', 14),
+ ('app_device_ip_is_attributedcount', 14),
+ ('device_hour_ip_is_attributedcount', 14),
+ ('app_device_channel_is_attributedcount', 15),
+ ('app_device_os_ip_is_attributedcount', 16),
+ ('app_channel_is_attributedcount', 20),
+ ('app_os_ip_is_attributedcount', 20),
+ ('app_device_os_hour_ip_is_attributedcount', 20),
+ ('hour_ip_is_attributedcount', 21),
+ ('app_os_hour_ip_is_attributedcount', 26),
+ ('ip_in_test_hh_is_attributedcount', 31),
+ ('device', 32),
+ ('hour', 43),
+ ('device_ip_is_attributedcount', 56),
+ ('ip_app_device_os_is_attributednextclick', 60),
+ ('ip_is_attributedcount', 101),
+ ('os', 186),
+ ('app', 230),
+ ('channel', 347)]
     9. based on 7, try cvr with combined
         grid test3: OOM
     10.
@@ -858,10 +883,13 @@ _cvr']
         grid test4: LB:0.9787
         [LightGBM] [Warning] feature_fraction is set=0.7, colsample_bytree=0.7 will be ignored. Current value: feature_fraction=0.7.
     15. 11+ feature fraction 0.6
-        grid test4: running
+        grid test4:
+        [451]	train's auc: 0.984614	valid's auc: 0.982889
     16. based on 8, try 415 iters, no val sample:
+        gyun: LB: 0.9792
+    [415]   train's auc: 0.984595   valid's auc: 0.98459
+    17. train a model with 08 then merge.
         gyun: running
-
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature
@@ -899,7 +927,17 @@ _cvr']
         grid test2:
     [340]	train's auc: 0.984575	valid's auc: 0.971484
     11. feature_faction 0.5:
-        grid test3: running
+        grid test3:
+    [383]	train's auc: 0.984053	valid's auc: 0.972068
+    12. based on 6. try use 07 as val:
+        grid test 3:
+    [304]	train's auc: 0.982754	valid's auc: 0.977613
+    13. use the asraful pub kernel's ft set:
+        grid test 4:
+    [307]	train's auc: 0.982766	valid's auc: 0.970275
+    14. use pub asraful kernel's ft set and lgbm params:
+        grid test 2:
+    [302]	train's auc: 0.982995	valid's auc: 0.97019
 
 127. ensembles:
     1. ensemble of 123.0 + 124.3
@@ -931,3 +969,8 @@ to do test:
 18. TODO: in non-tree models, remove too rare categorical items
 19. TODO: cat_smooth in LGBM
 20. TODO: similar to weighting in pick hours, give more recent labels bigger weight
+______________________
+21. TODO: most/least frequent other dimensions in test (based on most important fts from adversial validation)
+22. TODO: sklearn ft selection
+23. TODO: in coms fts search, should set L1 much bigger
+24. TODO: train a model every day, then merge.

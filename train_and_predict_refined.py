@@ -281,6 +281,21 @@ new_lgbm_params = {
     'scale_pos_weight': 99.0
 }
 
+lgbm_params_pub_asraful_kernel = dict(new_lgbm_params)
+lgbm_params_pub_asraful_kernel.update({
+        'learning_rate': 0.10,
+        #'is_unbalance': 'true', # replaced with scale_pos_weight argument
+        'num_leaves': 7,  # 2^max_depth - 1
+        'max_depth': 3,  # -1 means no limit
+        'min_child_samples': 100,  # Minimum number of data need in a child(min_data_in_leaf)
+        'max_bin': 100,  # Number of bucketed bin for feature values
+        'subsample': 0.7,  # Subsample ratio of the training instance.
+        'subsample_freq': 1,  # frequence of subsample, <=0 means no enable
+        'colsample_bytree': 0.9,  # Subsample ratio of columns when constructing each tree.
+        'min_child_weight': 0,  # Minimum sum of instance weight(hessian) needed in a child(leaf)
+        'scale_pos_weight':200 # because training data is extremely unbalanced
+    })
+
 new_lgbm_params_feature_fraction = {**new_lgbm_params, ** {
     'feature_fraction': 0.5
 }}
@@ -443,6 +458,29 @@ add_features_list_origin_no_channel_next_click = [
     {'group': ['ip', 'day', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
     {'group': ['app', 'day', 'hour', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
+    ]
+add_features_list_pub_asraful_kernel  = [
+
+    # ====================
+    # my best features
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+
+    {'group': ['ip', 'channel'], 'op': 'nunique'},
+    {'group': ['ip', 'device', 'os', 'app'], 'op': 'nunique'},
+    {'group': ['ip', 'day', 'hour'], 'op': 'nunique'},
+    {'group': ['ip', 'app'], 'op': 'nunique'},
+    {'group': ['ip', 'app', 'os'], 'op': 'nunique'},
+    {'group': ['ip', 'device'], 'op': 'nunique'},
+    {'group': ['app', 'channel'], 'op': 'nunique'},
+
+    {'group': ['ip', 'os'], 'op': 'cumcount'},
+    {'group': ['ip','device','os', 'app'], 'op': 'cumcount'},
+
+    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'os', 'is_attributed'], 'op': 'count'},
+
+    {'group': ['ip', 'app', 'os', 'hour'], 'op': 'var'}
     ]
 
 add_features_add_best_nunique = add_features_list_origin_no_channel_next_click + [
@@ -1401,6 +1439,20 @@ train_config_124_16 = ConfigScheme(False, False, False,
                                  pick_hours_weighted = True
                                    )
 
+train_config_124_17 = ConfigScheme(False, False, False,
+                                 None,
+                                 shuffle_sample_filter,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= True,
+                                 train_from=id_7_3pm,
+                                 train_to=id_8_4pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='train_and_predict_gen_fts_seperately',
+                                 add_features_list=add_features_list_origin_no_channel_next_click_days
+                                   )
+
 train_config_126_1 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
                                  random_sample_filter_0_5,
@@ -1499,6 +1551,19 @@ train_config_126_11 = ConfigScheme(False, False, False,
                                  run_theme='train_and_predict_gen_fts_seperately',
                                  add_features_list=add_features_list_origin_no_channel_next_click
                                    )
+train_config_126_12 = train_config_126_6
+train_config_126_12.val_from = id_7_4am
+train_config_126_12.val_to = id_7_3pm
+
+
+train_config_126_13 = train_config_126_1
+train_config_126_13.add_features_list = add_features_list_pub_asraful_kernel
+
+
+train_config_126_14 = train_config_126_1
+train_config_126_14.add_features_list = add_features_list_pub_asraful_kernel
+train_config_126_14.lgbm_params =  lgbm_params_pub_asraful_kernel
+
 
 train_config_121_7 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
@@ -1552,7 +1617,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_121_8')
+config_scheme_to_use = use_config_scheme('train_config_124_17')
 
 
 dtypes = {
