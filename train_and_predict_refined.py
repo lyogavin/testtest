@@ -1121,7 +1121,7 @@ train_config_117_4 = ConfigScheme(False, False, False,
                                    use_ft_cache=False
                                    )
 
-train_config_117_6 = ConfigScheme(False, False, False,
+train_config_117_5 = ConfigScheme(False, False, False,
                                  None,
                                  shuffle_sample_filter,
                                  None,
@@ -1659,7 +1659,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_128')
+config_scheme_to_use = use_config_scheme('train_config_117_5')
 
 
 dtypes = {

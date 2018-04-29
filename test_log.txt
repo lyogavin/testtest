@@ -731,6 +731,7 @@ _cvr']
     4. try pub fmftrl features:
         aliyun: LB:0.9762
     5. try use 083pm-093pm to train
+        azzure: running
     6. TODO: try log discretizatoin
 
 118 ensemble of: 117_2, 116_3, 103_11
@@ -914,7 +915,8 @@ _cvr']
         gyun: LB: 0.9792
     [415]   train's auc: 0.984595   valid's auc: 0.98459
     17. train a model with 08 then merge.
-        gyun: running
+        gyun: merging with 124_3:
+        submitting
     18. use adversial validation model to predict if it's test, use this score to weight training samples:
         azzure:
 
