@@ -180,6 +180,20 @@ acro_names = {
     'app_os': 'AO'
 }
 
+most_freq_values_in_test_data  = {
+    'device': [],
+    'app':[],
+    'os':[],
+    'channel':[],
+    'ip':[]
+}
+least_freq_values_in_test_data  = {
+    'device': [],
+    'app':[],
+    'os':[],
+    'channel':[],
+    'ip':[]
+}
 hist_st = []
 iii = 0
 for type in agg_types:
@@ -284,7 +298,8 @@ lgbm_params_l1 = dict(new_lgbm_params)
 lgbm_params_l1.update({
     'reg_alpha': 1.0
 })
-    lgbm_params_pub_asraful_kernel = dict(new_lgbm_params)
+
+lgbm_params_pub_asraful_kernel = dict(new_lgbm_params)
 lgbm_params_pub_asraful_kernel.update({
         'learning_rate': 0.10,
         #'is_unbalance': 'true', # replaced with scale_pos_weight argument
@@ -688,7 +703,8 @@ class ConfigScheme:
                  sync_mode = False,
                  normalization = False,
                  add_10min_ft = False,
-                 pick_hours_weighted = False):
+                 pick_hours_weighted = False,
+                 adversial_val_weighted = False):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -728,6 +744,7 @@ class ConfigScheme:
         self.normalization = normalization
         self.add_10min_ft = add_10min_ft
         self.pick_hours_weighted = pick_hours_weighted
+        self.adversial_val_weighted = adversial_val_weighted
 
 
 
@@ -1455,6 +1472,9 @@ train_config_124_17 = ConfigScheme(False, False, False,
                                  run_theme='train_and_predict_gen_fts_seperately',
                                  add_features_list=add_features_list_origin_no_channel_next_click_days
                                    )
+train_config_124_17 = train_config_124_3
+train_config_124_17.adversial_val_weighted = True
+
 
 train_config_126_1 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
@@ -1588,6 +1608,9 @@ train_config_121_9 = train_config_121_7
 train_config_121_10 = train_config_121_7
 train_config_121_10.lgbm_params=lgbm_params_l1
 
+train_config_121_11 = train_config_121_7
+train_config_121_11.lgbm_params=lgbm_params_l1
+
 train_config_126_9 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
                                  random_sample_filter_0_5,
@@ -1602,6 +1625,21 @@ train_config_126_9 = ConfigScheme(False, False, False,
                                  add_features_list=add_features_list_origin_no_channel_next_click
                                    )
 
+
+train_config_128 = ConfigScheme(False, False, False,
+                                  random_sample_filter_0_5,
+                                 random_sample_filter_0_5,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= False,
+                                 train_from=id_8_4am,
+                                 train_to=id_8_3pm,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='lgbm_params_search',
+                                 add_features_list=add_features_list_origin_no_channel_next_click,
+                                   use_ft_cache=False
+                                   )
 
 def use_config_scheme(str):
     ret = eval(str)
@@ -1621,7 +1659,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_121_10')
+config_scheme_to_use = use_config_scheme('train_config_128')
 
 
 dtypes = {
@@ -1664,6 +1702,11 @@ def gen_categorical_features(data):
                               - 1 * data['hour'].isin(least_freq_hours_in_test_data)).astype('uint8')
         # categorical.append('in_test_hh')
 
+    if config_scheme_to_use.add_in_test_frequent_dimensions is not None:
+        for dimension in config_scheme_to_use.add_in_test_frequent_dimensions:
+            data['in_test_frequent_' + dimension] =(3
+                              - 2 * data[dimension].isin(most_freq_values_in_test_data[dimension])
+                              - 1 * data[dimension].isin(least_freq_values_in_test_data[dimension])).astype('uint8')
     #126 8
     #data['hour'] = data['hour'] // 3
 
@@ -2100,17 +2143,29 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
 
         # dtrain = lgb.Dataset(train[predictors].values, label=train[target].values,
 
+        train_weights = None
+        val_weights = None
+        if config_scheme_to_use.pick_hours_weighted or config_scheme_to_use.adversial_val_weighted:
+            with timer('setting weight'):
+                if config_scheme_to_use.pick_hours_weighted:
+                    train_weights = train['hour'].apply(lambda x: 1.0 if x in pick_hours else 0.5)
+                    val_weights = val['hour'].apply(lambda x: 1.0 if x in pick_hours else 0.5)
+                elif config_scheme_to_use.adversial_val_weighted:
+                    ad_val_bst = lgb.Booster(model_file='ad_val_model.txt')
+                    ad_val_predictors =  ['app','device',  'os', 'channel','ip','hour']
+                    train_weights = ad_val_bst.predict(train[ad_val_predictors])
+                    val_weights = ad_val_bst.predict(val[ad_val_predictors])
+
+
         dtrain = lgb.Dataset(train[predictors].values.astype(np.float32), label=train[target].values,
                              feature_name=predictors,
                              categorical_feature=categorical,
-                             weight=train['hour'].apply(lambda x: 1.0 if x in pick_hours else 0.5) \
-                                if config_scheme_to_use.pick_hours_weighted else None
+                             weight=train_weights
                              )
         dvalid = lgb.Dataset(val[predictors].values.astype(np.float32), label=val[target].values,
                              feature_name=predictors,
                              categorical_feature=categorical,
-                             weight=val['hour'].apply(lambda x: 1.0 if x in pick_hours else 0.5) \
-                                if config_scheme_to_use.pick_hours_weighted else None
+                             weight=val_weights
                              )
 
         evals_results = {}
@@ -3187,6 +3242,48 @@ def lgbm_params_search(com_fts_list):
                         'n_estimators': (50, 500),  # alias: num_boost_round
                         'scale_pos_weight': (1e-6, 500.0, 'log-uniform')
                     }
+    # search 128
+    search_spaces_128 = {
+                        'learning_rate': (0.03, 0.2, 'log-uniform'),
+                        'min_child_weight': (0, 10),
+                        'max_depth': (3, 10),
+                        'num_leaves': (4, 11),
+                        'subsample': (0.01, 1.0, 'uniform'),
+                        'colsample_bytree': (0.01, 1.0, 'uniform'),
+                        'reg_lambda': (1e-9, 1000, 'log-uniform'),
+                        'reg_alpha': (1e-9, 1.0, 'log-uniform'),
+                        'min_child_weight': (0, 5),
+                        'min_child_samples': (10, 200),
+                        # 'max_bin': (64, 255), # unsupported in skylearn
+                        # 'is_unbalance': True,
+                        #'n_estimators': (50),  # alias: num_boost_round
+                        'scale_pos_weight': (98.0, 250.0, 'log-uniform')
+                    }
+    '''
+    new_lgbm_params = {
+    'boosting_type': 'gbdt',
+    'objective': 'binary',
+    'metric': 'auc',
+    'learning_rate': 0.1,
+    'num_leaves': 9,
+    'max_depth': 5,
+    'min_child_samples': 100,
+    'max_bin': 150,
+    'subsample': 0.9,
+    'subsample_freq': 1,
+    'colsample_bytree': 0.7,
+    'min_child_weight': 0,
+    'subsample_for_bin': 200000,
+    'min_split_gain': 0,
+    'reg_alpha': 0,
+    'reg_lambda': 0,
+    'nthread': 10,
+    'verbose': 9,
+    'early_stopping_round': 20,
+    # 'is_unbalance': True,
+    'scale_pos_weight': 99.0
+}
+    '''
     with timer('create bayes cv tunner'):
         bayes_cv_tuner = BayesSearchCV(
             estimator=lgb.LGBMClassifier(
@@ -3194,9 +3291,13 @@ def lgbm_params_search(com_fts_list):
                 objective= 'binary',
                 metric= 'auc',
                 n_jobs = 5,
-                silent = False
+                silent = False,
+                subsample_for_bin = 200000,
+                subsample_freq=1,
+                min_split_gain=0,
+                n_estimators =50
             ),
-            search_spaces=search_spaces_1,
+            search_spaces=search_spaces_128,
             scoring='roc_auc',
             cv=StratifiedKFold(
                 n_splits=3,

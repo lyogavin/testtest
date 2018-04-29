@@ -727,7 +727,7 @@ _cvr']
     1. aliyun: fixed and LB:0.9750 (ffm_117_2_submission.csv moved to /mnt)
     2. TODO: remove shift feature and use 1/6 to rerun to test
     3. gen data seperately:
-        azzure: running
+        azzure: LB:0.9776
     4. try pub fmftrl features:
         aliyun: LB:0.9762
     5. try use 083pm-093pm to train
@@ -824,6 +824,30 @@ _cvr']
     9. based on 7, try cvr with combined
         grid test3: OOM
     10.based on 8, set L1 to 1.0
+        aliyun:
+    [135]	train's auc: 0.982748	valid's auc: 0.97085
+  ('device_os_hour_is_attributedcount', 8),
+ ('device_channel_hour_is_attributedcount', 8),
+ ('app_os_channel_hour_ip_is_attributedcount', 8),
+ ('app_device_channel_is_attributedcount', 9),
+ ('app_device_os_ip_is_attributedcount', 9),
+ ('app_os_hour_ip_is_attributedcount', 10),
+ ('device_os_is_attributedcount', 12),
+ ('device_hour_ip_is_attributedcount', 12),
+ ('app_os_ip_is_attributedcount', 17),
+ ('app_channel_is_attributedcount', 18),
+ ('hour_ip_is_attributedcount', 18),
+ ('device', 23),
+ ('ip_in_test_hh_is_attributedcount', 25),
+ ('app_device_os_hour_ip_is_attributedcount', 26),
+ ('hour', 27),
+ ('ip_app_device_os_is_attributednextclick', 32),
+ ('device_ip_is_attributedcount', 45),
+ ('ip_is_attributedcount', 85),
+ ('os', 124),
+ ('app', 178),
+ ('channel', 249)]
+    11. based on 7 L1 1.0:
         aliyun: running
 
 
@@ -891,6 +915,8 @@ _cvr']
     [415]   train's auc: 0.984595   valid's auc: 0.98459
     17. train a model with 08 then merge.
         gyun: running
+    18. use adversial validation model to predict if it's test, use this score to weight training samples:
+        azzure:
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature
@@ -946,6 +972,10 @@ _cvr']
     2. ensemble of 124.9 + 123.0 + 124.3
     aliyun: LB:0.9797
 
+128. LGBM params Search based on 126 setting
+    only check 50 iters, and reduce search space:
+    gyun: running
+
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
 2. break down auc by dimensions and filter data and train separately and ensemble DONE
@@ -972,6 +1002,7 @@ to do test:
 20. TODO: similar to weighting in pick hours, give more recent labels bigger weight
 ______________________
 21. TODO: most/least frequent other dimensions in test (based on most important fts from adversial validation)
+adversial val: [('device', 301), ('os', 1064), ('app', 1103), ('channel', 1563)]
 22. TODO: sklearn ft selection
 23. TODO: in coms fts search, should set L1 much bigger
 24. TODO: train a model every day, then merge.
