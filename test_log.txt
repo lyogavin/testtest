@@ -680,7 +680,7 @@ _cvr']
         grid test3: changed to 1_to_2 LB: 0.9709 again
     3. grid test3: use pub ranges and add day in categorical,
         train's auc: 0.982843	valid's auc: 0.967226
-        LB: submitting:0.9708
+        LB: :0.9708
     4. based on 2. grid test: 1_to_2 to train, no cut, add click_next_shift, noday
         failed mem
     5.
@@ -723,7 +723,7 @@ _cvr']
         gyun: 0.9729
 
 117 FFM
-    0. aliyun submitting: LB: failed
+    0. aliyun : LB: failed
     1. aliyun: fixed and LB:0.9750 (ffm_117_2_submission.csv moved to /mnt)
     2. TODO: remove shift feature and use 1/6 to rerun to test
     3. gen data seperately:
@@ -737,7 +737,7 @@ _cvr']
     7. TODO: based on 5, do pick hours weighting
         currently libFFM doesn't support this.
     8. 3 + 6.
-        ?
+        aliyun: running
 
 118 ensemble of: 117_2, 116_3, 103_11
     LB: 0.9783
@@ -855,9 +855,9 @@ _cvr']
  ('channel', 249)]
     11. based on 7 L1 1.0:
         enable ad_val weighting to make it closer to test data set:
-        aliyun: running
+        azzureyun: running
     12. based on 8, with adversial enabled:
-        grid test 4: running
+        grid test 4: OOM
 
 
 
@@ -936,12 +936,12 @@ _cvr']
         ^^^^^^^--------- was bugged, didn't deep copy config object.
         rerun: LB: 0.9795
     21. try use adversial validation scores as feature:
-        aliyun: running
+        aliyun: LB: submitting
     22. based on 18, normalize the weighting, to let min of weighing to be 1.0
         copy from 124 to let kernel able to run.
         grid test3: LB:0.9790
     23. most frequent and leaset frequent channels in test data as feature:
-        grid test2: running
+        grid test2: LB: submitting
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature

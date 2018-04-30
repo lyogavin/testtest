@@ -1718,7 +1718,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_121_11')
+config_scheme_to_use = use_config_scheme('train_config_117_8')
 
 
 dtypes = {
