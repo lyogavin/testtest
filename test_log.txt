@@ -927,7 +927,7 @@ _cvr']
     grid test 4: running
     20. train a model with 7's data to merge with 17.
         azzureyun: LB:0.9795
-        was bugged, didn't deep copy config object.
+        ^^^^^^^--------- was bugged, didn't deep copy config object.
         rerun: running
     21. try use adversial validation scores as feature:
         aliyun: running
