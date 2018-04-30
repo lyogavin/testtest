@@ -856,6 +856,8 @@ _cvr']
     11. based on 7 L1 1.0:
         enable ad_val weighting to make it closer to test data set:
         aliyun: running
+    12. based on 8, with adversial enabled:
+        grid test 4: running
 
 
 

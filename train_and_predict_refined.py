@@ -1627,16 +1627,16 @@ train_config_126_11 = ConfigScheme(False, False, False,
                                  run_theme='train_and_predict_gen_fts_seperately',
                                  add_features_list=add_features_list_origin_no_channel_next_click
                                    )
-train_config_126_12 = train_config_126_6
+train_config_126_12 = copy.deepcopy(train_config_126_6)
 train_config_126_12.val_from = id_7_4am
 train_config_126_12.val_to = id_7_3pm
 
 
-train_config_126_13 = train_config_126_1
+train_config_126_13 = copy.deepcopy(train_config_126_1)
 train_config_126_13.add_features_list = add_features_list_pub_asraful_kernel
 
 
-train_config_126_14 = train_config_126_1
+train_config_126_14 = copy.deepcopy(train_config_126_1)
 train_config_126_14.add_features_list = add_features_list_pub_asraful_kernel
 train_config_126_14.lgbm_params =  lgbm_params_pub_asraful_kernel
 
@@ -1656,14 +1656,19 @@ train_config_121_7 = ConfigScheme(False, False, False,
                                    use_ft_cache=False
                                    )
 
-train_config_121_8 = train_config_121_7
-train_config_121_9 = train_config_121_7
-train_config_121_10 = train_config_121_7
+train_config_121_8 = copy.deepcopy(train_config_121_7)
+train_config_121_9 = copy.deepcopy(train_config_121_7)
+train_config_121_10 = copy.deepcopy(train_config_121_7)
 train_config_121_10.lgbm_params=lgbm_params_l1
 
-train_config_121_11 = train_config_121_7
+train_config_121_11 = copy.deepcopy(train_config_121_7)
 train_config_121_11.lgbm_params=lgbm_params_l1
 train_config_121_11.adversial_val_weighted = True
+
+train_config_121_12 = copy.deepcopy(train_config_121_8)
+train_config_121_12.lgbm_params=lgbm_params_l1
+train_config_121_12.adversial_val_weighted = True
+
 
 train_config_126_9 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
