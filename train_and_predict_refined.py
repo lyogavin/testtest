@@ -713,7 +713,8 @@ class ConfigScheme:
                  normalization = False,
                  add_10min_ft = False,
                  pick_hours_weighted = False,
-                 adversial_val_weighted = False):
+                 adversial_val_weighted = False,
+                 adversial_val_ft=False):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -754,6 +755,7 @@ class ConfigScheme:
         self.add_10min_ft = add_10min_ft
         self.pick_hours_weighted = pick_hours_weighted
         self.adversial_val_weighted = adversial_val_weighted
+        self.adversial_val_ft = adversial_val_ft
 
 
 
@@ -1481,15 +1483,20 @@ train_config_124_17 = ConfigScheme(False, False, False,
                                  run_theme='train_and_predict_gen_fts_seperately',
                                  add_features_list=add_features_list_origin_no_channel_next_click_days
                                    )
-train_config_124_18 = train_config_124_3
+import copy
+train_config_124_18 = copy.deepcopy(train_config_124_3)
 train_config_124_18.adversial_val_weighted = True
 
-train_config_124_19 = train_config_124
+train_config_124_19 = copy.deepcopy(train_config_124)
 train_config_124_19.lgbm_params = lgbm_params_search_128_114
 
-train_config_124_20 = train_config_124_17
+train_config_124_20 = copy.deepcopy(train_config_124_17)
 train_config_124_20.train_from = 0
 train_config_124_20.train_to = id_7_3pm
+
+train_config_124_21 = copy.deepcopy(train_config_124_3)
+train_config_124_21.adversial_val_ft = True
+
 
 train_config_126_1 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
@@ -1674,7 +1681,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_20')
+config_scheme_to_use = use_config_scheme('train_config_124_21')
 
 
 dtypes = {
@@ -1999,6 +2006,16 @@ def generate_counting_history_features(data,
             data['id_10min'] = data.click_time.astype(int) // (10 ** 9 * 600 *5)
             categorical.append('id_10min')
 
+    if config_scheme_to_use.adversial_val_ft:
+        with timer('add ad_val ft:'):
+            ad_val_bst = lgb.Booster(model_file='ad_val_model.txt')
+            ad_val_predictors = ['app', 'device', 'os', 'channel', 'ip', 'hour']
+            data['ad_val'] = ad_val_bst.predict(data[ad_val_predictors])
+            print('add ad_val fts:', data['ad_val'].describe())
+            new_features.append('ad_val')
+
+            del ad_val_bst
+            gc.collect()
 
     discretization_bins_used = None
     i = -1

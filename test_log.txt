@@ -921,11 +921,16 @@ _cvr']
         LB: 0.9795
     18(log incorrectly print 17). use adversial validation model to predict if it's test,
         use this score to weight training samples:
-        aliyun: running
+        aliyun: LB:0.9785
     19. 0+ try best lgbm params search set(3 too big to run in kernel, try 0 first):
+    grid test 4: LB:0.9783 <-----bugged. rerun
     grid test 4: running
     20. train a model with 7's data to merge with 17.
-        azzureyun: running
+        azzureyun: LB:0.9795
+        was bugged, didn't deep copy config object.
+        rerun: running
+    21. try use adversial validation scores as feature:
+        aliyun: running
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature
@@ -990,6 +995,20 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     'min_child_samples': 188, 'min_child_weight': 4, 'num_leaves': 11, 'reg_alpha': 0.02387225386312356,
     'reg_lambda': 1.2196200544739068e-09, 'scale_pos_weight': 231.48637373544372,
     'subsample': 0.7079619705989065}
+    LB: 0.9783
+
+129. adversial validation model:
+    1. run: pub ker
+    adversial val: [('device', 301), ('os', 1064), ('app', 1103), ('channel', 1563)]
+    2. run: pub ker
+    second run: [('device', 41),
+     ('os', 266),
+     ('hour', 324),
+     ('app', 423),
+     ('channel', 507),
+     ('ip', 964)]
+
+
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
@@ -1018,6 +1037,12 @@ to do test:
 ______________________
 21. TODO: most/least frequent other dimensions in test (based on most important fts from adversial validation)
 adversial val: [('device', 301), ('os', 1064), ('app', 1103), ('channel', 1563)]
+second run: [('device', 41),
+ ('os', 266),
+ ('hour', 324),
+ ('app', 423),
+ ('channel', 507),
+ ('ip', 964)]
 22. TODO: sklearn ft selection
 23. TODO: in coms fts search, should set L1 much bigger
 24. TODO: train a model every day, then merge.
