@@ -105,7 +105,7 @@ from pympler import summary
 
 dump_train_data = False
 
-use_sample = False
+use_sample = True
 debug = False
 persist_intermediate = False
 print_verbose = False
@@ -184,14 +184,21 @@ most_freq_values_in_test_data  = {
     'device': [],
     'app':[],
     'os':[],
-    'channel':[],
+    'channel':[280,245,107,477,134],
     'ip':[]
 }
 least_freq_values_in_test_data  = {
     'device': [],
     'app':[],
     'os':[],
-    'channel':[],
+    'channel':[
+        500,146,434,470,172,394,422,354,217,221,227,142,149,165,476,475,473,29,238,162,169,256,251,
+        248,458,471,14,233,225,223,216,181,281,352,407,114,408,222,129,4,498,455,261,272,0,414,311,
+        474,451,465,410,353,15,483,420,341,108,456,332,5,419,486,203,404,488,22,268,174,356,224,479,
+        320,457,126,171,282,262,333,450,274,460,411,138,253,416,322,490,210,160,448,18,453,330,391,24,
+        421,446,484,373,361,208,13,496,182,120,360,277,406,123,30,17,150,449,242,110,118,402,21,467,
+        487,325,417,243,343,124,326,497,113,116,478
+    ],
     'ip':[]
 }
 hist_st = []
@@ -486,6 +493,12 @@ add_features_list_origin_no_channel_next_click = [
     {'group': ['app', 'day', 'hour', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
     ]
+
+add_features_list_origin_no_channel_next_click_ip_freq_ch = \
+    add_features_list_origin_no_channel_next_click + [
+        {'group': ['ip', 'in_test_frequent_channel', 'is_attributed'], 'op': 'count'}
+    ]
+
 add_features_list_pub_asraful_kernel  = [
 
     # ====================
@@ -714,7 +727,8 @@ class ConfigScheme:
                  add_10min_ft = False,
                  pick_hours_weighted = False,
                  adversial_val_weighted = False,
-                 adversial_val_ft=False):
+                 adversial_val_ft=False,
+                 add_in_test_frequent_dimensions = None):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -756,6 +770,7 @@ class ConfigScheme:
         self.pick_hours_weighted = pick_hours_weighted
         self.adversial_val_weighted = adversial_val_weighted
         self.adversial_val_ft = adversial_val_ft
+        self.add_in_test_frequent_dimensions = add_in_test_frequent_dimensions
 
 
 
@@ -1498,6 +1513,16 @@ train_config_124_21 = copy.deepcopy(train_config_124_3)
 train_config_124_21.adversial_val_ft = True
 
 
+train_config_124_22 = copy.deepcopy(train_config_124)
+train_config_124_22.adversial_val_weighted = True
+
+
+train_config_124_23 = copy.deepcopy(train_config_124)
+train_config_124_23.add_in_test_frequent_dimensions = ['channel']
+train_config_124_23.add_features_list = add_features_list_origin_no_channel_next_click_ip_freq_ch
+
+
+
 train_config_126_1 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
                                  random_sample_filter_0_5,
@@ -1681,7 +1706,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_20')
+config_scheme_to_use = use_config_scheme('train_config_124_23')
 
 
 dtypes = {
@@ -1724,11 +1749,11 @@ def gen_categorical_features(data):
                               - 1 * data['hour'].isin(least_freq_hours_in_test_data)).astype('uint8')
         # categorical.append('in_test_hh')
 
-    #if config_scheme_to_use.add_in_test_frequent_dimensions is not None:
-    #    for dimension in config_scheme_to_use.add_in_test_frequent_dimensions:
-    #        data['in_test_frequent_' + dimension] =(3
-    #                          - 2 * data[dimension].isin(most_freq_values_in_test_data[dimension])
-    #                          - 1 * data[dimension].isin(least_freq_values_in_test_data[dimension])).astype('uint8')
+    if config_scheme_to_use.add_in_test_frequent_dimensions is not None:
+        for dimension in config_scheme_to_use.add_in_test_frequent_dimensions:
+            data['in_test_frequent_' + dimension] =(3
+                              - 2 * data[dimension].isin(most_freq_values_in_test_data[dimension])
+                              - 1 * data[dimension].isin(least_freq_values_in_test_data[dimension])).astype('uint8')
     #126 8
     #data['hour'] = data['hour'] // 3
 
@@ -1763,6 +1788,10 @@ def gen_iteractive_categorical_features(data):
 
 
 def post_statistics_features(data):
+    print('ip_in_test_frequent_channel_is_attributed_count describe:')
+    if config_scheme_to_use.add_in_test_frequent_dimensions is not None and \
+        'channel' in config_scheme_to_use.add_in_test_frequent_dimensions:
+        print(data['ip_in_test_frequent_channel_is_attributedcount'].describe())
     return data
 
 
@@ -2187,6 +2216,11 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                     ad_val_predictors =  ['app','device',  'os', 'channel','ip','hour']
                     train_weights = ad_val_bst.predict(train[ad_val_predictors])
                     val_weights = ad_val_bst.predict(val[ad_val_predictors])
+
+                    # normalization:
+                    train_weights = train_weights / np.min(train_weights)
+                    val_weights = val_weights / np.min(val_weights)
+
                     print('train weights:', pd.DataFrame({'weights':train_weights}).describe())
                     print('val weights:', pd.DataFrame({'weights:':val_weights}).describe())
 

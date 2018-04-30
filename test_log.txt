@@ -924,13 +924,18 @@ _cvr']
         aliyun: LB:0.9785
     19. 0+ try best lgbm params search set(3 too big to run in kernel, try 0 first):
     grid test 4: LB:0.9783 <-----bugged. rerun
-    grid test 4: running
+    grid test 4: LB: 0.9783
     20. train a model with 7's data to merge with 17.
         azzureyun: LB:0.9795
         ^^^^^^^--------- was bugged, didn't deep copy config object.
         rerun: running
     21. try use adversial validation scores as feature:
         aliyun: running
+    22. based on 18, normalize the weighting, to let min of weighing to be 1.0
+        copy from 124 to let kernel able to run.
+        grid test3: running
+    23. most frequent and leaset frequent channels in test data as feature:
+        grid test2: running
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature
