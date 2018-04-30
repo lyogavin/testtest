@@ -735,6 +735,9 @@ _cvr']
     6. try log discretizatoin
         aliyun: 0.9780
     7. TODO: based on 5, do pick hours weighting
+        currently libFFM doesn't support this.
+    8. 3 + 6.
+        ?
 
 118 ensemble of: 117_2, 116_3, 103_11
     LB: 0.9783
@@ -928,12 +931,12 @@ _cvr']
     20. train a model with 7's data to merge with 17.
         azzureyun: LB:0.9795
         ^^^^^^^--------- was bugged, didn't deep copy config object.
-        rerun: running
+        rerun: LB: 0.9795
     21. try use adversial validation scores as feature:
         aliyun: running
     22. based on 18, normalize the weighting, to let min of weighing to be 1.0
         copy from 124 to let kernel able to run.
-        grid test3: running
+        grid test3: LB:0.9790
     23. most frequent and leaset frequent channels in test data as feature:
         grid test2: running
 

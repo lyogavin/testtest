@@ -1178,6 +1178,9 @@ train_config_117_6 = ConfigScheme(False, False, False,
                                  add_features_list=add_features_list_origin_no_channel_next_click,
                                    use_ft_cache=False
                                    )
+train_config_117_8 = copy.deepcopy(train_config_117_3)
+train_config_117_8.log_discretization = True
+
 train_config_121_1 = ConfigScheme(False, False, False,
                                   shuffle_sample_filter_1_to_3,
                                  shuffle_sample_filter_1_to_3,
@@ -1709,7 +1712,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_23')
+config_scheme_to_use = use_config_scheme('train_config_117_8')
 
 
 dtypes = {
