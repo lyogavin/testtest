@@ -6,6 +6,7 @@
 # It is defined by the kaggle/python docker image: https://github.com/kaggle/docker-python
 # For example, here's several helpful packages to load in 
 import sys
+import copy
 
 on_kernel = False
 
@@ -1504,7 +1505,6 @@ train_config_124_17 = ConfigScheme(False, False, False,
                                  run_theme='train_and_predict_gen_fts_seperately',
                                  add_features_list=add_features_list_origin_no_channel_next_click_days
                                    )
-import copy
 train_config_124_18 = copy.deepcopy(train_config_124_3)
 train_config_124_18.adversial_val_weighted = True
 
