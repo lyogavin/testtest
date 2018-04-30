@@ -1659,7 +1659,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_117_5')
+config_scheme_to_use = use_config_scheme('train_config_124_17')
 
 
 dtypes = {
@@ -2155,6 +2155,9 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                     ad_val_predictors =  ['app','device',  'os', 'channel','ip','hour']
                     train_weights = ad_val_bst.predict(train[ad_val_predictors])
                     val_weights = ad_val_bst.predict(val[ad_val_predictors])
+                    print('train weights:', pd.DataFrame({'weights':train_weights}).describe())
+                    print('val weights:', pd.DataFrame({'weights:':val_weights}).describe())
+
 
 
         dtrain = lgb.Dataset(train[predictors].values.astype(np.float32), label=train[target].values,

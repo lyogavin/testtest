@@ -732,7 +732,8 @@ _cvr']
         aliyun: LB:0.9762
     5. try use 083pm-093pm to train
         azzure: running
-    6. TODO: try log discretizatoin
+    6. try log discretizatoin
+        aliyun: running
 
 118 ensemble of: 117_2, 116_3, 103_11
     LB: 0.9783
@@ -916,9 +917,9 @@ _cvr']
     [415]   train's auc: 0.984595   valid's auc: 0.98459
     17. train a model with 08 then merge.
         gyun: merging with 124_3:
-        submitting
+        LB: 0.9795
     18. use adversial validation model to predict if it's test, use this score to weight training samples:
-        azzure:
+        azzure: TODO:
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature
