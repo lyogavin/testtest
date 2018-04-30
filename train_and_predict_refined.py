@@ -1529,6 +1529,11 @@ train_config_124_23.add_features_list = add_features_list_origin_no_channel_next
 
 
 
+train_config_124_25 = copy.deepcopy(train_config_124_23)
+train_config_124_25.adversial_val_weighted = True
+
+
+
 train_config_126_1 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
                                  random_sample_filter_0_5,
@@ -1718,7 +1723,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_117_8')
+config_scheme_to_use = use_config_scheme('train_config_124_3')
 
 
 dtypes = {
@@ -2283,7 +2288,8 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
 
         feature_imp = pd.DataFrame(lgb_model.feature_name(), list(lgb_model.feature_importance()))
 
-        if persist_intermediate:
+        persist_model = True
+        if persist_model:
             print('dumping model')
             lgb_model.save_model(get_dated_filename('model.txt'))
 

@@ -600,7 +600,7 @@ _cvr']
     16. try removing app in next click dimensions:
         googleyun: train's auc: 0.985074	valid's auc: 0.984088
         LB:0.9789
-        2: use mmh to retry: azzure: LB:submitting
+        2: use mmh to retry: azzure:
     17. TODO:try add cvr of ip+app+os+device+hour/10min
     18. TODO: use next time range to fix last next click value too big(test supplyment and train next range)
     19. TODO: try smoothing of next click and next n click
@@ -855,9 +855,11 @@ _cvr']
  ('channel', 249)]
     11. based on 7 L1 1.0:
         enable ad_val weighting to make it closer to test data set:
-        azzureyun: running
+        azzureyun: failed didn't copy ad_val_model.txt
+        TODO: fix and run later
     12. based on 8, with adversial enabled:
         grid test 4: OOM
+        TODO: find other box to run
 
 
 
@@ -936,12 +938,42 @@ _cvr']
         ^^^^^^^--------- was bugged, didn't deep copy config object.
         rerun: LB: 0.9795
     21. try use adversial validation scores as feature:
-        aliyun: LB: submitting
+        aliyun: LB: 0.9792
+        [('ad_val', 30),
+         ('ip_day_hour_app_is_attributedcount', 49),
+         ('ip_day_hour_app_os_is_attributedcount', 59),
+         ('ip_day_hour_os_is_attributedcount', 61),
+         ('device', 76),
+         ('app_day_hour_is_attributedcount', 125),
+         ('ip_day_hour_is_attributedcount', 146),
+         ('ip_day_in_test_hh_is_attributedcount', 214),
+         ('hour', 291),
+         ('ip_app_device_os_day_is_attributednextclick', 353),
+         ('os', 454),
+         ('app', 506),
+         ('channel', 772)]
     22. based on 18, normalize the weighting, to let min of weighing to be 1.0
         copy from 124 to let kernel able to run.
         grid test3: LB:0.9790
     23. most frequent and leaset frequent channels in test data as feature:
-        grid test2: LB: submitting
+        grid test2: LB: 0.9785
+        [('ip_day_hour_app_os_is_attributedcount', 25),
+         ('ip_day_hour_os_is_attributedcount', 29),
+         ('ip_day_hour_app_is_attributedcount', 35),
+         ('ip_in_test_hh_is_attributedcount', 53),
+         ('device', 56),
+         ('ip_day_hour_is_attributedcount', 56),
+         ('hour', 58),
+         ('app_day_hour_is_attributedcount', 65),
+         ('ip_in_test_frequent_channel_is_attributedcount', 148),
+         ('ip_app_device_os_is_attributednextclick', 244),
+         ('os', 269),
+         ('app', 309),
+         ('channel', 461)]
+    24. TODO: similar to 23, add most/least frequent other dimensions: app, os, device...
+    25. 23+ad_val weighting
+        grid test2: running
+
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature
