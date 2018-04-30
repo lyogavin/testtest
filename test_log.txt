@@ -854,7 +854,8 @@ _cvr']
  ('app', 178),
  ('channel', 249)]
     11. based on 7 L1 1.0:
-        aliyun: killed for run 117_6 first
+        enable ad_val weighting to make it closer to test data set:
+        aliyun: running
 
 
 

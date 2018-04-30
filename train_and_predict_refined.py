@@ -1663,6 +1663,7 @@ train_config_121_10.lgbm_params=lgbm_params_l1
 
 train_config_121_11 = train_config_121_7
 train_config_121_11.lgbm_params=lgbm_params_l1
+train_config_121_11.adversial_val_weighted = True
 
 train_config_126_9 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
@@ -1712,7 +1713,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_117_8')
+config_scheme_to_use = use_config_scheme('train_config_121_11')
 
 
 dtypes = {
