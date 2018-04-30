@@ -731,9 +731,10 @@ _cvr']
     4. try pub fmftrl features:
         aliyun: LB:0.9762
     5. try use 083pm-093pm to train
-        azzure: running
+        azzure: LB: 0.9775
     6. try log discretizatoin
-        aliyun: running
+        aliyun: 0.9780
+    7. TODO: based on 5, do pick hours weighting
 
 118 ensemble of: 117_2, 116_3, 103_11
     LB: 0.9783
@@ -918,8 +919,13 @@ _cvr']
     17. train a model with 08 then merge.
         gyun: merging with 124_3:
         LB: 0.9795
-    18. use adversial validation model to predict if it's test, use this score to weight training samples:
-        azzure: TODO:
+    18(log incorrectly print 17). use adversial validation model to predict if it's test,
+        use this score to weight training samples:
+        aliyun: running
+    19. 0+ try best lgbm params search set(3 too big to run in kernel, try 0 first):
+    grid test 4: running
+    20. train a model with 7's data to merge with 17.
+        azzureyun: running
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature
@@ -978,6 +984,12 @@ _cvr']
 128. LGBM params Search based on 126 setting
     only check 50 iters, and reduce search space:
     gyun: running
+    Model #114
+Best ROC-AUC: 0.9731
+Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.19814501809928017, 'max_depth': 9,
+    'min_child_samples': 188, 'min_child_weight': 4, 'num_leaves': 11, 'reg_alpha': 0.02387225386312356,
+    'reg_lambda': 1.2196200544739068e-09, 'scale_pos_weight': 231.48637373544372,
+    'subsample': 0.7079619705989065}
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE

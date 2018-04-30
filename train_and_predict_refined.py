@@ -294,6 +294,15 @@ new_lgbm_params = {
     # 'is_unbalance': True,
     'scale_pos_weight': 99.0
 }
+
+lgbm_params_search_128_114 = dict(new_lgbm_params)
+lgbm_params_search_128_114.update({
+    'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.19814501809928017, 'max_depth': 9,
+    'min_child_samples': 188, 'min_child_weight': 4, 'num_leaves': 11, 'reg_alpha': 0.02387225386312356,
+    'reg_lambda': 1.2196200544739068e-09, 'scale_pos_weight': 231.48637373544372,
+    'subsample': 0.7079619705989065}
+)
+
 lgbm_params_l1 = dict(new_lgbm_params)
 lgbm_params_l1.update({
     'reg_alpha': 1.0
@@ -1472,9 +1481,15 @@ train_config_124_17 = ConfigScheme(False, False, False,
                                  run_theme='train_and_predict_gen_fts_seperately',
                                  add_features_list=add_features_list_origin_no_channel_next_click_days
                                    )
-train_config_124_17 = train_config_124_3
-train_config_124_17.adversial_val_weighted = True
+train_config_124_18 = train_config_124_3
+train_config_124_18.adversial_val_weighted = True
 
+train_config_124_19 = train_config_124
+train_config_124_19.lgbm_params = lgbm_params_search_128_114
+
+train_config_124_20 = train_config_124_17
+train_config_124_20.train_from = 0
+train_config_124_20.train_to = id_7_3pm
 
 train_config_126_1 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
@@ -1659,7 +1674,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_17')
+config_scheme_to_use = use_config_scheme('train_config_124_20')
 
 
 dtypes = {
