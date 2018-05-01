@@ -831,7 +831,8 @@ _cvr']
  ('app', 230),
  ('channel', 347)]
     9. based on 7, try cvr with combined
-        grid test3: OOM
+        grid test3:
+        azzureyun: running
     10.based on 8, set L1 to 1.0
         aliyun:
     [135]	train's auc: 0.982748	valid's auc: 0.97085
@@ -893,7 +894,7 @@ _cvr']
         gyun: LB:0.9791
     3. try train from midnight 08/3pm, val 08
         aliyun: LB:0.9793
-        save model: azzureyun: running
+        save model: azzureyun: Done
     [388]   train's auc: 0.984364   valid's auc: 0.983894
     4. TODO: normalization
         gyuN: TODO
@@ -1008,6 +1009,8 @@ gain importance:
     24. TODO: similar to 23, add most/least frequent other dimensions: app, os, device...
     25. 23+ad_val weighting
         grid test2: 0.9787
+    26. train from best nunique and count from coms search:
+        grid test4:running
 
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?

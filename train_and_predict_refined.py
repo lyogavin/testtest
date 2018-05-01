@@ -497,7 +497,22 @@ add_features_list_origin_no_channel_next_click = [
     {'group': ['app', 'day', 'hour', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
     ]
+add_features_list_origin_no_channel_next_click_best_ct_nu_from_search = [
+    {'group': ['ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'device', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'device', 'os', 'hour', 'is_attributed'], 'op': 'count'},
 
+    {'group': ['app', 'channel', 'ip'], 'op': 'nunique'},
+    {'group': ['app', 'channel', 'hour'], 'op': 'nunique'},
+    {'group': ['app', 'channel', 'hour', 'ip'], 'op': 'nunique'},
+    {'group': ['os', 'hour', 'ip'], 'op': 'nunique'},
+    {'group': ['app', 'device', 'os', 'hour', 'ip'], 'op': 'nunique'},
+
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
+    ]
 add_features_list_origin_no_channel_next_click_ip_freq_ch = \
     add_features_list_origin_no_channel_next_click + [
         {'group': ['ip', 'in_test_frequent_channel', 'is_attributed'], 'op': 'count'}
@@ -1538,6 +1553,10 @@ train_config_124_23.add_features_list = add_features_list_origin_no_channel_next
 train_config_124_25 = copy.deepcopy(train_config_124_23)
 train_config_124_25.adversial_val_weighted = True
 
+train_config_124_26 = copy.deepcopy(train_config_124)
+train_config_124_26.add_features_list = add_features_list_origin_no_channel_next_click_best_ct_nu_from_search
+
+
 
 
 train_config_126_1 = ConfigScheme(False, False, False,
@@ -1729,7 +1748,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_117_9')
+config_scheme_to_use = use_config_scheme('train_config_121_9')
 
 
 dtypes = {
@@ -3253,7 +3272,7 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
         #for count():
 
         #train_config_121_7,train_config_121_8
-        add_count = True
+        add_count = False
         if add_count:
             for cols_count in range(1, 7):
                 for cols_coms in itertools.combinations(raw_cols, cols_count):
@@ -3262,14 +3281,16 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
                     temp.append('is_attributed')
                     com_fts_list_to_use.append({'group': list(temp), 'op': 'count'})
 
-        add_cvr = False # has to use with combined
+        add_cvr = True # has to use with combined
         if add_cvr:
             for cols_count in range(1, 7):
                 for cols_coms in itertools.combinations(raw_cols, cols_count):
                     temp = []
                     temp.extend(cols_coms)
                     temp.append('is_attributed')
+                    # add both mean and var:
                     com_fts_list_to_use.append({'group': list(temp), 'op': 'mean'})
+                    com_fts_list_to_use.append({'group': list(temp), 'op': 'var'})
 
     #print('added count coms(len: {}): {}'.format(len(com_fts_list_to_use), com_fts_list_to_use))
 
