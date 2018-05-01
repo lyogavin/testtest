@@ -516,7 +516,7 @@ add_features_list_smooth_cvr = [
     {'group': ['app', 'device', 'is_attributed'], 'op': 'smoothcvr'},
     #{'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'smoothcvr'}, cheating ft, low val auc, avoid it
     {'group': ['hour', 'is_attributed'], 'op': 'smoothcvr'},
-    {'group': ['ip', 'is_attributed'], 'op': 'smoothcvr'},
+    #{'group': ['ip', 'is_attributed'], 'op': 'smoothcvr'},
     {'group': ['app', 'is_attributed'], 'op': 'smoothcvr'},
     {'group': ['device', 'is_attributed'], 'op': 'smoothcvr'},
     {'group': ['os', 'is_attributed'], 'op': 'smoothcvr'},
