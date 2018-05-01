@@ -106,7 +106,7 @@ from pympler import summary
 
 dump_train_data = False
 
-use_sample = False
+use_sample = True
 debug = False
 persist_intermediate = False
 print_verbose = False
@@ -732,7 +732,8 @@ class ConfigScheme:
                  pick_hours_weighted = False,
                  adversial_val_weighted = False,
                  adversial_val_ft=False,
-                 add_in_test_frequent_dimensions = None):
+                 add_in_test_frequent_dimensions = None,
+                 add_lgbm_fts_from_saved_model = False):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -775,6 +776,7 @@ class ConfigScheme:
         self.adversial_val_weighted = adversial_val_weighted
         self.adversial_val_ft = adversial_val_ft
         self.add_in_test_frequent_dimensions = add_in_test_frequent_dimensions
+        self.add_lgbm_fts_from_saved_model = add_lgbm_fts_from_saved_model
 
 
 
@@ -1181,6 +1183,10 @@ train_config_117_6 = ConfigScheme(False, False, False,
                                    )
 train_config_117_8 = copy.deepcopy(train_config_117_3)
 train_config_117_8.log_discretization = True
+
+train_config_117_9 = copy.deepcopy(train_config_117_8)
+train_config_117_9.add_lgbm_fts_from_saved_model = True
+train_config_117_9.add_features_list = add_features_list_origin_no_channel_next_click_days
 
 train_config_121_1 = ConfigScheme(False, False, False,
                                   shuffle_sample_filter_1_to_3,
@@ -1723,7 +1729,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_3')
+config_scheme_to_use = use_config_scheme('train_config_117_9')
 
 
 dtypes = {
@@ -2234,9 +2240,9 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                     train_weights = ad_val_bst.predict(train[ad_val_predictors])
                     val_weights = ad_val_bst.predict(val[ad_val_predictors])
 
-                    # normalization:
-                    train_weights = train_weights / np.min(train_weights)
-                    val_weights = val_weights / np.min(val_weights)
+                    # normalization and only weight positive:
+                    train_weights = (train_weights / np.min(train_weights) - 1.0 ) * train['is_attributed'] + 1.0
+                    val_weights = (val_weights / np.min(val_weights) - 1.0) * val['is_attributed'] + 1.0
 
                     print('train weights:', pd.DataFrame({'weights':train_weights}).describe())
                     print('val weights:', pd.DataFrame({'weights:':val_weights}).describe())
@@ -2279,8 +2285,14 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
         # Feature importances:
         print('Feature importances:', list(lgb_model.feature_importance()))
         try:
+            print('split importance:')
             pprint(sorted(zip(lgb_model.feature_name(),list(lgb_model.feature_importance())),
                           key=lambda x: x[1]))
+
+            print('gain importance:')
+            pprint(sorted(zip(lgb_model.feature_name(),list(lgb_model.feature_importance(importance_type='gain'))),
+                          key=lambda x: x[1]))
+
         except:
             print('error sorting and zipping fts')
 
@@ -2292,6 +2304,8 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
         if persist_model:
             print('dumping model')
             lgb_model.save_model(get_dated_filename('model.txt'))
+            print('dumping predictors of this model')
+            pickle.dump(predictors1, open(get_dated_filename('predictors.pickle'), 'wb'))
 
         val_prediction = None
         if do_val_prediction:
@@ -3003,8 +3017,24 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
                                            ft_cache_prefix='train')
 
     predictors1 = categorical + new_features + ['is_attributed']
-    print('dump train fe data for fts:', predictors1)
 
+    if config_scheme_to_use.add_lgbm_fts_from_saved_model:
+        lgb_model = lgb.Booster(model_file='train_config_124_3_model.txt')
+        lgb_predictors = pickle.load(open('train_config_124_3_model_predictors.pickle', 'rb'))
+        lgb_fts_count = 20
+
+        with timer('predict train LGBM features:'):
+            predict_result = lgb_model.predict(train[lgb_predictors], num_iteration=lgb_fts_count, pred_leaf=True)
+            ft_df = pd.DataFrame(predict_result, dtype='uint8',
+                                 columns=['T' + str(i) for i in range(len(predict_result[0]))])
+            predictors1 = predictors1 + list(ft_df.columns)
+            del predict_result
+            gc.collect()
+            train = pd.concat([train, ft_df], axis=1)
+            del ft_df
+            gc.collect()
+
+    print('dump train fe data for fts:', predictors1)
     if use_sample:
         train[predictors1].to_csv('train_fe_sample.csv', index=False)
     else:
@@ -3035,6 +3065,17 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
                                            use_ft_cache = use_ft_cache,
                                            ft_cache_prefix='val')
 
+    if config_scheme_to_use.add_lgbm_fts_from_saved_model:
+        with timer('predict val LGBM features:'):
+            predict_result = lgb_model.predict(val[lgb_predictors], num_iteration=lgb_fts_count, pred_leaf=True)
+            ft_df = pd.DataFrame(predict_result, dtype='uint8',
+                                 columns=['T' + str(i) for i in range(len(predict_result[0]))])
+            del predict_result
+            gc.collect()
+            val = pd.concat([val, ft_df], axis=1)
+            del ft_df
+            gc.collect()
+
     print('dump val fe data for fts:', predictors1)
 
     if use_sample:
@@ -3059,6 +3100,16 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
                                                discretization_bins=discretization_bins_used,
                                                use_ft_cache = use_ft_cache,
                                                ft_cache_prefix='test')
+    if config_scheme_to_use.add_lgbm_fts_from_saved_model:
+        with timer('predict val LGBM features:'):
+            predict_result = lgb_model.predict(test[lgb_predictors], num_iteration=lgb_fts_count, pred_leaf=True)
+            ft_df = pd.DataFrame(predict_result, dtype='uint8',
+                                 columns=['T' + str(i) for i in range(len(predict_result[0]))])
+            del predict_result
+            gc.collect()
+            test = pd.concat([test, ft_df], axis=1)
+            del ft_df
+            gc.collect()
 
     click_id_df = pd.read_csv(path_test_sample if use_sample else path_test,
                          dtype='uint64',

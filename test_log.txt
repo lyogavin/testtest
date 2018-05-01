@@ -737,7 +737,10 @@ _cvr']
     7. TODO: based on 5, do pick hours weighting
         currently libFFM doesn't support this.
     8. 3 + 6.
+        aliyun: LB:0.9780
+    9. add 20 LGBM features:
         aliyun: running
+
 
 118 ensemble of: 117_2, 116_3, 103_11
     LB: 0.9783
@@ -890,6 +893,7 @@ _cvr']
         gyun: LB:0.9791
     3. try train from midnight 08/3pm, val 08
         aliyun: LB:0.9793
+        save model: azzureyun: running
     [388]   train's auc: 0.984364   valid's auc: 0.983894
     4. TODO: normalization
         gyuN: TODO
@@ -955,6 +959,8 @@ _cvr']
     22. based on 18, normalize the weighting, to let min of weighing to be 1.0
         copy from 124 to let kernel able to run.
         grid test3: LB:0.9790
+        only weight positive samples and rerun:
+            grid test3:LB:0.9784
     23. most frequent and leaset frequent channels in test data as feature:
         grid test2: LB: 0.9785
         [('ip_day_hour_app_os_is_attributedcount', 25),
@@ -970,9 +976,38 @@ _cvr']
          ('os', 269),
          ('app', 309),
          ('channel', 461)]
+         grid test 4: print gain importance and rerun:
+         split:
+         [('ip_day_hour_app_os_is_attributedcount', 25),
+ ('ip_day_hour_os_is_attributedcount', 29),
+ ('ip_day_hour_app_is_attributedcount', 35),
+ ('ip_in_test_hh_is_attributedcount', 53),
+ ('device', 56),
+ ('ip_day_hour_is_attributedcount', 56),
+ ('hour', 58),
+ ('app_day_hour_is_attributedcount', 65),
+ ('ip_in_test_frequent_channel_is_attributedcount', 148),
+ ('ip_app_device_os_is_attributednextclick', 244),
+ ('os', 269),
+ ('app', 309),
+ ('channel', 461)]
+gain importance:
+[('ip_day_hour_app_os_is_attributedcount', 304550.37890625),
+ ('hour', 403344.6096191406),
+ ('ip_day_hour_app_is_attributedcount', 403979.14611816406),
+ ('device', 664619.6712036133),
+ ('ip_day_hour_os_is_attributedcount', 664856.6567382812),
+ ('ip_day_hour_is_attributedcount', 2017511.4193115234),
+ ('app_day_hour_is_attributedcount', 4035449.3736572266),
+ ('os', 4074379.297180176),
+ ('ip_in_test_hh_is_attributedcount', 4910875.878601074),
+ ('ip_in_test_frequent_channel_is_attributedcount', 5103478.940246582),
+ ('ip_app_device_os_is_attributednextclick', 8369703.446411133),
+ ('channel', 26717807.192504883),
+ ('app', 101927083.53381348)]
     24. TODO: similar to 23, add most/least frequent other dimensions: app, os, device...
     25. 23+ad_val weighting
-        grid test2: running
+        grid test2: 0.9787
 
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
