@@ -514,7 +514,6 @@ add_features_list_smooth_cvr = [
     {'group': ['app', 'channel', 'is_attributed'], 'op': 'smoothcvr'},
     {'group': ['app', 'os', 'is_attributed'], 'op': 'smoothcvr'},
     {'group': ['app', 'device', 'is_attributed'], 'op': 'smoothcvr'},
-    #{'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'smoothcvr'}, cheating ft, low val auc, avoid it
     {'group': ['hour', 'is_attributed'], 'op': 'smoothcvr'},
     #{'group': ['ip', 'is_attributed'], 'op': 'smoothcvr'},
     {'group': ['app', 'is_attributed'], 'op': 'smoothcvr'},
@@ -523,6 +522,8 @@ add_features_list_smooth_cvr = [
     {'group': ['channel', 'is_attributed'], 'op': 'smoothcvr'},
 
     # for debuging the smooth cvrs:
+    #{'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'smoothcvr'}, #cheating ft, low val auc, avoid it
+
     #{'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'mean'},
     #{'group': ['hour', 'is_attributed'], 'op': 'mean'},
     #{'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'count'},
@@ -795,7 +796,9 @@ class ConfigScheme:
                  adversial_val_weighted = False,
                  adversial_val_ft=False,
                  add_in_test_frequent_dimensions = None,
-                 add_lgbm_fts_from_saved_model = False):
+                 add_lgbm_fts_from_saved_model = False,
+                 train_smoothcvr_cache_from = None,
+                 train_smoothcvr_cache_to = None):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -839,6 +842,8 @@ class ConfigScheme:
         self.adversial_val_ft = adversial_val_ft
         self.add_in_test_frequent_dimensions = add_in_test_frequent_dimensions
         self.add_lgbm_fts_from_saved_model = add_lgbm_fts_from_saved_model
+        self.train_smoothcvr_cache_from = train_smoothcvr_cache_from
+        self.train_smoothcvr_cache_to = train_smoothcvr_cache_to
 
 
 
@@ -1608,6 +1613,9 @@ train_config_124_28 = copy.deepcopy(train_config_124)
 train_config_124_28.add_features_list = add_features_list_origin_no_channel_next_click_best_ct_nu_from_search_28
 
 
+train_config_124_29 = copy.deepcopy(train_config_124)
+train_config_124_29.add_features_list = add_features_list_smooth_cvr
+
 train_config_126_1 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
                                  random_sample_filter_0_5,
@@ -1721,6 +1729,9 @@ train_config_126_14.lgbm_params =  lgbm_params_pub_asraful_kernel
 
 train_config_126_15 = copy.deepcopy(train_config_126_1)
 train_config_126_15.add_features_list = add_features_list_smooth_cvr
+#train_config_126_15.train_smoothcvr_cache_from = id_7_4am
+#train_config_126_15.train_smoothcvr_cache_to = id_7_3pm
+
 
 train_config_121_7 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
@@ -1799,7 +1810,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_126_15')
+config_scheme_to_use = use_config_scheme('train_config_124_29')
 
 
 dtypes = {
@@ -2163,6 +2174,73 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
             gc.collect()
 
     return training, features_added, discretization_bins_used
+
+def clear_smoothcvr_cache():
+    if hasattr(add_statistic_feature, 'train_cvr_cache'):
+        del add_statistic_feature.train_cvr_cache
+        del add_statistic_feature.global_cvr
+        gc.collect()
+
+def gen_smoothcvr_cache(frm, to):
+    with timer('loading train df:'):
+        train = pd.read_csv(path_train_sample if use_sample else path_train,
+                            dtype=dtypes,
+                            header=0,
+                            usecols=train_cols,
+                            skiprows=range(1, frm) \
+                                if not use_sample and frm is not None else None,
+                            nrows=to - frm \
+                                if not use_sample and frm is not None else None,
+                            parse_dates=["click_time"])
+
+    print('mem after loaded train data:', cpuStats())
+
+    with timer('gen categorical features for train'):
+        train = gen_categorical_features(train)
+
+
+    for add_feature in config_scheme_to_use.add_features_list:
+        feature_name_added = '_'.join(add_feature['group']) + add_feature['op']
+
+        counting_col = add_feature['group'][len(add_feature['group']) - 1]
+        group_by_cols = add_feature['group'][0:len(add_feature['group']) - 1]
+
+        if add_feature['op'] != 'smoothcvr':
+            continue
+        print('processing:',add_feature)
+        with timer('gen cvr grouping cache:'):
+            if not hasattr(add_statistic_feature, 'train_cvr_cache'):
+                add_statistic_feature.train_cvr_cache = dict()
+
+            if not hasattr(add_statistic_feature, 'alpha'):
+                add_statistic_feature.alpha, add_statistic_feature.beta = \
+                    get_recursive_alpha_beta(train['is_attributed'].sum(), train['is_attributed'].count())
+                print('total alpha/beta: {}/{}'.format(add_statistic_feature.alpha, add_statistic_feature.beta))
+                print('total cvr:{}, alpha/(alpha+beta):{}'.format(train['is_attributed'].mean(),
+                                                                   add_statistic_feature.alpha / (
+                                                                   add_statistic_feature.alpha + add_statistic_feature.beta)))
+
+            if feature_name_added in add_statistic_feature.train_cvr_cache:
+                temp_sum = add_statistic_feature.train_cvr_cache[feature_name_added]
+            else:
+                temp_count = train[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[
+                    ['is_attributed']].count()
+                temp_sum = train[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[['is_attributed']].sum()
+                temp_sum[feature_name_added] = (temp_sum['is_attributed'] + add_statistic_feature.alpha) / \
+                                               (temp_count[
+                                                    'is_attributed'] + add_statistic_feature.alpha + add_statistic_feature.beta).astype(
+                                                   'float16')
+                del temp_count
+                del temp_sum['is_attributed']
+                gc.collect()
+                add_statistic_feature.train_cvr_cache[feature_name_added] = temp_sum
+
+    print('setting global cvr for fillna...')
+    if not hasattr(add_statistic_feature, 'global_cvr'):
+        add_statistic_feature.global_cvr = train['is_attributed'].mean()
+
+    del train
+    gc.collect()
 
 
 def generate_counting_history_features(data,
@@ -3266,6 +3344,9 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
 
 def train_and_predict_gen_fts_seperately(com_fts_list, use_ft_cache = False, only_cache=False,
                                          use_base_data_cache=False):
+
+    if config_scheme_to_use.train_smoothcvr_cache_from is not None:
+        gen_smoothcvr_cache(config_scheme_to_use.train_smoothcvr_cache_from, config_scheme_to_use.train_smoothcvr_cache_to)
 
     if use_base_data_cache and \
             hasattr(train_and_predict_gen_fts_seperately, 'base_train_data_cache') and \
