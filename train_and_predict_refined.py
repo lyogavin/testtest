@@ -3289,8 +3289,8 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
                     temp.extend(cols_coms)
                     temp.append('is_attributed')
                     # add both mean and var:
-                    com_fts_list_to_use.append({'group': list(temp), 'op': 'mean'})
-                    com_fts_list_to_use.append({'group': list(temp), 'op': 'var'})
+                    com_fts_list_to_use.append({'group': list(temp), 'op': 'mean', 'astype':'float32'})
+                    com_fts_list_to_use.append({'group': list(temp), 'op': 'var','astype':'float32'})
 
     #print('added count coms(len: {}): {}'.format(len(com_fts_list_to_use), com_fts_list_to_use))
 

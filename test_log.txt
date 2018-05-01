@@ -832,7 +832,8 @@ _cvr']
  ('channel', 347)]
     9. based on 7, try cvr with combined
         grid test3:
-        azzureyun: running
+        azzureyun: OOM
+        change to float32 and retry: running
     10.based on 8, set L1 to 1.0
         aliyun:
     [135]	train's auc: 0.982748	valid's auc: 0.97085
@@ -1011,6 +1012,7 @@ gain importance:
         grid test2: 0.9787
     26. train from best nunique and count from coms search:
         grid test4:running
+        LB:submitting
 
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
