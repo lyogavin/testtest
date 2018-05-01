@@ -833,7 +833,8 @@ _cvr']
     9. based on 7, try cvr with combined
         grid test3:
         azzureyun: OOM
-        change to float32 and retry: running
+        change to float16, 1/3 sample and retry: OOM
+
     10.based on 8, set L1 to 1.0
         aliyun:
     [135]	train's auc: 0.982748	valid's auc: 0.97085
@@ -1011,8 +1012,15 @@ gain importance:
     25. 23+ad_val weighting
         grid test2: 0.9787
     26. train from best nunique and count from coms search:
-        grid test4:running
-        LB:submitting
+        grid test4:
+        [364]	train's auc: 0.984592	valid's auc: 0.982711
+        LB:0.9775
+    27. based on 23, change to 5% of least:
+        TODO:
+    28. based on 26, remove last 4 gain rerun:
+    [237]	train's auc: 0.983657	valid's auc: 0.98331
+        LB:0.9779 version58
+
 
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
@@ -1062,6 +1070,8 @@ gain importance:
     14. use pub asraful kernel's ft set and lgbm params:
         grid test 2:
     [302]	train's auc: 0.982995	valid's auc: 0.97019
+    15. test smooth cvr features:
+
 
 127. ensembles:
     1. ensemble of 123.0 + 124.3

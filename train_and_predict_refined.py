@@ -7,6 +7,7 @@
 # For example, here's several helpful packages to load in 
 import sys
 import copy
+from scipy import special as sp
 
 on_kernel = False
 
@@ -497,6 +498,39 @@ add_features_list_origin_no_channel_next_click = [
     {'group': ['app', 'day', 'hour', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
     ]
+
+add_features_list_smooth_cvr = [
+
+    # ====================
+    # my best features
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
+
+    {'group': ['app', 'channel', 'is_attributed'], 'op': 'smoothcvr'},
+    {'group': ['app', 'os', 'is_attributed'], 'op': 'smoothcvr'},
+    {'group': ['app', 'device', 'is_attributed'], 'op': 'smoothcvr'},
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'smoothcvr'},
+    {'group': ['hour', 'is_attributed'], 'op': 'smoothcvr'},
+    {'group': ['ip', 'is_attributed'], 'op': 'smoothcvr'},
+    {'group': ['app', 'is_attributed'], 'op': 'smoothcvr'},
+    {'group': ['device', 'is_attributed'], 'op': 'smoothcvr'},
+    {'group': ['os', 'is_attributed'], 'op': 'smoothcvr'},
+    {'group': ['channel', 'is_attributed'], 'op': 'smoothcvr'},
+
+    # for debuging the smooth cvrs:
+    #{'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'mean'},
+    #{'group': ['hour', 'is_attributed'], 'op': 'mean'},
+    #{'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'count'},
+    #{'group': ['hour', 'is_attributed'], 'op': 'count'}
+
+    ]
+
+
 add_features_list_origin_no_channel_next_click_best_ct_nu_from_search = [
     {'group': ['ip', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'device', 'is_attributed'], 'op': 'count'},
@@ -513,6 +547,19 @@ add_features_list_origin_no_channel_next_click_best_ct_nu_from_search = [
     {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
     {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
     ]
+add_features_list_origin_no_channel_next_click_best_ct_nu_from_search_28 = [
+    {'group': ['ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'device', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+
+    {'group': ['app', 'channel', 'ip'], 'op': 'nunique'},
+    {'group': ['app', 'channel', 'hour', 'ip'], 'op': 'nunique'},
+
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
+    ]
+
 add_features_list_origin_no_channel_next_click_ip_freq_ch = \
     add_features_list_origin_no_channel_next_click + [
         {'group': ['ip', 'in_test_frequent_channel', 'is_attributed'], 'op': 'count'}
@@ -1557,6 +1604,8 @@ train_config_124_26 = copy.deepcopy(train_config_124)
 train_config_124_26.add_features_list = add_features_list_origin_no_channel_next_click_best_ct_nu_from_search
 
 
+train_config_124_28 = copy.deepcopy(train_config_124)
+train_config_124_28.add_features_list = add_features_list_origin_no_channel_next_click_best_ct_nu_from_search_28
 
 
 train_config_126_1 = ConfigScheme(False, False, False,
@@ -1670,6 +1719,8 @@ train_config_126_14 = copy.deepcopy(train_config_126_1)
 train_config_126_14.add_features_list = add_features_list_pub_asraful_kernel
 train_config_126_14.lgbm_params =  lgbm_params_pub_asraful_kernel
 
+train_config_126_15 = copy.deepcopy(train_config_126_1)
+train_config_126_15.add_features_list = add_features_list_smooth_cvr
 
 train_config_121_7 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
@@ -1748,7 +1799,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_121_9')
+config_scheme_to_use = use_config_scheme('train_config_126_15')
 
 
 dtypes = {
@@ -1844,6 +1895,25 @@ def df_get_counts(df, cols):
                                      return_inverse=True, return_counts=True)
     return counts[unqtags]
 
+
+def get_recursive_alpha_beta(sumi, count):
+
+    def getalpha(sumi, count, alpha0, beta0):
+        return alpha0 * (sp.psi(sumi + alpha0) - sp.psi(alpha0)) / \
+            (sp.psi(count + alpha0 + beta0) - sp.psi(alpha0 + beta0))
+
+    def getbeta(sumi, count, alpha0, beta0):
+        return beta0 * (sp.psi(count - sumi + beta0) - sp.psi(beta0)) / \
+            (sp.psi(count + alpha0 + beta0) - sp.psi(alpha0 + beta0))
+
+    alpha = 10.0
+    beta = 10000.0
+    for i in range(1000):
+        alpha0 = alpha
+        beta0 = beta
+        alpha = getalpha(sumi, count, alpha0, beta0)
+        beta = getbeta(sumi, count, alpha0, beta0)
+    return alpha, beta
 
 def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_use.qcut, #0, #0.98,
                           discretization=0, discretization_bins=None,
@@ -1978,7 +2048,40 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
 
             #if print_verbose:
             print('next click added:', training[feature_name_added].describe())
+    elif op=='smoothcvr':
+        with timer('gen cvr grouping cache:'):
+            if not hasattr(add_statistic_feature, 'train_cvr_cache'):
+                add_statistic_feature.train_cvr_cache = dict()
 
+            if not hasattr(add_statistic_feature, 'alpha'):
+                add_statistic_feature.alpha, add_statistic_feature.beta = \
+                    get_recursive_alpha_beta(training['is_attributed'].sum(), training['is_attributed'].count())
+                print('total alpha/beta: {}/{}'.format(add_statistic_feature.alpha, add_statistic_feature.beta))
+                print('total cvr:{}, alpha/(alpha+beta):{}'.format(training['is_attributed'].mean(),
+                    add_statistic_feature.alpha/ (add_statistic_feature.alpha + add_statistic_feature.beta)))
+
+            if feature_name_added in add_statistic_feature.train_cvr_cache:
+                temp_sum = add_statistic_feature.train_cvr_cache[feature_name_added]
+            else:
+                if ft_cache_prefix != 'train':
+                    print("!!!!!!non-train should only use cache, which should be there!!!!!!!")
+                    exit(-1)
+                temp_count = training[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[['is_attributed']].count()
+                temp_sum = training[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[['is_attributed']].sum()
+                temp_sum[feature_name_added] = (temp_sum['is_attributed'] + add_statistic_feature.alpha) /  \
+                        (temp_count['is_attributed'] + add_statistic_feature.alpha + add_statistic_feature.beta).astype('float16')
+                del temp_count
+                del temp_sum['is_attributed']
+                gc.collect()
+                add_statistic_feature.train_cvr_cache[feature_name_added] = temp_sum
+        #n_chans = temp1.reset_index().rename(columns={'is_attributed': feature_name_added})
+        training = training.merge(temp_sum.reset_index(), on=group_by_cols if len(group_by_cols) >1 else group_by_cols[0],
+                                  how='left')
+        if not hasattr(add_statistic_feature, 'global_cvr'):
+            add_statistic_feature.global_cvr = training['is_attributed'].mean()
+        training[feature_name_added] = training[feature_name_added].fillna(add_statistic_feature.global_cvr)
+        print('smooth cvr: {} gened'.format(feature_name_added))
+        print(training[feature_name_added].describe())
     else:
         tempstr = 'training[group_by_cols + [counting_col]].groupby(by=group_by_cols)[[counting_col]]'
         if len(op) > 2 and op[0:2] == 'qt':
@@ -2112,6 +2215,22 @@ def generate_counting_history_features(data,
                 discretization_bins_used = \
                     dict(list(discretization_bins_used.items()) + list(discretization_bins_used_current_feature.items()))
             gc.collect()
+
+    print('\n\n\n-------------\n{} DEBUG CVR:\n-------------\n\n\n'.format(ft_cache_prefix))
+    if 'hour_is_attributedsmoothcvr' in data.columns:
+        print('gened hour_is_attributedsmoothcvr:')
+        print(data[['hour_is_attributedsmoothcvr', 'hour_is_attributedmean',
+                    'hour_is_attributedcount','hour']].sample(20).to_string())
+
+
+    if 'ip_app_device_os_is_attributedsmoothcvr' in data.columns:
+        print('gened ip_app_device_os_is_attributedsmoothcvr:')
+        print(data[['ip_app_device_os_is_attributedsmoothcvr',
+              'ip_app_device_os_is_attributedmean','ip_app_device_os_is_attributedcount']].sample(20).to_string())
+
+
+    print('\n\n\n-------------\nDEBUG CVR DONE\n-------------\n\n\n')
+
 
     if discretization_bins is None:
         print('discretization bins used:', discretization_bins_used)
