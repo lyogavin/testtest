@@ -1071,7 +1071,7 @@ gain importance:
         grid test 2:
     [302]	train's auc: 0.982995	valid's auc: 0.97019
     15. test smooth cvr features:
-
+        azzureyun: running
 
 127. ensembles:
     1. ensemble of 123.0 + 124.3

@@ -2217,13 +2217,17 @@ def generate_counting_history_features(data,
             gc.collect()
 
     print('\n\n\n-------------\n{} DEBUG CVR:\n-------------\n\n\n'.format(ft_cache_prefix))
-    if 'hour_is_attributedsmoothcvr' in data.columns:
+    if 'hour_is_attributedsmoothcvr' in data.columns and \
+            'hour_is_attributedmean' in data.columns and \
+            'hour_is_attributedcount' in data.columns:
         print('gened hour_is_attributedsmoothcvr:')
         print(data[['hour_is_attributedsmoothcvr', 'hour_is_attributedmean',
                     'hour_is_attributedcount','hour']].sample(20).to_string())
 
 
-    if 'ip_app_device_os_is_attributedsmoothcvr' in data.columns:
+    if 'ip_app_device_os_is_attributedsmoothcvr' in data.columns and \
+        'ip_app_device_os_is_attributedmean' in data.columns and \
+        'ip_app_device_os_is_attributedcount' in  data.columns:
         print('gened ip_app_device_os_is_attributedsmoothcvr:')
         print(data[['ip_app_device_os_is_attributedsmoothcvr',
               'ip_app_device_os_is_attributedmean','ip_app_device_os_is_attributedcount']].sample(20).to_string())
