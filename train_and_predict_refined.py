@@ -1823,7 +1823,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_30')
+config_scheme_to_use = use_config_scheme('train_config_124_29')
 
 
 dtypes = {

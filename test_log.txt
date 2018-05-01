@@ -1079,7 +1079,7 @@ gain importance:
     15. test smooth cvr features:
         azzureyun: running
     [201]	train's auc: 0.982792	valid's auc: 0.971219
-
+    [230]   train's auc: 0.983771   valid's auc: 0.97102
 
 127. ensembles:
     1. ensemble of 123.0 + 124.3
