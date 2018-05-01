@@ -798,7 +798,10 @@ class ConfigScheme:
                  add_in_test_frequent_dimensions = None,
                  add_lgbm_fts_from_saved_model = False,
                  train_smoothcvr_cache_from = None,
-                 train_smoothcvr_cache_to = None):
+                 train_smoothcvr_cache_to = None,
+                 test_smoothcvr_cache_from = None,
+                 test_smoothcvr_cache_to = None
+                 ):
         self.predict = predict
         self.train = train
         self.ffm_data_gen = ffm_data_gen
@@ -844,6 +847,8 @@ class ConfigScheme:
         self.add_lgbm_fts_from_saved_model = add_lgbm_fts_from_saved_model
         self.train_smoothcvr_cache_from = train_smoothcvr_cache_from
         self.train_smoothcvr_cache_to = train_smoothcvr_cache_to
+        self.test_smoothcvr_cache_from = test_smoothcvr_cache_from
+        self.test_smoothcvr_cache_to = test_smoothcvr_cache_to
 
 
 
@@ -1616,6 +1621,14 @@ train_config_124_28.add_features_list = add_features_list_origin_no_channel_next
 train_config_124_29 = copy.deepcopy(train_config_124)
 train_config_124_29.add_features_list = add_features_list_smooth_cvr
 
+train_config_124_30 = copy.deepcopy(train_config_124)
+train_config_124_30.add_features_list = add_features_list_smooth_cvr
+train_config_124_30.train_smoothcvr_cache_from = id_8_4am
+train_config_124_30.train_smoothcvr_cache_to = id_8_3pm
+train_config_124_30.test_smoothcvr_cache_from = id_9_4am
+train_config_124_30.test_smoothcvr_cache_to = id_9_3pm
+
+
 train_config_126_1 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
                                  random_sample_filter_0_5,
@@ -1810,7 +1823,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_29')
+config_scheme_to_use = use_config_scheme('train_config_124_30')
 
 
 dtypes = {
@@ -3409,6 +3422,11 @@ def train_and_predict_gen_fts_seperately(com_fts_list, use_ft_cache = False, onl
     print('mem after train and gc:', cpuStats())
 
     if config_scheme_to_use.new_predict and not only_cache:
+
+        if config_scheme_to_use.test_smoothcvr_cache_from is not None:
+            clear_smoothcvr_cache()
+            gen_smoothcvr_cache(config_scheme_to_use.test_smoothcvr_cache_from,
+                                config_scheme_to_use.test_smoothcvr_cache_to)
 
         with timer('predict test data:'):
             with timer('loading test df:'):

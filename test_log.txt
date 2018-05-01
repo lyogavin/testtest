@@ -1024,6 +1024,8 @@ gain importance:
         LB:0.9779 version58
     29. add smoothcvr fts:
         azzureyun: running
+    30. use 1 day before to calcuate smooth cvr:
+        aliyun: running
 
 
 
