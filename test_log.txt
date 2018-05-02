@@ -741,7 +741,7 @@ _cvr']
     9. add 20 LGBM features:
         aliyun: 0.9766
     10. 9+ 7 features to avoid overfitting and retry:
-        Aliyun: LB:submitting
+        Aliyun: LB:0.9775
     11. use only raw features to generate 20 lgbm features.
         A. gen model: grid test3: see 124_33
         B. TODO: use model generated from A
@@ -1073,9 +1073,9 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
         grid test3: generated
     34. TODO: try only use dimensions combinations that showed up in test:
     35. hourly smooth cvr:
-        grid test4: LB:submitting
+        grid test4: LB:0.9789
     36. smooth cvr from coms ft search 121_13:
-        azzureyun: running
+        aliyun: running
 
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
