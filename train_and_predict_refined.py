@@ -1643,6 +1643,9 @@ train_config_124_30.test_smoothcvr_cache_to = id_9_3pm
 train_config_124_31 = copy.deepcopy(train_config_124)
 train_config_124_31.lgbm_params = lgbm_params_search_128_610
 
+train_config_124_33 = copy.deepcopy(train_config_124)
+train_config_124_33.add_features_list = []
+
 train_config_126_1 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
                                  random_sample_filter_0_5,
@@ -1841,7 +1844,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_117_10')
+config_scheme_to_use = use_config_scheme('train_config_124_33')
 
 
 dtypes = {
