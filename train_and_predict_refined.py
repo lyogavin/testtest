@@ -811,7 +811,10 @@ class ConfigScheme:
                  test_smoothcvr_cache_from = None,
                  test_smoothcvr_cache_to = None,
                  add_lgbm_fts_from_saved_model_count = 20,
-                 use_hourly_alpha_beta = False
+                 use_hourly_alpha_beta = False,
+                 add_lgbm_fts_from_saved_model_filename = 'train_config_124_3_model.txt',
+                 add_lgbm_fts_from_saved_model_predictors_pickle_filename = \
+                         'train_config_124_3_model_predictors.pickle'
                  ):
         self.predict = predict
         self.train = train
@@ -862,6 +865,9 @@ class ConfigScheme:
         self.test_smoothcvr_cache_to = test_smoothcvr_cache_to
         self.add_lgbm_fts_from_saved_model_count = add_lgbm_fts_from_saved_model_count
         self.use_hourly_alpha_beta = use_hourly_alpha_beta
+        self.add_lgbm_fts_from_saved_model_filename = add_lgbm_fts_from_saved_model_filename
+        self.add_lgbm_fts_from_saved_model_predictors_pickle_filename = \
+            add_lgbm_fts_from_saved_model_predictors_pickle_filename
 
 
 
@@ -1277,6 +1283,15 @@ train_config_117_10 = copy.deepcopy(train_config_117_8)
 train_config_117_10.add_lgbm_fts_from_saved_model = True
 train_config_117_10.add_features_list = add_features_list_origin_no_channel_next_click_days
 train_config_117_10.add_lgbm_fts_from_saved_model_count = 7
+
+
+train_config_117_11 = copy.deepcopy(train_config_117_8)
+train_config_117_11.add_lgbm_fts_from_saved_model = True
+train_config_117_11.add_features_list = add_features_list_origin_no_channel_next_click_days
+train_config_117_11.add_lgbm_fts_from_saved_model_count = 7
+train_config_117_11.add_lgbm_fts_from_saved_model_filename = 'train_config_124_33_model.txt'
+train_config_117_11.add_lgbm_fts_from_saved_model_predictors_pickle_filename = \
+    'train_config_124_33_model_predictors.pickle'
 
 train_config_121_1 = ConfigScheme(False, False, False,
                                   shuffle_sample_filter_1_to_3,
@@ -3361,8 +3376,8 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
     predictors1 = categorical + new_features + ['is_attributed']
 
     if config_scheme_to_use.add_lgbm_fts_from_saved_model:
-        lgb_model = lgb.Booster(model_file='train_config_124_3_model.txt')
-        lgb_predictors = pickle.load(open('train_config_124_3_model_predictors.pickle', 'rb'))
+        lgb_model = lgb.Booster(model_file=config_scheme_to_use.add_lgbm_fts_from_saved_model_fiename)
+        lgb_predictors = pickle.load(open(config_scheme_to_use.add_lgbm_fts_from_saved_model_predictors_pickle_filename, 'rb'))
         lgb_fts_count = config_scheme_to_use.add_lgbm_fts_from_saved_model_count
 
         with timer('predict train LGBM features:'):

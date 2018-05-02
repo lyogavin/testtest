@@ -743,7 +743,8 @@ _cvr']
     10. 9+ 7 features to avoid overfitting and retry:
         Aliyun: running
     11. use only raw features to generate 20 lgbm features.
-        A. gen model: grid test3: see
+        A. gen model: grid test3: see 124_33
+        B. TODO: use model generated from A
 
 
 118 ensemble of: 117_2, 116_3, 103_11
@@ -1037,7 +1038,7 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
     32. based on 30, cvr features search:
         azzure: see 121_13
     33. only raw features to save model for FFM:
-        grid test3:running
+        grid test3: generated
     34. TODO: try only use dimensions combinations that showed up in test:
 
 
