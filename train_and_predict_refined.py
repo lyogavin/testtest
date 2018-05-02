@@ -105,6 +105,10 @@ import csv
 from pympler import muppy
 from pympler import summary
 
+
+import warnings
+
+
 dump_train_data = False
 
 use_sample = False
@@ -806,7 +810,8 @@ class ConfigScheme:
                  train_smoothcvr_cache_to = None,
                  test_smoothcvr_cache_from = None,
                  test_smoothcvr_cache_to = None,
-                 add_lgbm_fts_from_saved_model_count = 20
+                 add_lgbm_fts_from_saved_model_count = 20,
+                 use_hourly_alpha_beta = False
                  ):
         self.predict = predict
         self.train = train
@@ -856,6 +861,7 @@ class ConfigScheme:
         self.test_smoothcvr_cache_from = test_smoothcvr_cache_from
         self.test_smoothcvr_cache_to = test_smoothcvr_cache_to
         self.add_lgbm_fts_from_saved_model_count = add_lgbm_fts_from_saved_model_count
+        self.use_hourly_alpha_beta = use_hourly_alpha_beta
 
 
 
@@ -1762,6 +1768,11 @@ train_config_126_15.add_features_list = add_features_list_smooth_cvr
 #train_config_126_15.train_smoothcvr_cache_from = id_7_4am
 #train_config_126_15.train_smoothcvr_cache_to = id_7_3pm
 
+train_config_126_16 = copy.deepcopy(train_config_126_1)
+train_config_126_16.add_features_list = add_features_list_smooth_cvr
+train_config_126_16.use_hourly_alpha_beta = True
+train_config_126_16.train_smoothcvr_cache_from = id_7_4am
+train_config_126_16.train_smoothcvr_cache_to = id_7_3pm
 
 train_config_121_7 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
@@ -1844,7 +1855,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_33')
+config_scheme_to_use = use_config_scheme('train_config_126_16')
 
 
 dtypes = {
@@ -1941,24 +1952,51 @@ def df_get_counts(df, cols):
     return counts[unqtags]
 
 
-def get_recursive_alpha_beta(sumi, count):
+def get_recursive_alpha_beta(sumi, count, global_alpha = 20.0, global_beta = 10000.0):
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", RuntimeWarning)
 
-    def getalpha(sumi, count, alpha0, beta0):
-        return alpha0 * (sp.psi(sumi + alpha0) - sp.psi(alpha0)) / \
-            (sp.psi(count + alpha0 + beta0) - sp.psi(alpha0 + beta0))
+        if global_alpha == 0:
+            print("!!!! zero global alpha")
+            exit(-1)
 
-    def getbeta(sumi, count, alpha0, beta0):
-        return beta0 * (sp.psi(count - sumi + beta0) - sp.psi(beta0)) / \
-            (sp.psi(count + alpha0 + beta0) - sp.psi(alpha0 + beta0))
+        def getalpha(sumi, count, alpha0, beta0):
+            try:
+                return alpha0 * (sp.psi(sumi + alpha0) - sp.psi(alpha0)) / \
+                    (sp.psi(count + alpha0 + beta0) - sp.psi(alpha0 + beta0))
+            except:
+                print('warining: {} {} {} {}'.format(sumi, count, alpha0, beta0))
+                return global_alpha
 
-    alpha = 10.0
-    beta = 10000.0
-    for i in range(1000):
-        alpha0 = alpha
-        beta0 = beta
-        alpha = getalpha(sumi, count, alpha0, beta0)
-        beta = getbeta(sumi, count, alpha0, beta0)
-    return alpha, beta
+        def getbeta(sumi, count, alpha0, beta0):
+            try:
+                return beta0 * (sp.psi(count - sumi + beta0) - sp.psi(beta0)) / \
+                    (sp.psi(count + alpha0 + beta0) - sp.psi(alpha0 + beta0))
+            except:
+                print('warining: {} {} {} {}'.format(sumi, count, alpha0, beta0))
+                return global_beta
+
+        alpha = global_alpha
+        beta = global_beta
+
+        for i in range(1000):
+            alpha0 = alpha
+            beta0 = beta
+            alpha = getalpha(sumi, count, alpha0, beta0)
+            beta = getbeta(sumi, count, alpha0, beta0)
+
+            if alpha == 0:
+                break
+            #print('alpha:', alpha)
+
+
+        if (alpha is None) or (beta is None):
+            print("!!!!!!!!!!!Alpha = 0, NAN in calculating alpha!!!!!!!!!!!!!!!!!: alpha:{}, beta:{}".format(alpha, beta))
+            exit(-1)
+            return global_alpha, global_beta
+        else:
+            return alpha, beta
+
 
 def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_use.qcut, #0, #0.98,
                           discretization=0, discretization_bins=None,
@@ -2256,7 +2294,7 @@ def gen_smoothcvr_cache(frm, to):
 
             if feature_name_added in add_statistic_feature.train_cvr_cache:
                 temp_sum = add_statistic_feature.train_cvr_cache[feature_name_added]
-            else:
+            elif not config_scheme_to_use.use_hourly_alpha_beta or 'hour' not in group_by_cols:
                 temp_count = train[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[
                     ['is_attributed']].count()
                 temp_sum = train[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[['is_attributed']].sum()
@@ -2268,6 +2306,56 @@ def gen_smoothcvr_cache(frm, to):
                 del temp_sum['is_attributed']
                 gc.collect()
                 add_statistic_feature.train_cvr_cache[feature_name_added] = temp_sum
+            else:
+                if not hasattr(add_statistic_feature, 'hourly_alpha_beta'):
+                    add_statistic_feature.hourly_alpha_beta = train[['hour', 'is_attributed']].\
+                        groupby(by=['hour'])[['is_attributed']].sum()
+                    add_statistic_feature.hourly_alpha_beta['count'] = train[['hour', 'is_attributed']].\
+                        groupby(by=['hour'])[['is_attributed']].count()['is_attributed']
+                    add_statistic_feature.hourly_alpha_beta['alpha'] = add_statistic_feature.hourly_alpha_beta.apply(
+                        lambda x: get_recursive_alpha_beta(x['is_attributed'], x['count'],
+                                                           add_statistic_feature.alpha,
+                                                           add_statistic_feature.beta)[0], axis=1
+                    )
+                    add_statistic_feature.hourly_alpha_beta['beta'] = add_statistic_feature.hourly_alpha_beta.apply(
+                        lambda x: get_recursive_alpha_beta(x['is_attributed'], x['count'],
+                                                           add_statistic_feature.alpha,
+                                                           add_statistic_feature.beta)[1], axis=1
+                    )
+                    del add_statistic_feature.hourly_alpha_beta['is_attributed']
+                    del add_statistic_feature.hourly_alpha_beta['count']
+                    add_statistic_feature.hourly_alpha_beta = add_statistic_feature.hourly_alpha_beta.reset_index()
+                    print('debug: hourly alapha beta:')
+                    print(add_statistic_feature.hourly_alpha_beta.to_string())
+                    print(add_statistic_feature.hourly_alpha_beta.\
+                          apply(lambda x: x['alpha']/(x['alpha']+x['beta']), axis=1).to_string())
+                    print('hourly mean:')
+                    print(train[['hour', 'is_attributed']].\
+                        groupby(by=['hour'])[['is_attributed']].mean().to_string())
+                    print('hourly sum:')
+                    print(train[['hour', 'is_attributed']].\
+                        groupby(by=['hour'])[['is_attributed']].sum().to_string())
+                    print('hourly count:')
+                    print(train[['hour', 'is_attributed']].\
+                        groupby(by=['hour'])[['is_attributed']].count().to_string())
+
+                temp_count = train[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[
+                    ['is_attributed']].count().rename(columns={'is_attributed':'count'})
+                temp_count['sum'] = train[group_by_cols + ['is_attributed']].\
+                    groupby(by=group_by_cols)[['is_attributed']].sum()['is_attributed']
+
+                temp_count = temp_count.reset_index().merge(add_statistic_feature.hourly_alpha_beta,
+                                                            on='hour',how='left')
+                temp_count[feature_name_added] = temp_count.apply(lambda x: (x['sum'] + x['alpha'])/ \
+                                                                            (x['count'] + x['alpha'] + x['beta']), axis=1)
+                del temp_count['alpha']
+                del temp_count['beta']
+                del temp_count['sum']
+                del temp_count['count']
+                #del temp_count['is_attributed']
+
+                gc.collect()
+                add_statistic_feature.train_cvr_cache[feature_name_added] = temp_count
 
     print('setting global cvr for fillna...')
     if not hasattr(add_statistic_feature, 'global_cvr'):

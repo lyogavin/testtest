@@ -1093,6 +1093,7 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
     [201]	train's auc: 0.982792	valid's auc: 0.971219
     [230]   train's auc: 0.983771   valid's auc: 0.97102
     16. hour based alpha, beta
+        grid test4:running
 
 127. ensembles:
     1. ensemble of 123.0 + 124.3
