@@ -314,7 +314,12 @@ lgbm_params_search_128_114.update({
     'reg_lambda': 1.2196200544739068e-09, 'scale_pos_weight': 231.48637373544372,
     'subsample': 0.7079619705989065}
 )
-
+lgbm_params_search_128_610 = dict(new_lgbm_params)
+lgbm_params_search_128_114.update({
+    'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max_depth': 10, 'min_child_samples': 10,
+    'min_child_weight': 0, 'num_leaves': 11, 'reg_alpha': 1.0, 'reg_lambda': 1e-09,
+    'scale_pos_weight': 249.99999999999994, 'subsample': 0.6870745956370757}
+)
 lgbm_params_l1 = dict(new_lgbm_params)
 lgbm_params_l1.update({
     'reg_alpha': 1.0
@@ -1628,6 +1633,8 @@ train_config_124_30.train_smoothcvr_cache_to = id_8_3pm
 train_config_124_30.test_smoothcvr_cache_from = id_9_4am
 train_config_124_30.test_smoothcvr_cache_to = id_9_3pm
 
+train_config_124_31 = copy.deepcopy(train_config_124)
+train_config_124_31.lgbm_params = lgbm_params_search_128_610
 
 train_config_126_1 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
@@ -1774,6 +1781,10 @@ train_config_121_12 = copy.deepcopy(train_config_121_8)
 train_config_121_12.lgbm_params=lgbm_params_l1
 train_config_121_12.adversial_val_weighted = True
 
+train_config_121_13 = copy.deepcopy(train_config_121_8)
+
+train_config_121_13.train_smoothcvr_cache_from = id_7_4am
+train_config_121_13.train_smoothcvr_cache_to = id_7_3pm
 
 train_config_126_9 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
@@ -1823,7 +1834,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_29')
+config_scheme_to_use = use_config_scheme('train_config_121_13')
 
 
 dtypes = {
@@ -3503,7 +3514,7 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
                     temp.append('is_attributed')
                     com_fts_list_to_use.append({'group': list(temp), 'op': 'count'})
 
-        add_cvr = True # has to use with combined
+        add_cvr = False # has to use with combined
         if add_cvr:
             for cols_count in range(1, 7):
                 for cols_coms in itertools.combinations(raw_cols, cols_count):
@@ -3514,6 +3525,16 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
                     com_fts_list_to_use.append({'group': list(temp), 'op': 'mean', 'astype':'float32'})
                     com_fts_list_to_use.append({'group': list(temp), 'op': 'var','astype':'float32'})
 
+        add_smooth_cvr = True  # has to use with combined
+        if add_smooth_cvr:
+            for cols_count in range(1, 7):
+                for cols_coms in itertools.combinations(raw_cols, cols_count):
+                    temp = []
+                    temp.extend(cols_coms)
+                    temp.append('is_attributed')
+                    # add both mean and var:
+                    com_fts_list_to_use.append({'group': list(temp), 'op': 'mean', 'astype': 'float32'})
+                    com_fts_list_to_use.append({'group': list(temp), 'op': 'var', 'astype': 'float32'})
     #print('added count coms(len: {}): {}'.format(len(com_fts_list_to_use), com_fts_list_to_use))
 
     do_shuffle = False

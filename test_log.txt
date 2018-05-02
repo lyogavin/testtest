@@ -868,6 +868,8 @@ _cvr']
     12. based on 8, with adversial enabled:
         grid test 4: OOM
         TODO: find other box to run
+    13. cvr fts:
+        azzureyun:running
 
 
 
@@ -1023,10 +1025,15 @@ gain importance:
     [237]	train's auc: 0.983657	valid's auc: 0.98331
         LB:0.9779 version58
     29. add smoothcvr fts:
-        azzureyun: running
+        azzureyun: 0.9789
     30. use 1 day before to calcuate smooth cvr:
-        aliyun: running
-
+        aliyun: 0.9789
+    31. use new params from search:
+    Best ROC-AUC: 0.9732
+Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max_depth': 10, 'min_child_samples': 10, 'min_child_weight': 0, 'num_leaves': 11, 'reg_alpha': 1.0, 'reg_lambda': 1e-09, 'scale_pos_weight': 249.99999999999994, 'subsample': 0.6870745956370757}
+        grid test 4:running
+    32. based on 30, cvr features search:
+        azzure: see 121_13
 
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
