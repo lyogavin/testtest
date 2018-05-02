@@ -740,8 +740,8 @@ _cvr']
         aliyun: LB:0.9780
     9. add 20 LGBM features:
         aliyun: 0.9766
-    10. 9+ 10 features to avoid overfitting and retry:
-        TODO:
+    10. 9+ 7 features to avoid overfitting and retry:
+        Aliyun: running
 
 
 118 ensemble of: 117_2, 116_3, 103_11

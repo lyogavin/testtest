@@ -805,7 +805,8 @@ class ConfigScheme:
                  train_smoothcvr_cache_from = None,
                  train_smoothcvr_cache_to = None,
                  test_smoothcvr_cache_from = None,
-                 test_smoothcvr_cache_to = None
+                 test_smoothcvr_cache_to = None,
+                 add_lgbm_fts_from_saved_model_count = 20
                  ):
         self.predict = predict
         self.train = train
@@ -854,6 +855,7 @@ class ConfigScheme:
         self.train_smoothcvr_cache_to = train_smoothcvr_cache_to
         self.test_smoothcvr_cache_from = test_smoothcvr_cache_from
         self.test_smoothcvr_cache_to = test_smoothcvr_cache_to
+        self.add_lgbm_fts_from_saved_model_count = add_lgbm_fts_from_saved_model_count
 
 
 
@@ -1264,6 +1266,11 @@ train_config_117_8.log_discretization = True
 train_config_117_9 = copy.deepcopy(train_config_117_8)
 train_config_117_9.add_lgbm_fts_from_saved_model = True
 train_config_117_9.add_features_list = add_features_list_origin_no_channel_next_click_days
+
+train_config_117_10 = copy.deepcopy(train_config_117_8)
+train_config_117_10.add_lgbm_fts_from_saved_model = True
+train_config_117_10.add_features_list = add_features_list_origin_no_channel_next_click_days
+train_config_117_10.add_lgbm_fts_from_saved_model_count = 7
 
 train_config_121_1 = ConfigScheme(False, False, False,
                                   shuffle_sample_filter_1_to_3,
@@ -1834,7 +1841,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_121_13')
+config_scheme_to_use = use_config_scheme('train_config_117_10')
 
 
 dtypes = {
@@ -3265,7 +3272,7 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
     if config_scheme_to_use.add_lgbm_fts_from_saved_model:
         lgb_model = lgb.Booster(model_file='train_config_124_3_model.txt')
         lgb_predictors = pickle.load(open('train_config_124_3_model_predictors.pickle', 'rb'))
-        lgb_fts_count = 20
+        lgb_fts_count = config_scheme_to_use.add_lgbm_fts_from_saved_model_count
 
         with timer('predict train LGBM features:'):
             predict_result = lgb_model.predict(train[lgb_predictors], num_iteration=lgb_fts_count, pred_leaf=True)
