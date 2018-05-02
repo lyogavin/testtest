@@ -3406,7 +3406,7 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
     predictors1 = categorical + new_features + ['is_attributed']
 
     if config_scheme_to_use.add_lgbm_fts_from_saved_model:
-        lgb_model = lgb.Booster(model_file=config_scheme_to_use.add_lgbm_fts_from_saved_model_fiename)
+        lgb_model = lgb.Booster(model_file=config_scheme_to_use.add_lgbm_fts_from_saved_model_filename)
         lgb_predictors = pickle.load(open(config_scheme_to_use.add_lgbm_fts_from_saved_model_predictors_pickle_filename, 'rb'))
         lgb_fts_count = config_scheme_to_use.add_lgbm_fts_from_saved_model_count
 
