@@ -741,7 +741,7 @@ _cvr']
     9. add 20 LGBM features:
         aliyun: 0.9766
     10. 9+ 7 features to avoid overfitting and retry:
-        Aliyun: running
+        Aliyun: LB:submitting
     11. use only raw features to generate 20 lgbm features.
         A. gen model: grid test3: see 124_33
         B. TODO: use model generated from A
@@ -871,8 +871,39 @@ _cvr']
     12. based on 8, with adversial enabled:
         grid test 4: OOM
         TODO: find other box to run
-    13. cvr fts:
-        azzureyun:running
+    13. smooth cvr fts:
+        azzureyun:
+        by split:
+         ('app_os_is_attributedsmoothcvr', 2),
+ ('ip_is_attributedsmoothcvr', 3),
+ ('channel', 4),
+ ('device_ip_is_attributedsmoothcvr', 4),
+ ('os_hour_is_attributedsmoothcvr', 5),
+ ('os', 11),
+ ('app', 16),
+ ('ip_in_test_hh_is_attributedcount', 16),
+ ('hour_ip_is_attributedsmoothcvr', 18),
+ ('channel_ip_is_attributedsmoothcvr', 20),
+ ('app_ip_is_attributedsmoothcvr', 21),
+ ('os_ip_is_attributedsmoothcvr', 27)]
+        by gain:
+         ('app_is_attributedsmoothcvr', 5071.2099609375),
+ ('ip_app_device_os_is_attributednextclick', 6541.35986328125),
+ ('channel', 33541.510009765625),
+ ('device_ip_is_attributedsmoothcvr', 38582.2099609375),
+ ('ip_is_attributedsmoothcvr', 49380.5791015625),
+ ('app_os_is_attributedsmoothcvr', 56828.341796875),
+ ('device', 58563.1015625),
+ ('os_hour_is_attributedsmoothcvr', 70750.8408203125),
+ ('os_channel_is_attributedsmoothcvr', 85324.796875),
+ ('os', 148141.390625),
+ ('ip_in_test_hh_is_attributedcount', 225224.80932617188),
+ ('app', 424505.3664550781),
+ ('hour_ip_is_attributedsmoothcvr', 1030227.6572265625),
+ ('app_hour_is_attributedsmoothcvr', 1177230.0),
+ ('os_ip_is_attributedsmoothcvr', 1650885.775390625),
+ ('app_ip_is_attributedsmoothcvr', 16571897.869140625),
+ ('channel_ip_is_attributedsmoothcvr', 62365126.38232422)]
 
 
 
@@ -1034,12 +1065,17 @@ gain importance:
     31. use new params from search:
     Best ROC-AUC: 0.9732
 Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max_depth': 10, 'min_child_samples': 10, 'min_child_weight': 0, 'num_leaves': 11, 'reg_alpha': 1.0, 'reg_lambda': 1e-09, 'scale_pos_weight': 249.99999999999994, 'subsample': 0.6870745956370757}
-        grid test 4:LB: 0.9792
+        grid test 4:LB: !!!!!!!!!!!!!!!BUGG!!!!!!, still runed 124_3
+        grid test 2: run again: LB:0.9786
     32. based on 30, cvr features search:
         azzure: see 121_13
     33. only raw features to save model for FFM:
         grid test3: generated
     34. TODO: try only use dimensions combinations that showed up in test:
+    35. hourly smooth cvr:
+        grid test4: LB:submitting
+    36. smooth cvr from coms ft search 121_13:
+        azzureyun: running
 
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
@@ -1090,11 +1126,12 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
         grid test 2:
     [302]	train's auc: 0.982995	valid's auc: 0.97019
     15. test smooth cvr features:
-        azzureyun: running
+        azzureyun: DONE
     [201]	train's auc: 0.982792	valid's auc: 0.971219
     [230]   train's auc: 0.983771   valid's auc: 0.97102
     16. hour based alpha, beta
-        grid test4:running
+        grid test4:DONE
+    [296]	train's auc: 0.98452	valid's auc: 0.971571
 
 127. ensembles:
     1. ensemble of 123.0 + 124.3
