@@ -1855,7 +1855,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_126_16')
+config_scheme_to_use = use_config_scheme('train_config_121_13')
 
 
 dtypes = {
@@ -3631,8 +3631,7 @@ def grid_search_features_combination(only_gen_ft_cache = False, use_lgbm_searche
                     temp.extend(cols_coms)
                     temp.append('is_attributed')
                     # add both mean and var:
-                    com_fts_list_to_use.append({'group': list(temp), 'op': 'mean', 'astype': 'float32'})
-                    com_fts_list_to_use.append({'group': list(temp), 'op': 'var', 'astype': 'float32'})
+                    com_fts_list_to_use.append({'group': list(temp), 'op': 'smoothcvr','astype':'float32'})
     #print('added count coms(len: {}): {}'.format(len(com_fts_list_to_use), com_fts_list_to_use))
 
     do_shuffle = False
