@@ -179,6 +179,10 @@ sum = None
 scale = 1/len(f)
 
 for filename in f:
+    if filename[0:8] == '_IGNORE_':
+        print('ignore according to file prefix:', filename)
+        continue
+        
     print('processing ', filename)
     lgbm_submission = pd.read_csv('%s/%s' % (ensemble_dir_path,filename), header = 0,dtype=dtypes)
     #ffm_submision = pd.read_csv('new_test.sp.prd', header = 0, usecols=['click'])

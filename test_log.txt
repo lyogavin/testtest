@@ -1169,12 +1169,13 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     1. best single lgbm model:                                      124_3:      0.9793      X
     2. lgbm + pub ftrl fts:                                         124_9:      0.9785      X
     3. best nunique fts:                                            124_11:     0.9787      X
-    4. 07/08/09 each train a model then merge(5:3:2):               124_20:     0.9785      X
+    4. 07/08/09 each train a model then merge(5:3:2):               124_20:     0.9795      X
     5. weight pos/neg according to ad val model, normalized:        124_22A:    0.9790      X
     6. best nunique and count from coms search:                     124_28:     0.9779      X
     7. hourly alpha 1day before smooth cvr ft:                      124_30:     0.9789      X
     8. new lgbm params:                                             124_31:     0.9786      X
-    ensembled file:
+    ensembled file:  ensemble_submission.csv.03-05-2018_04-04-06_lgbm_SCALE_500
+    0.9795
 
     FFM models:
     1. log discretization, seperately:                              117_8:      0.9780      X
@@ -1186,6 +1187,7 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
 
     -----------------
     total ensemble: 0.5:0.3:0.2:
+    azzure: LB:0.9584
 
 
 to do test:
