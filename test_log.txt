@@ -1198,11 +1198,11 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
 131: use 7_4am to 7_3pm to generate val scores and train stacking LR model to stack:
     1. stacking val score for 117_8: aliyun: running
     2. skip 7's data in 123_0, and score 7's data for stacking: pub kernel:running
-    3. based on 124_3:
-    4. based on 124_9:
-    5. based on 124_11:
-    6. based on 124_17:
-    7. based on 124_37:
+    3. based on 124_3:  grid test 4: running
+    4. based on 124_9:  grid test 2: running
+    5. based on 124_11: grid test 3: running
+    6. based on 124_17: grid test: running
+    7. based on 124_37: azzureyun: running
 
 
 to do test:
