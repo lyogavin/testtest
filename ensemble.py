@@ -177,17 +177,16 @@ for (dirpath, dirnames, filenames) in walk(ensemble_dir_path):
 
 sum = None
 
-idx = 0
+to_process = []
 for filename in f:
     if filename[0:8] == '_IGNORE_':
         print('ignore according to file prefix:', filename)
-        del f[idx]
         continue
     else:
-        idx+=1
+        to_process.append(filename)
 
-scale = 1/len(f)
-for filename in f:
+scale = 1/len(to_process)
+for filename in to_process:
 
     print('processing ', filename)
     lgbm_submission = pd.read_csv('%s/%s' % (ensemble_dir_path,filename), header = 0,dtype=dtypes)
