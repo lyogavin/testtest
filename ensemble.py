@@ -87,6 +87,8 @@ import math
 
 
 def logit(x):
+    if x == 1:
+        x = 1 - 1e-9
     y = x / (1 - x)
     return math.log(y  if y>0 else 1)
 
