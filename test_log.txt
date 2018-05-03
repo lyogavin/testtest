@@ -1206,6 +1206,7 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         gyun: Failed bug in the rcount==130000000 trick:
         A. try remove this trick to train all the data:
             gyun: running
+            need to submit once trained to check the score first.
         B.
     3. based on 124_3:  grid test 4: OOM
                         azzureyun: DONE
@@ -1214,6 +1215,7 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     6. based on 124_17: grid test: OOM
         azzureyun: running
     7. based on 124_37: azzureyun: DONE
+    8. based on 117_11: aliyun: running
 
 
 to do test:

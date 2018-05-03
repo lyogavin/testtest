@@ -1921,6 +1921,12 @@ train_config_128 = ConfigScheme(False, False, False,
                                    use_ft_cache=False
                                    )
 
+train_config_131_1 = copy.deepcopy(train_config_117_8)
+train_config_131_1.val_filter = None
+train_config_131_1.new_predict = False
+train_config_131_1.val_from = id_7_4am
+train_config_131_1.val_to = id_7_3pm
+
 
 
 train_config_131_3 = copy.deepcopy(train_config_124_3)
@@ -1953,6 +1959,12 @@ train_config_131_7.lgbm_stacking_val_from = id_7_4am
 train_config_131_7.lgbm_stacking_val_to = id_7_3pm
 
 
+train_config_131_8 = copy.deepcopy(train_config_117_11)
+train_config_131_8.val_filter = None
+train_config_131_8.new_predict = False
+train_config_131_8.val_from = id_7_4am
+train_config_131_8.val_to = id_7_3pm
+
 
 
 def use_config_scheme(str):
@@ -1973,7 +1985,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_131_6')
+config_scheme_to_use = use_config_scheme('train_config_131_8')
 
 
 dtypes = {
