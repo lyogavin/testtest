@@ -181,7 +181,7 @@ idx = 0
 for filename in f:
     if filename[0:8] == '_IGNORE_':
         print('ignore according to file prefix:', filename)
-        del f[i]
+        del f[idx]
         continue
     idx+=1
 
