@@ -1322,6 +1322,8 @@ train_config_131_1.new_predict = False
 train_config_131_1.val_from = id_7_4am
 train_config_131_1.val_to = id_7_3pm
 
+
+
 train_config_117_9 = copy.deepcopy(train_config_117_8)
 train_config_117_9.add_lgbm_fts_from_saved_model = True
 train_config_117_9.add_features_list = add_features_list_origin_no_channel_next_click_days
@@ -1918,6 +1920,40 @@ train_config_128 = ConfigScheme(False, False, False,
                                    use_ft_cache=False
                                    )
 
+
+
+train_config_131_3 = copy.deepcopy(train_config_124_3)
+train_config_131_3.new_predict = False
+train_config_131_3.lgbm_stacking_val_from = id_7_4am
+train_config_131_3.lgbm_stacking_val_to = id_7_3pm
+
+
+train_config_131_4 = copy.deepcopy(train_config_124_9)
+train_config_131_4.new_predict = False
+train_config_131_4.lgbm_stacking_val_from = id_7_4am
+train_config_131_4.lgbm_stacking_val_to = id_7_3pm
+
+
+train_config_131_5 = copy.deepcopy(train_config_124_11)
+train_config_131_5.new_predict = False
+train_config_131_5.lgbm_stacking_val_from = id_7_4am
+train_config_131_5.lgbm_stacking_val_to = id_7_3pm
+
+
+train_config_131_6 = copy.deepcopy(train_config_124_17)
+train_config_131_6.new_predict = False
+train_config_131_6.lgbm_stacking_val_from = id_7_4am
+train_config_131_6.lgbm_stacking_val_to = id_7_3pm
+
+
+train_config_131_7 = copy.deepcopy(train_config_124_37)
+train_config_131_7.new_predict = False
+train_config_131_7.lgbm_stacking_val_from = id_7_4am
+train_config_131_7.lgbm_stacking_val_to = id_7_3pm
+
+
+
+
 def use_config_scheme(str):
     ret = eval(str)
     if debug:
@@ -1936,7 +1972,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_131_1')
+config_scheme_to_use = use_config_scheme('train_config_131_3')
 
 
 dtypes = {
@@ -2827,6 +2863,22 @@ def get_test_df():
                        parse_dates=["click_time"])
     test['is_attributed'] = 0
     return test
+def get_stacking_val_df():
+    val = pd.read_csv(path_train_sample if use_sample else path_train,
+                        dtype=dtypes,
+                        header=0,
+                        usecols=train_cols,
+                        skiprows=range(1, config_scheme_to_use.lgbm_stacking_val_from) \
+                            if not use_sample and config_scheme_to_use.lgbm_stacking_val_from is not None else None,
+                        nrows=config_scheme_to_use.lgbm_stacking_val_to - config_scheme_to_use.lgbm_stacking_val_from \
+                            if not use_sample and config_scheme_to_use.lgbm_stacking_val_from is not None else None,
+                        parse_dates=["click_time"])
+
+    print('mem after loaded stacking val data:', cpuStats())
+
+    gc.collect()
+    return val
+
 def get_test_supplement_df():
     test_supplement = pd.read_csv(path_test_supplement,
                        dtype=dtypes,
@@ -3612,6 +3664,37 @@ def train_and_predict_gen_fts_seperately(com_fts_list, use_ft_cache = False, onl
     del val
     gc.collect()
     print('mem after train and gc:', cpuStats())
+
+    if config_scheme_to_use.lgbm_stacking_val_from is not None:
+        with timer('predict stacking val data:'):
+            with timer('loading test df:'):
+                test = get_stacking_val_df()
+            with timer('gen categorical features for test'):
+                test = gen_categorical_features(test)
+            with timer('gen statistical hist features for test'):
+                test, _, _ = \
+                    generate_counting_history_features(test,
+                                                       discretization=config_scheme_to_use.discretization,
+                                                       add_features_list=com_fts_list,
+                                                       discretization_bins=discretization_bins_used,
+                                                       use_ft_cache = use_ft_cache,
+                                                       ft_cache_prefix='stacking_val')
+
+            predict_result = lgb_model.predict(test[predictors], num_iteration=lgb_model.best_iteration)
+            submission = pd.DataFrame({'is_attributed':predict_result})
+
+            print("Writing the submission data into a csv file...")
+
+            submission.to_csv(get_dated_filename("stacking_val"), index=True, index_label='click_id')
+
+            del predict_result
+            del submission
+            del test
+            gc.collect()
+
+            print('mem after stacking val prediction:',cpuStats())
+            print("stacking val prediction done...")
+
 
     if config_scheme_to_use.new_predict and not only_cache:
 
