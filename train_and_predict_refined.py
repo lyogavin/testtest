@@ -1973,7 +1973,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_131_1')
+config_scheme_to_use = use_config_scheme('train_config_131_6')
 
 
 dtypes = {
