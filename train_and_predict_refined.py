@@ -524,6 +524,25 @@ add_features_list_smooth_cvr_from_search_121_13 = [
     {'group': ['hour', 'ip', 'is_attributed'], 'op': 'smoothcvr'},
     {'group': ['os', 'channel', 'is_attributed'], 'op': 'smoothcvr'}
 ]
+
+add_features_list_smooth_cvr_from_search_121_13_reduced = [
+
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    #{'group': ['ip', 'day', 'hour', 'app', 'is_attributed'], 'op': 'count'},
+    #{'group': ['ip', 'day', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
+
+    #{'group': ['ip', 'channel', 'is_attributed'], 'op': 'smoothcvr'},
+    {'group': ['app', 'ip', 'is_attributed'], 'op': 'smoothcvr'},
+    {'group': ['os', 'ip', 'is_attributed'], 'op': 'smoothcvr'},
+    {'group': ['app', 'hour', 'is_attributed'], 'op': 'smoothcvr'},
+    #{'group': ['hour', 'ip', 'is_attributed'], 'op': 'smoothcvr'}
+    #{'group': ['os', 'channel', 'is_attributed'], 'op': 'smoothcvr'}
+]
+
 add_features_list_smooth_cvr = [
 
     # ====================
@@ -1697,6 +1716,11 @@ train_config_124_36 = copy.deepcopy(train_config_124_35)
 train_config_124_36.add_features_list = add_features_list_smooth_cvr_from_search_121_13
 
 
+train_config_124_37 = copy.deepcopy(train_config_124_36)
+train_config_124_37.add_features_list = add_features_list_smooth_cvr_from_search_121_13_reduced
+
+
+
 train_config_126_1 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
                                  random_sample_filter_0_5,
@@ -1900,7 +1924,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_117_11')
+config_scheme_to_use = use_config_scheme('train_config_124_37')
 
 
 dtypes = {

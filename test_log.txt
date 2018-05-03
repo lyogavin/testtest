@@ -745,7 +745,7 @@ _cvr']
     11. use only raw features to generate 20 lgbm features.
         A. gen model: grid test3: see 124_33
         B. use model generated from A
-            aliyun: running
+            aliyun: 0.9775
 
 
 118 ensemble of: 117_2, 116_3, 103_11
@@ -1077,6 +1077,8 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
         grid test4: LB:0.9789
     36. smooth cvr from coms ft search 121_13:
         aliyun: LB:0.9788
+    37. reduce features from 36
+        azzureyun: running
 
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
