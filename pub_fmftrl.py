@@ -1,7 +1,7 @@
 import sys
 
-#sys.path.insert(0, '../input/wordbatch-133/wordbatch/')
-#sys.path.insert(0, '../input/randomstate/randomstate/')
+sys.path.insert(0, '../input/wordbatch-133/wordbatch/')
+sys.path.insert(0, '../input/randomstate/randomstate/')
 import wordbatch
 from wordbatch.extractors import WordHash
 from wordbatch.models import FM_FTRL
@@ -12,8 +12,6 @@ from sklearn.metrics import roc_auc_score
 import time
 import numpy as np
 import gc
-import mmh3
-
 from contextlib import contextmanager
 @contextmanager
 def timer(name):
@@ -29,7 +27,7 @@ def cpuStats():
 	print('memory GB:', memoryUse)
 
 start_time = time.time()
-batchsize = 10000000
+
 mean_auc= 0
 
 def fit_batch(clf, X, y, w):  clf.partial_fit(X, y, sample_weight=w)
@@ -46,22 +44,16 @@ def evaluate_batch(clf, X, y, rcount):
 	return auc
 
 def df_add_counts(df, cols, tag="_count"):
-	#rate = batchsize / len(df)
 	arr_slice = df[cols].values
 	unq, unqtags, counts = np.unique(np.ravel_multi_index(arr_slice.T, arr_slice.max(0) + 1),
 									 return_inverse=True, return_counts=True)
-	# normalize the count...
-	#df["_".join(cols) + tag] = (counts[unqtags] * rate).astype(int)
-	df["_".join(cols) + tag] = counts[unqtags]
+	df["_".join(cols)+tag] = counts[unqtags]
 	return df
 
 def df_add_uniques(df, cols, tag="_unique"):
-	#rate = batchsize / len(df)
 	gp = df[cols].groupby(by=cols[0:len(cols) - 1])[cols[len(cols) - 1]].nunique().reset_index(). \
 		rename(index=str, columns={cols[len(cols) - 1]: "_".join(cols)+tag})
 	df= df.merge(gp, on=cols[0:len(cols) - 1], how='left')
-	# normalize the nunique count
-	#df["_".join(cols) + tag] = (df["_".join(cols) + tag] * rate).astype(int)
 	return df
 
 def df2csr(wb, df, pick_hours=None):
@@ -82,7 +74,7 @@ def df2csr(wb, df, pick_hours=None):
 	with timer("Adding next click times"):
 		D= 2**26
 		df['category'] = (df['ip'].astype(str) + "_" + df['app'].astype(str) + "_" + df['device'].astype(str) \
-						 + "_" + df['os'].astype(str)).apply(mmh3.hash) % D
+						 + "_" + df['os'].astype(str)).apply(hash) % D
 		click_buffer= np.full(D, 3000000000, dtype=np.uint32)
 		df['epochtime']= df['click_time'].astype(np.int64) // 10 ** 9
 		next_clicks= []
@@ -94,7 +86,7 @@ def df2csr(wb, df, pick_hours=None):
 
 	with timer("Log-binning features"):
 		for fea in ['ip_day_hour_count','ip_app_count','ip_app_os_count','ip_device_count',
-				'app_channel_count','next_click','ip_channel_unique']: 
+				'app_channel_count','next_click','ip_channel_unique']:
 				    df[fea]= np.log2(1 + df[fea].values).astype(int)
 
 	with timer("Generating str_array"):
@@ -139,6 +131,7 @@ class ThreadWithReturnValue(threading.Thread):
 		threading.Thread.join(self)
 		return self._return
 
+batchsize = 10000000
 D = 2 ** 20
 
 wb = wordbatch.WordBatch(None, extractor=(WordHash, {"ngram_range": (1, 1), "analyzer": "word",
@@ -160,10 +153,10 @@ dtypes = {
 p = None
 rcount = 0
 for df_c in pd.read_csv('../input/talkingdata-adtracking-fraud-detection/train.csv', engine='c', chunksize=batchsize,
-#for df_c in pd.read_csv('../input/train.csv', engine='c', chunksize=batchsize, 
-						skiprows= range(1,82259195), sep=",", dtype=dtypes):
+#for df_c in pd.read_csv('../input/train.csv', engine='c', chunksize=batchsize,
 						#skiprows= range(1,9308569), sep=",", dtype=dtypes):
-
+                        nrows = 100000, # use 100k to test
+                        skiprows= range(1,56845833), sep=",", dtype=dtypes):
 	rcount += batchsize
 	if rcount== 130000000:
 		df_c['click_time'] = pd.to_datetime(df_c['click_time'])
@@ -188,6 +181,37 @@ for df_c in pd.read_csv('../input/talkingdata-adtracking-fraud-detection/train.c
 	p.start()
 	if rcount == 130000000:  break
 if p != None:  p.join()
+
+print('stacking val:')
+del(X)
+p = None
+click_ids= []
+test_preds = []
+rcount = 0
+for df_c in pd.read_csv('../input/talkingdata-adtracking-fraud-detection/train.csv', engine='c', chunksize=batchsize,
+                        skiprows= range(1,22536989), nrows = 56845833 - 22536989,
+#for df_c in pd.read_csv('../input/test.csv', engine='c', chunksize=batchsize,
+						sep=",", dtype=dtypes):
+	rcount += batchsize
+	if rcount % (10 * batchsize) == 0:
+		print(rcount)
+	del df_c['is_attributed']
+	str_array, labels, weights = df2csr(wb, df_c)
+	click_ids+= df_c.index.tolist()
+	del(df_c)
+	if p != None:
+		test_preds += list(p.join())
+		del (X)
+	gc.collect()
+	X = wb.transform(str_array)
+	del (str_array)
+	p = ThreadWithReturnValue(target=predict_batch, args=(clf, X))
+	p.start()
+if p != None:  test_preds += list(p.join())
+
+df_sub = pd.DataFrame({"click_id": click_ids, 'is_attributed': test_preds})
+df_sub.to_csv("stack_val_wordbatch_fm_ftrl.csv", index=False)
+
 
 del(X)
 p = None
