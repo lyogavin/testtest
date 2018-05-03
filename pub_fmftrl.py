@@ -155,7 +155,7 @@ rcount = 0
 for df_c in pd.read_csv('../input/talkingdata-adtracking-fraud-detection/train.csv', engine='c', chunksize=batchsize,
 #for df_c in pd.read_csv('../input/train.csv', engine='c', chunksize=batchsize,
 						#skiprows= range(1,9308569), sep=",", dtype=dtypes):
-                        nrows = 100000, # use 100k to test
+                        #nrows = 100000, # use 100k to test
                         skiprows= range(1,56845833), sep=",", dtype=dtypes):
 	rcount += batchsize
 	if rcount== 130000000:
@@ -210,7 +210,7 @@ for df_c in pd.read_csv('../input/talkingdata-adtracking-fraud-detection/train.c
 if p != None:  test_preds += list(p.join())
 
 df_sub = pd.DataFrame({"click_id": click_ids, 'is_attributed': test_preds})
-df_sub.to_csv("stack_val_wordbatch_fm_ftrl.csv", index=False)
+df_sub.to_csv("stack_val_wordbatch_fm_ftrl.csv.bz2", compression='bz2', index=False)
 
 
 del(X)
@@ -238,4 +238,4 @@ for df_c in pd.read_csv('../input/talkingdata-adtracking-fraud-detection/test.cs
 if p != None:  test_preds += list(p.join())
 
 df_sub = pd.DataFrame({"click_id": click_ids, 'is_attributed': test_preds})
-df_sub.to_csv("wordbatch_fm_ftrl.csv", index=False)
+df_sub.to_csv("wordbatch_fm_ftrl.csv.bz2", index=False,compression='bz2')
