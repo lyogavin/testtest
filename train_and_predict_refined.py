@@ -40,10 +40,13 @@ matplotlib.use('Agg')
 def get_dated_filename(filename):
     #print('got file name: {}_{}.csv'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S")))
     #return '{}_{}.csv'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S"))
-
-
-    print('got file name: {}_{}.csv'.format(filename, config_scheme_to_use.config_name))
-    return '{}_{}.csv'.format(filename, config_scheme_to_use.config_name)
+    if filename.rfind('.') != -1:
+        id = filename.rfind('.')
+        filename = filename[:id] + '_' + config_scheme_to_use.config_name + filename[id:]
+    else:
+        filename = filename + '_' + config_scheme_to_use.config_name
+    print('got file name: {}'.format(filename))
+    return filename
     # return filename
 
 
@@ -849,7 +852,9 @@ class ConfigScheme:
                  use_hourly_alpha_beta = False,
                  add_lgbm_fts_from_saved_model_filename = 'train_config_124_3_model.txt',
                  add_lgbm_fts_from_saved_model_predictors_pickle_filename = \
-                         'train_config_124_3_model_predictors.pickle'
+                         'train_config_124_3_model_predictors.pickle',
+                 lgbm_stacking_val_from = None,
+                 lgbm_stacking_val_to =None
                  ):
         self.predict = predict
         self.train = train
@@ -903,6 +908,8 @@ class ConfigScheme:
         self.add_lgbm_fts_from_saved_model_filename = add_lgbm_fts_from_saved_model_filename
         self.add_lgbm_fts_from_saved_model_predictors_pickle_filename = \
             add_lgbm_fts_from_saved_model_predictors_pickle_filename
+        self.lgbm_stacking_val_from = lgbm_stacking_val_from
+        self.lgbm_stacking_val_to = lgbm_stacking_val_to
 
 
 
@@ -1309,6 +1316,11 @@ train_config_117_6 = ConfigScheme(False, False, False,
                                    )
 train_config_117_8 = copy.deepcopy(train_config_117_3)
 train_config_117_8.log_discretization = True
+
+train_config_131_1 = copy.deepcopy(train_config_117_8)
+train_config_131_1.new_predict = False
+train_config_131_1.val_from = id_7_4am
+train_config_131_1.val_to = id_7_3pm
 
 train_config_117_9 = copy.deepcopy(train_config_117_8)
 train_config_117_9.add_lgbm_fts_from_saved_model = True
@@ -1924,7 +1936,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_37')
+config_scheme_to_use = use_config_scheme('train_config_131_1')
 
 
 dtypes = {
@@ -3498,39 +3510,41 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
     gc.collect()
     print('mem after val dump:', cpuStats())
 
-    print('dump test fe data...')
-    with timer('loading test df:'):
-        test = get_test_df()
-    with timer('gen categorical features for test'):
-        test = gen_categorical_features(test)
-    with timer('gen statistical hist features for test'):
-        test, _, _ = \
-            generate_counting_history_features(test,
-                                               discretization=config_scheme_to_use.discretization,
-                                               add_features_list=com_fts_list,
-                                               discretization_bins=discretization_bins_used,
-                                               use_ft_cache = use_ft_cache,
-                                               ft_cache_prefix='test')
-    if config_scheme_to_use.add_lgbm_fts_from_saved_model:
-        with timer('predict val LGBM features:'):
-            predict_result = lgb_model.predict(test[lgb_predictors], num_iteration=lgb_fts_count, pred_leaf=True)
-            ft_df = pd.DataFrame(predict_result, dtype='uint8',
-                                 columns=['T' + str(i) for i in range(len(predict_result[0]))])
-            del predict_result
-            gc.collect()
-            test = pd.concat([test, ft_df], axis=1)
-            del ft_df
-            gc.collect()
+    if config_scheme_to_use.new_predict:
+        print('dump test fe data...')
+        with timer('loading test df:'):
+            test = get_test_df()
+        with timer('gen categorical features for test'):
+            test = gen_categorical_features(test)
+        with timer('gen statistical hist features for test'):
+            test, _, _ = \
+                generate_counting_history_features(test,
+                                                   discretization=config_scheme_to_use.discretization,
+                                                   add_features_list=com_fts_list,
+                                                   discretization_bins=discretization_bins_used,
+                                                   use_ft_cache = use_ft_cache,
+                                                   ft_cache_prefix='test')
+        if config_scheme_to_use.add_lgbm_fts_from_saved_model:
+            with timer('predict val LGBM features:'):
+                predict_result = lgb_model.predict(test[lgb_predictors], num_iteration=lgb_fts_count, pred_leaf=True)
+                ft_df = pd.DataFrame(predict_result, dtype='uint8',
+                                     columns=['T' + str(i) for i in range(len(predict_result[0]))])
+                del predict_result
+                gc.collect()
+                test = pd.concat([test, ft_df], axis=1)
+                del ft_df
+                gc.collect()
 
-    click_id_df = pd.read_csv(path_test_sample if use_sample else path_test,
-                         dtype='uint64',
-                         header=0,
-                         usecols=['click_id'])
-    #pay attention to adding column of dataframe here, need to reset_index() first
-    test_to_dump = test[predictors1].copy(True).reset_index(drop=True)
-    test_to_dump['click_id'] = click_id_df['click_id']
-    test_to_dump.to_csv('test_fe.csv' + '.sample' if use_sample else 'test_fe.csv', index=False)
-
+        click_id_df = pd.read_csv(path_test_sample if use_sample else path_test,
+                             dtype='uint64',
+                             header=0,
+                             usecols=['click_id'])
+        #pay attention to adding column of dataframe here, need to reset_index() first
+        test_to_dump = test[predictors1].copy(True).reset_index(drop=True)
+        test_to_dump['click_id'] = click_id_df['click_id']
+        test_to_dump.to_csv('test_fe.csv' + '.sample' if use_sample else 'test_fe.csv', index=False)
+    else:
+        print('new_predict false, skip testing data.')
     print('gen fe data for ffm done.')
 
 def train_and_predict_gen_fts_seperately(com_fts_list, use_ft_cache = False, only_cache=False,

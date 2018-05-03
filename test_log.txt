@@ -1079,7 +1079,7 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
     36. smooth cvr from coms ft search 121_13:
         aliyun: LB:0.9788
     37. reduce features from 36
-        azzureyun: running
+        azzureyun: LB: 0.9790
 
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
@@ -1170,12 +1170,14 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     2. lgbm + pub ftrl fts:                                         124_9:      0.9785      X
     3. best nunique fts:                                            124_11:     0.9787      X
     4. 07/08/09 each train a model then merge(5:3:2):               124_20:     0.9795      X
-    5. weight pos/neg according to ad val model, normalized:        124_22A:    0.9790      X
-    6. best nunique and count from coms search:                     124_28:     0.9779      X
-    7. hourly alpha 1day before smooth cvr ft:                      124_30:     0.9789      X
-    8. new lgbm params:                                             124_31:     0.9786      X
+    5. weight pos/neg according to ad val model, normalized:        124_22A:    0.9790      X -ignored
+    6. best nunique and count from coms search:                     124_28:     0.9779      X -ignored
+    7. hourly alpha 1day before smooth cvr ft, best coms search:    124_37:     0.9790      X
+    8. new lgbm params:                                             124_31:     0.9786      X -ignored
     ensembled file:  ensemble_submission.csv.03-05-2018_04-04-06_lgbm_SCALE_500
-    0.9795
+    0.9795(with 124_30 instead of 124_37)
+    ignored: 5,6,8, replaced 124_30 with 124_37:
+    ensemble_submission.csv.03-05-2018_06-09-15: LB:0.9797
 
     FFM models:
     1. log discretization, seperately:                              117_8:      0.9780      X
@@ -1186,8 +1188,16 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     1. pub kernel:                                                  123_0:      0.9769      X
 
     -----------------
-    total ensemble: 0.5:0.3:0.2:
+    total ensemble:
+    1. 0.5:0.3:0.2:
     azzure: LB:0.9584
+    2. ensemble of lgbm_2 + streaming: LB: 0.9796
+    3. 2+117_8
+    4. lgbm2*0.6 + 117_8*0.4: LB: 0.9780
+    5. lgbm2*0.8 + 123_0*0.2: LB: 0.9799
+131: use 7_4am to 7_3pm to generate val scores and train stacking LR model to stack:
+    1. stacking val score for 117_8:
+    2.
 
 
 to do test:
