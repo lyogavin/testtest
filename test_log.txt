@@ -1196,12 +1196,15 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     4. lgbm2*0.6 + 117_8*0.4: LB: 0.9780
     5. lgbm2*0.8 + 123_0*0.2: LB: 0.9799
 131: use 7_4am to 7_3pm (34308844 lines) to generate val scores and train stacking LR model to stack:
-    1. stacking val score for 117_8: aliyun: running
-    2. skip 7's data in 123_0, and score 7's data for stacking: pub kernel:running
+    1. stacking val score for 117_8:
+        aliyun: running
+    2. skip 7's data in 123_0, and score 7's data for stacking:
+        pub kernel:OOM
+        gyun: running
     3. based on 124_3:  grid test 4: OOM
                         azzureyun: running
     4. based on 124_9:  grid test 2: DONE
-    5. based on 124_11: grid test 3: running
+    5. based on 124_11: grid test 3: DONE
     6. based on 124_17: grid test: OOM
     7. based on 124_37: azzureyun: DONE
 
