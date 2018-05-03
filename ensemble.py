@@ -183,7 +183,8 @@ for filename in f:
         print('ignore according to file prefix:', filename)
         del f[idx]
         continue
-    idx+=1
+    else:
+        idx+=1
 
 scale = 1/len(f)
 for filename in f:
