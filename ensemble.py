@@ -163,6 +163,10 @@ mprd = collections.defaultdict(list)
 #for ensemble in ensemble_list:
 ensemble_dir_path = './ensemble_predictions'
 
+if len(sys.argv) > 1:
+    print('using input dir as ensemble prediction dir: ', sys.argv[1])
+    ensemble_dir_path = sys.argv[1]
+
 f = []
 
 for (dirpath, dirnames, filenames) in walk(ensemble_dir_path):

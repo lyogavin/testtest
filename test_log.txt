@@ -915,6 +915,7 @@ _cvr']
 123 pub fm_ftrl kernel 09769, seems like it's the training data size. (original 0.9769)
     try decrease to skip from 144708152 to test, forked kernel:
     batch size 1/2-> LB: 0.9718
+    0. kernel: talkingdata-wordbatch-fm-ftrl-my-fts version 1. 0.9769
     1. forked kernel: changed to skip from 144708152 and 1/2 batch size: 0.9701
     2. azzureyun: changed only skip from 144708152, full batchsize to test perf: LB: 0.9701
     3. pub kernel: only 1/2 batch size,failed
@@ -951,16 +952,16 @@ _cvr']
         gyun: copied to ~/, LB:0.9792
     [316]   train's auc: 0.984059   valid's auc: 0.983935
     9. 0 + pub FTRL features
-        grid test 3: LB:0.9785
+        grid test 3: version 46: LB:0.9785
     10. based on 8, 600 iters, + change hour to 3 hours:
         gyun:  LB: 0.9785
     [600]   train's auc: 0.985895   valid's auc: 0.982256
 
     11. add best nunique fts from 121.7:
-        grid test4: 0.9787
+        grid test4: version 47: 0.9787
     12. TODO: based on 8, 600 iters,
 
-    13. try all pub fts:
+    13. try all pub fts: TODO:
     14. 11+ feature_fraction 0.7
         grid test4: LB:0.9787
         [LightGBM] [Warning] feature_fraction is set=0.7, colsample_bytree=0.7 will be ignored. Current value: feature_fraction=0.7.
@@ -1000,9 +1001,9 @@ _cvr']
          ('channel', 772)]
     22. based on 18, normalize the weighting, to let min of weighing to be 1.0
         copy from 124 to let kernel able to run.
-        grid test3: LB:0.9790
+        A. grid test3: version 53: LB:0.9790
         only weight positive samples and rerun:
-            grid test3:LB:0.9784
+        B.     grid test3:LB:0.9784
     23. most frequent and leaset frequent channels in test data as feature:
         grid test2: LB: 0.9785
         [('ip_day_hour_app_os_is_attributedcount', 25),
@@ -1058,7 +1059,7 @@ gain importance:
         TODO:
     28. based on 26, remove last 4 gain rerun:
     [237]	train's auc: 0.983657	valid's auc: 0.98331
-        LB:0.9779 version58
+        LB:0.9779 grid test4: version58
     29. add smoothcvr fts:
         azzureyun: 0.9789
     30. use 1 day before to calcuate smooth cvr:
@@ -1067,7 +1068,7 @@ gain importance:
     Best ROC-AUC: 0.9732
 Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max_depth': 10, 'min_child_samples': 10, 'min_child_weight': 0, 'num_leaves': 11, 'reg_alpha': 1.0, 'reg_lambda': 1e-09, 'scale_pos_weight': 249.99999999999994, 'subsample': 0.6870745956370757}
         grid test 4:LB: !!!!!!!!!!!!!!!BUGG!!!!!!, still runed 124_3
-        grid test 2: run again: LB:0.9786
+        grid test 2: run again: version 92: LB:0.9786
     32. based on 30, cvr features search:
         azzure: see 121_13
     33. only raw features to save model for FFM:
@@ -1163,7 +1164,23 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
      ('app', 423),
      ('channel', 507),
      ('ip', 964)]
+130. ensemble:
+    LGBM models:
+    1. best single lgbm model:                                      124_3:      0.9793      X
+    2. lgbm + pub ftrl fts:                                         124_9:      0.9785      X
+    3. best nunique fts:                                            124_11:     0.9787      X
+    4. 07/08/09 each train a model then merge(5:3:2):               124_20:     0.9785      X
+    5. weight pos/neg according to ad val model, normalized:        124_22A:    0.9790      X
+    6. best nunique and count from coms search:                     124_28:     0.9779      X
+    7. hourly alpha 1day before smooth cvr ft:                      124_30:     0.9789
+    8. new lgbm params:                                             124_31:     0.9786      X
 
+    FFM models:
+    1. log discretization, seperately:                              117_8:      0.9780
+    2. 7 raw LGBM fts:                                              117_11:     0.9775
+
+    Streaming models:
+    1. pub kernel:                                                  123_0:      0.9769      X
 
 
 to do test:
