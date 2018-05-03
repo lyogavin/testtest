@@ -1203,7 +1203,10 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         train and score stacking val: running
     2. skip 7's data in 123_0, and score 7's data for stacking:
         pub kernel:OOM
-        gyun: running
+        gyun: Failed bug in the rcount==130000000 trick:
+        A. try remove this trick to train all the data:
+            gyun: running
+        B.
     3. based on 124_3:  grid test 4: OOM
                         azzureyun: DONE
     4. based on 124_9:  grid test 2: DONE

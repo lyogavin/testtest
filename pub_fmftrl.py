@@ -158,10 +158,13 @@ for df_c in pd.read_csv('../input/talkingdata-adtracking-fraud-detection/train.c
                         #nrows = 100000, # use 100k to test
                         skiprows= range(1,56845833), sep=",", dtype=dtypes):
 	rcount += batchsize
-	if rcount== 130000000:
-		df_c['click_time'] = pd.to_datetime(df_c['click_time'])
-		df_c['day'] = df_c['click_time'].dt.day.astype('uint8')
-		df_c= df_c[df_c['day']==8]
+	remove_train_til_day_8_trick = True
+
+	if not remove_train_til_day_8_trick:
+		if rcount== 130000000:
+			df_c['click_time'] = pd.to_datetime(df_c['click_time'])
+			df_c['day'] = df_c['click_time'].dt.day.astype('uint8')
+			df_c= df_c[df_c['day']==8]
 	str_array, labels, weights= df2csr(wb, df_c, pick_hours={4, 5, 10, 13, 14})
 	del(df_c)
 	if p != None:
@@ -179,7 +182,8 @@ for df_c in pd.read_csv('../input/talkingdata-adtracking-fraud-detection/train.c
 	if p != None:  p.join()
 	p = threading.Thread(target=fit_batch, args=(clf, X, labels, weights))
 	p.start()
-	if rcount == 130000000:  break
+	if not remove_train_til_day_8_trick:
+		if rcount == 130000000:  break
 if p != None:  p.join()
 
 print('stacking val:')
