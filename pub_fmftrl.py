@@ -30,7 +30,17 @@ start_time = time.time()
 
 mean_auc= 0
 
-def fit_batch(clf, X, y, w):  clf.partial_fit(X, y, sample_weight=w)
+wordbatch_model = 'FM_FTRL'
+#wordbatch_model = 'FTRL'
+
+
+def fit_batch(clf, X, y, w):
+    if not isinstance(clf, FM_FTRL):
+        clf.partial_fit(X, y)
+    else:
+        clf.partial_fit(X, y, sample_weight=w)
+
+#def fit_batch(clf, X, y, w):  clf.partial_fit(X, y, sample_weight=w)
 
 def predict_batch(clf, X):  return clf.predict(X)
 
@@ -138,8 +148,17 @@ wb = wordbatch.WordBatch(None, extractor=(WordHash, {"ngram_range": (1, 1), "ana
 													 "lowercase": False, "n_features": D,
 													 "norm": None, "binary": True})
 						 , minibatch_size=batchsize // 80, procs=8, freeze=True, timeout=1800, verbose=0)
-clf = FM_FTRL(alpha=0.05, beta=0.1, L1=0.0, L2=0.0, D=D, alpha_fm=0.02, L2_fm=0.0, init_fm=0.01, weight_fm=1.0,
-			  D_fm=8, e_noise=0.0, iters=2, inv_link="sigmoid", e_clip=1.0, threads=4, use_avx=1, verbose=0)
+#clf = FM_FTRL(alpha=0.05, beta=0.1, L1=0.0, L2=0.0, D=D, alpha_fm=0.02, L2_fm=0.0, init_fm=0.01, weight_fm=1.0,
+#			  D_fm=8, e_noise=0.0, iters=2, inv_link="sigmoid", e_clip=1.0, threads=4, use_avx=1, verbose=0)
+if wordbatch_model == 'FM_FTRL':
+	clf = FM_FTRL(alpha=0.05, beta=0.1, L1=0.0, L2=0.0, D=D, alpha_fm=0.02, L2_fm=0.0, init_fm=0.01, weight_fm=1.0,
+				  D_fm=8, e_noise=0.0, iters=2, inv_link="sigmoid", e_clip=1.0, threads=4, use_avx=1, verbose=0)
+	# iters changed to 2 from 116_7
+	# threads=4, use_avx=1, verbose=0)
+elif wordbatch_model == 'NN_ReLU_H1':
+	clf = NN_ReLU_H1(alpha=0.05, D=D, verbose=9, e_noise=0.0, threads=4, inv_link="sigmoid")
+elif wordbatch_model == 'FTRL':
+	clf = FTRL(alpha=0.05, beta=0.1, L1=0.0, L2=0.0, D=D, iters=3, threads=4, verbose=9)
 
 dtypes = {
 		'ip'            : 'uint32',
@@ -154,11 +173,11 @@ p = None
 rcount = 0
 for df_c in pd.read_csv('../input/talkingdata-adtracking-fraud-detection/train.csv', engine='c', chunksize=batchsize,
 #for df_c in pd.read_csv('../input/train.csv', engine='c', chunksize=batchsize,
-						#skiprows= range(1,9308569), sep=",", dtype=dtypes):
+						skiprows= range(1,9308569), sep=",", dtype=dtypes):
                         #nrows = 100000, # use 100k to test
-                        skiprows= range(1,56845833), sep=",", dtype=dtypes):
+                        #skiprows= range(1,56845833), sep=",", dtype=dtypes):
 	rcount += batchsize
-	remove_train_til_day_8_trick = True
+	remove_train_til_day_8_trick = False
 
 	if not remove_train_til_day_8_trick:
 		if rcount== 130000000:
@@ -192,8 +211,12 @@ p = None
 click_ids= []
 test_preds = []
 rcount = 0
+
+id_9_4am = 144708152
+id_9_3pm = 181878211
+
 for df_c in pd.read_csv('../input/talkingdata-adtracking-fraud-detection/train.csv', engine='c', chunksize=batchsize,
-                        skiprows= range(1,22536989), nrows = 56845833 - 22536989,
+                        skiprows= range(1,id_9_3pm - 250*10000), nrows = 250*10000,
 #for df_c in pd.read_csv('../input/test.csv', engine='c', chunksize=batchsize,
 						sep=",", dtype=dtypes):
 	rcount += batchsize

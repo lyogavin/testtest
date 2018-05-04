@@ -928,6 +928,7 @@ _cvr']
         pub kernel: LB:0.9662
     7. full batchsize, skip from58735619: pub ker: OOM
     8. full batchsize, skip from 8 4am: azzureyun: OOM
+    9. recover orginal train/val split, train FM-FTRL: use last 250w lines til 9 3pm as stacking val
 
 124: LGBM seperately:
     0. train seperately with best params:
