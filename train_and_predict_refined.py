@@ -255,6 +255,7 @@ id_9_4pm = 184903891 -1
 id_7_0am = 9308570
 id_9_0am = 131886955
 id_8_0am = 68941880
+id_9_3pm_reserve_last_250w = id_9_3pm - 250*10000
 
 sample_from_list = [0, 50000]
 sample_to_list = [49998, 90000]
@@ -1752,6 +1753,11 @@ train_config_124_39.train_to = id_9_0am
 train_config_124_39.val_from = id_9_4am
 train_config_124_39.val_to = id_9_3pm
 
+train_config_124_40 = copy.deepcopy(train_config_124_3)
+train_config_124_40.train_to = id_9_3pm_reserve_last_250w
+train_config_124_40.lgbm_stacking_val_from = id_9_3pm_reserve_last_250w
+train_config_124_40.lgbm_stacking_val_to = id_9_3pm
+
 
 train_config_126_1 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
@@ -2002,7 +2008,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_117_12')
+config_scheme_to_use = use_config_scheme('train_config_124_40')
 
 
 dtypes = {

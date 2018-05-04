@@ -929,6 +929,7 @@ _cvr']
     7. full batchsize, skip from58735619: pub ker: OOM
     8. full batchsize, skip from 8 4am: azzureyun: OOM
     9. recover orginal train/val split, train FM-FTRL: use last 250w lines til 9 3pm as stacking val
+        gyun: running
 
 124: LGBM seperately:
     0. train seperately with best params:
@@ -1090,6 +1091,8 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
         gyun: 0.9788
     39. use 080am - 090am:
         aliyun: LB: 0.9790
+    40. 124.3 + stacking val + reserve last 250w as stacking val:
+        azzureyun: running
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature
@@ -1154,7 +1157,7 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
 
 128. LGBM params Search based on 126 setting
     only check 50 iters, and reduce search space:
-    gyun: running
+    gyun: DONE
     Model #114
 Best ROC-AUC: 0.9731
 Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.19814501809928017, 'max_depth': 9,
