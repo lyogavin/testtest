@@ -1344,6 +1344,9 @@ train_config_117_11.add_lgbm_fts_from_saved_model_predictors_pickle_filename = \
 train_config_117_12 = copy.deepcopy(train_config_117_8)
 train_config_117_12.add_features_list = add_features_list_smooth_cvr
 train_config_117_12.use_interactive_features = True
+train_config_117_12.val_filter = None
+train_config_117_12.val_from = id_7_4am
+train_config_117_12.val_to = id_7_3pm
 
 train_config_121_1 = ConfigScheme(False, False, False,
                                   shuffle_sample_filter_1_to_3,
