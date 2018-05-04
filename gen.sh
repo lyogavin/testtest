@@ -11,7 +11,7 @@ python3 -u ./train_and_predict_refined.py #./notebook.py
 
 echo "FFM input data generation...."
 
-util/parallelizer.py -s 12 ffm_converter.py train_fe.csv val_fe.csv new_train.sp  new_val.sp
+util/parallelizer.py -s 6 ffm_converter.py train_fe.csv val_fe.csv new_train.sp  new_val.sp
 
 echo "FFM training and val scoring"
 
@@ -28,7 +28,7 @@ else
 
     head -n 1000 train_fe.csv > train_fe.csv.sample
 
-    util/parallelizer.py -s 12 ffm_converter.py  test_fe.csv train_fe.csv.sample new_test.sp  new_train.sp.sample
+    util/parallelizer.py -s 6 ffm_converter.py  test_fe.csv train_fe.csv.sample new_test.sp  new_train.sp.sample
 
     echo "FFM test scoring...."
 

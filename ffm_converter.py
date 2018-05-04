@@ -19,11 +19,60 @@ import argparse,sys
 from collections import OrderedDict
 # Input data files are available in the "../input/" directory.
 # For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
-
+import gc
 import os
 import hashlib
 import csv
 import mmh3
+from contextlib import contextmanager
+
+import os, psutil, time
+
+
+def cpuStats():
+    pid = os.getpid()
+    py = psutil.Process(pid)
+    memoryUse = py.memory_info()[0] / 2. ** 30
+    gc.collect()
+    # all_objects = muppy.get_objects()
+    # sum1 = summary.summarize(all_objects)
+    # summary.print_(sum1)
+
+    return memoryUse
+
+@contextmanager
+def timer(name):
+    t0 = time.time()
+    print('start ',name)
+    yield
+    print('[{}] done in {} s'.format(name, time.time() - t0))
+    print('mem after {}: {}'.format(name, cpuStats()))
+
+acro_names = {
+    'ip': 'I',
+    'app': 'A',
+    'device': 'D',
+    'os': 'O',
+    'channel': 'C',
+    'hour': 'H',
+    'ip_day_hourcount': 'IDH-',
+    'ip_day_hour_oscount': 'IDHO-',
+    'ip_day_hour_appcount': 'IDHA-',
+    'ip_day_hour_app_oscount': 'IDHAO-',
+    'ip_app_oscount': "IAO-",
+    'ip_appcount': "IA-",
+    'ip_devicecount': "ID-",
+    'app_channelcount': "AC-",
+    'app_day_hourcount': 'ADH-',
+    'ip_in_test_hhcount': "IITH-",
+    'next_click': 'NC',
+    'app_channel': 'AC',
+    'os_channel': 'OC',
+    'app_device': 'AD',
+    'app_os_channel': 'AOC',
+    'ip_app': 'IA',
+    'app_os': 'AO'
+}
 
 NR_BINS = 1000000
 
@@ -128,6 +177,51 @@ class FFMFormatPandas:
         return pd.Series({idx: self.transform_row_(idx, row, t) for idx, row in df.iterrows()})
 
 
+def convert_features_to_text(data, predictors, hash = False):
+    NR_BINS = 1000000
+
+    def hashstr(input):
+        #return str(int(hashlib.md5(input.encode('utf8')).hexdigest(), 16) % (NR_BINS - 1) + 1)
+        return str(mmh3.hash_from_buffer(input, signed=False) % (NR_BINS - 1) + 1)
+
+    with timer('convert_features_to_text'):
+        i = 0
+        str_array = None
+        assign_name_id = 0
+        for feature in predictors:
+            if feature == 'click_id':
+                continue
+            acro_name_to_dump = ''
+            if not feature in acro_names:
+                print('{} missing acronym, assign name AN{}'.format(feature, assign_name_id))
+                acro_name_to_dump = 'AN' + str(assign_name_id)
+                assign_name_id += 1
+            else:
+                acro_name_to_dump =  acro_names[feature]
+            if str_array is None:
+                if 'click_id' in data.columns:
+                    str_array = data['click_id'].astype(str) + ' '
+                else:
+                    str_array = data.index.astype(str) + ' '
+
+                if 'is_attributed' in data.columns:
+                    str_array = str_array + data['is_attributed'].astype(str)
+                else:
+                    str_array = str_array + '0'
+            else:
+                if not hash:
+                    str_array = str_array + " " + acro_name_to_dump + "_" + data[feature].astype(str)
+                else:
+                    temp = (acro_name_to_dump + "_" + data[feature].astype(str)). \
+                        apply(hashstr)
+                    str_array = str_array + " " + temp
+
+            gc.collect()
+            print('mem after gc:', cpuStats())
+            i += 1
+
+        str_array = str_array.values
+        return str_array
 
 
 
@@ -144,24 +238,44 @@ args = vars(parser.parse_args())
 import pickle
 dtypes = pickle.load(open("output_dtypes.pickle",'rb'))
 print('use dtypes:',dtypes)
-data = pd.read_csv(args['tr_src_path'], dtype=dtypes,header=0)#.sample(1000)
 #data = pd.read_csv(args['tr_src_path'], parse_dates=["click_time"],dtype=dtypes,header=0)#.sample(1000)
 #data.drop('click_time', axis=1, inplace=True)
 #data.drop('ip', axis=1, inplace=True)
 #print('data:',data)
 
-ffm_train = FFMFormatPandas()
-ffm_train_data = ffm_train.fit_transform(data, y='is_attributed')
-logger.info('converted data: %s', ffm_train_data)
-
-ffm_train_data.to_csv(args['tr_dst_path'], index=False)
-
-data = pd.read_csv(args['va_src_path'], dtype=dtypes,header=0)#.sample(1000)
 #data = pd.read_csv(args['va_src_path'], parse_dates=["click_time"],dtype=dtypes,header=0)#.sample(1000)
 #data.drop('click_time', axis=1, inplace=True)
 #data.drop('ip', axis=1, inplace=True)
-ffm_train = FFMFormatPandas()
-ffm_train_data = ffm_train.fit_transform(data, y='is_attributed')
-logger.info('converted data: %s', ffm_train_data)
 
-ffm_train_data.to_csv(args['va_dst_path'], index=False)
+with timer("convert data:"):
+    old_way = False
+    if old_way:
+        with timer('load train:'):
+            data = pd.read_csv(args['tr_src_path'], dtype=dtypes, header=0, engine='c')  # .sample(1000)
+        with timer('convert train:'):
+            ffm_train = FFMFormatPandas()
+            ffm_train_data = ffm_train.fit_transform(data, y='is_attributed')
+            logger.info('converted data: %s', ffm_train_data)
+
+            ffm_train_data.to_csv(args['tr_dst_path'], index=False)
+
+        with timer('load val:'):
+            data = pd.read_csv(args['va_src_path'], dtype=dtypes, header=0, engine='c')  # .sample(1000)
+        with timer('convert val:'):
+            ffm_train = FFMFormatPandas()
+            ffm_train_data = ffm_train.fit_transform(data, y='is_attributed')
+            logger.info('converted data: %s', ffm_train_data)
+
+            ffm_train_data.to_csv(args['va_dst_path'], index=False)
+    else:
+        with timer('load train:'):
+            data = pd.read_csv(args['tr_src_path'], dtype=dtypes, header=0, engine='c')  # .sample(1000)
+        with timer('convert train:'):
+            str_array = convert_features_to_text(data, data.columns, True)
+            np.savetxt(open(args['tr_dst_path'], 'w'), str_array, '%s')
+
+        with timer('load val:'):
+            data = pd.read_csv(args['va_src_path'], dtype=dtypes, header=0, engine='c')  # .sample(1000)
+        with timer('convert val:'):
+            str_array = convert_features_to_text(data, data.columns, True)
+            np.savetxt(open(args['va_dst_path'], 'w'), str_array, '%s')
