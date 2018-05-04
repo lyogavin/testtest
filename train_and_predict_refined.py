@@ -1340,6 +1340,11 @@ train_config_117_11.add_lgbm_fts_from_saved_model_filename = 'train_config_124_3
 train_config_117_11.add_lgbm_fts_from_saved_model_predictors_pickle_filename = \
     'train_config_124_33_model_predictors.pickle'
 
+
+train_config_117_12 = copy.deepcopy(train_config_117_8)
+train_config_117_12.add_features_list = add_features_list_smooth_cvr
+train_config_117_12.use_interactive_features = True
+
 train_config_121_1 = ConfigScheme(False, False, False,
                                   shuffle_sample_filter_1_to_3,
                                  shuffle_sample_filter_1_to_3,
@@ -1994,7 +1999,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_131_7')
+config_scheme_to_use = use_config_scheme('train_config_117_12')
 
 
 dtypes = {
@@ -2069,6 +2074,7 @@ def gen_iteractive_categorical_features(data):
                 else:
                     data[interactive_features_name] = data[interactive_features_name] + \
                                                       '_' + data[interactive_feature_item].astype(str)
+                data[interactive_features_name] = (data[interactive_features_name].apply(mmh3.hash) % 1000000).astype('uint32')
             if not interactive_features_name in categorical:
                 categorical.append(interactive_features_name)
                 print('added iterative fts:',interactive_features_name )
@@ -3512,6 +3518,8 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
                                            add_features_list=com_fts_list,
                                            use_ft_cache = use_ft_cache,
                                            ft_cache_prefix='train')
+    with timer('gen interactive features'):
+        train = gen_iteractive_categorical_features(train)
 
     predictors1 = categorical + new_features + ['is_attributed']
 
@@ -3561,6 +3569,8 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
                                            discretization_bins=discretization_bins_used,
                                            use_ft_cache = use_ft_cache,
                                            ft_cache_prefix='val')
+    with timer('gen interactive features'):
+        val = gen_iteractive_categorical_features(val)
 
     if config_scheme_to_use.add_lgbm_fts_from_saved_model:
         with timer('predict val LGBM features:'):
@@ -3598,6 +3608,9 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
                                                    discretization_bins=discretization_bins_used,
                                                    use_ft_cache = use_ft_cache,
                                                    ft_cache_prefix='test')
+        with timer('gen interactive features'):
+            train = gen_iteractive_categorical_features(train)
+
         if config_scheme_to_use.add_lgbm_fts_from_saved_model:
             with timer('predict val LGBM features:'):
                 predict_result = lgb_model.predict(test[lgb_predictors], num_iteration=lgb_fts_count, pred_leaf=True)
@@ -3707,7 +3720,7 @@ def train_and_predict_gen_fts_seperately(com_fts_list, use_ft_cache = False, onl
 
             print("Writing the submission data into a csv file...")
 
-            submission.to_csv(get_dated_filename("stacking_val"), index=True, index_label='click_id')
+            submission.to_csv(get_dated_filename("stacking_val.csv"), index=True, index_label='click_id')
 
             del predict_result
             del submission

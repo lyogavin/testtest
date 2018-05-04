@@ -746,6 +746,8 @@ _cvr']
         A. gen model: grid test3: see 124_33
         B. use model generated from A
             aliyun: 0.9775
+    12. new cvr features + interactive features
+        aliyun: running
 
 
 118 ensemble of: 117_2, 116_3, 103_11
@@ -1084,9 +1086,9 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
         azzureyun: LB: 0.9790
     38. following pub fm_ftrl's training time range:
         use 070am - 090am:
-        gyun: running
+        gyun: 0.9788
     39. use 080am - 090am:
-        aliyun: running
+        aliyun: LB: 0.9790
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature
@@ -1201,6 +1203,11 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     3. 2+117_8
     4. lgbm2*0.6 + 117_8*0.4: LB: 0.9780
     5. lgbm2*0.8 + 123_0*0.2: LB: 0.9799
+    6. lgbm2*0.7 + 123_0*0.3: LB: 0.9799
+    7. lgbm2*0.9 + 123_0*0.1: LB: 0.9799
+    8. 124_3*0.3 + 124_20*0.3 + 124_37*0.2 + 123_0 * 0.2: LB: 0.9800
+    9. 130_8 * 0.95 + 117_8 * 0.05: LB: 0.9800
+
 131: use 7_4am to 7_3pm (34308844 lines) to generate val scores and train stacking LR model to stack:
     1. stacking val score for 117_8:
         aliyun: bugg'ed sampled.
@@ -1222,6 +1229,9 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         azzureyun: DONE
     7. based on 124_37: azzureyun: DONE
     8. based on 117_11: aliyun: DONE
+
+    Stacking:
+        azzureyun: 131_1 gen'ed, LB:0.9794
 
 
 to do test:

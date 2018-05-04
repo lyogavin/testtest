@@ -23,12 +23,13 @@ from collections import OrderedDict
 import os
 import hashlib
 import csv
-
+import mmh3
 
 NR_BINS = 1000000
 
 def hashstr(input):
-    return str(int(hashlib.md5(input.encode('utf8')).hexdigest(), 16)%(NR_BINS-1)+1)
+    return str(mmh3.hash(input) %(NR_BINS-1)+1)
+    #return str(int(hashlib.md5(input.encode('utf8')).hexdigest(), 16)%(NR_BINS-1)+1)
 
 print(os.listdir("../input"))
 
