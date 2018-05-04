@@ -252,6 +252,9 @@ id_9_3pm = 181878211
 id_7_4am = 22536989
 id_7_3pm = 56845833
 id_9_4pm = 184903891 -1
+id_7_0am = 9308570
+id_9_0am = 131886955
+id_8_0am = 68941880
 
 sample_from_list = [0, 50000]
 sample_to_list = [49998, 90000]
@@ -1735,6 +1738,18 @@ train_config_124_37 = copy.deepcopy(train_config_124_36)
 train_config_124_37.add_features_list = add_features_list_smooth_cvr_from_search_121_13_reduced
 
 
+train_config_124_37 = copy.deepcopy(train_config_124)
+train_config_124_37.train_from = id_7_0am
+train_config_124_37.train_to = id_9_0am
+train_config_124_37.val_from = id_9_4am
+train_config_124_37.val_to = id_9_3pm
+
+train_config_124_38 = copy.deepcopy(train_config_124)
+train_config_124_38.train_from = id_8_0am
+train_config_124_38.train_to = id_9_0am
+train_config_124_38.val_from = id_9_4am
+train_config_124_38.val_to = id_9_3pm
+
 
 train_config_126_1 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
@@ -1985,7 +2000,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_131_8')
+config_scheme_to_use = use_config_scheme('train_config_124_38')
 
 
 dtypes = {

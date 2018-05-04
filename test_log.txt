@@ -974,6 +974,7 @@ _cvr']
     17. train a model with 08 then merge.
         gyun: merging with 124_3:
         LB: 0.9795
+        08's model only: LB:0.9785
     18(log incorrectly print 17). use adversial validation model to predict if it's test,
         use this score to weight training samples:
         aliyun: LB:0.9785
@@ -1066,6 +1067,7 @@ gain importance:
         aliyun: 0.9789
     31. use new params from search:
     Best ROC-AUC: 0.9732
+
 Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max_depth': 10, 'min_child_samples': 10, 'min_child_weight': 0, 'num_leaves': 11, 'reg_alpha': 1.0, 'reg_lambda': 1e-09, 'scale_pos_weight': 249.99999999999994, 'subsample': 0.6870745956370757}
         grid test 4:LB: !!!!!!!!!!!!!!!BUGG!!!!!!, still runed 124_3
         grid test 2: run again: version 92: LB:0.9786
@@ -1080,7 +1082,9 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
         aliyun: LB:0.9788
     37. reduce features from 36
         azzureyun: LB: 0.9790
-
+    38. following pub fm_ftrl's training time range:
+        use 070am - 090am:
+    39. use 080am - 090am:
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature
@@ -1206,7 +1210,7 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         gyun: Failed bug in the rcount==130000000 trick:
         A. try remove this trick to train all the data:
             gyun: running
-            need to submit once trained to check the score first.
+            need to submit once trained to check the score first: LB:0.9751
         B.
     3. based on 124_3:  grid test 4: OOM
                         azzureyun: DONE
