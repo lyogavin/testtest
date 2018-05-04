@@ -1085,6 +1085,7 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
     38. following pub fm_ftrl's training time range:
         use 070am - 090am:
     39. use 080am - 090am:
+        aliyun: running
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature
