@@ -746,7 +746,7 @@ _cvr']
         A. gen model: grid test3: see 124_33
         B. use model generated from A
             aliyun: 0.9775
-    12. new cvr features + interactive features
+    12. new cvr features + interactive features + use 09 last 250w as val
         aliyun: running
 
 
