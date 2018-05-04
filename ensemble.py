@@ -210,7 +210,8 @@ for filename in to_process:
 
 
     if sum is None:
-        sum = pd.DataFrame({'is_attributed': values})
+        sum = lgbm_submission#pd.DataFrame({'is_attributed': values, 'click_id': lgbm_submission['click_id']})
+        sum['is_attributed'] = values
     else:
         sum['is_attributed'] = sum['is_attributed'] + values
 
