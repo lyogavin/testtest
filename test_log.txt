@@ -1084,6 +1084,7 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
         azzureyun: LB: 0.9790
     38. following pub fm_ftrl's training time range:
         use 070am - 090am:
+        gyun: running
     39. use 080am - 090am:
         aliyun: running
 

@@ -114,7 +114,7 @@ import warnings
 
 dump_train_data = False
 
-use_sample = False
+use_sample = True
 debug = False
 persist_intermediate = False
 print_verbose = False
@@ -1320,12 +1320,6 @@ train_config_117_6 = ConfigScheme(False, False, False,
 train_config_117_8 = copy.deepcopy(train_config_117_3)
 train_config_117_8.log_discretization = True
 
-train_config_131_1 = copy.deepcopy(train_config_117_8)
-train_config_131_1.val_filter = None
-train_config_131_1.new_predict = False
-train_config_131_1.val_from = id_7_4am
-train_config_131_1.val_to = id_7_3pm
-
 
 
 train_config_117_9 = copy.deepcopy(train_config_117_8)
@@ -2000,7 +1994,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_38')
+config_scheme_to_use = use_config_scheme('train_config_131_7')
 
 
 dtypes = {
