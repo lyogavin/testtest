@@ -11,6 +11,7 @@ import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
 import collections
 # Input data files are available in the "../input/" directory.
 # For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
+from scipy.special import expit, logit
 
 import os
 import pickle
@@ -85,20 +86,22 @@ import pickle
 #submit['is_attributed'] = lgb_model.predict(train[predictors1], num_iteration=lgb_model.best_iteration)
 import math
 
+almost_zero = 1e-10
+almost_one = 1 - almost_zero
 
-def logit(x):
-    if x == 1:
-        x = 1 - 1e-9
-    y = x / (1 - x)
-    return math.log(y  if y>0 else 1)
+#def logit(x):
+#    if x == 1:
+#        x = 1 - 1e-9
+#    y = x / (1 - x)
+#    return math.log(y  if y>0 else 1)
 
 
-def logistic(x):
-    return 1 / (1 + math.exp(-x))
+#def logistic(x):
+#    return 1 / (1 + math.exp(-x))
 
 
 vlogit = np.vectorize(logit)
-vlogistic = np.vectorize(logistic)
+vlogistic = np.vectorize(expit)
 
 ratio_based_on_val = False
 
@@ -198,13 +201,21 @@ for filename in to_process:
         scale = int(filename[-3:]) / 1000
 
     print('scale using: ', scale)
+
+    values = vlogit(lgbm_submission['is_attributed'].clip(almost_zero, almost_one))
+
+    std = values.std()
+    std = 1 if std == 0 else std
+    values = (values - values.mean()) / std *  scale
+
+
     if sum is None:
-        sum = lgbm_submission
-        sum['is_attributed'] = vlogit(sum['is_attributed']) * scale
+        sum = pd.DataFrame({'is_attributed': values})
     else:
-        sum['is_attributed'] = sum['is_attributed'] + vlogit(lgbm_submission['is_attributed']) * scale
+        sum['is_attributed'] = sum['is_attributed'] + values
 
     del lgbm_submission
+    del values
     gc.collect()
 
 sum['is_attributed'] = vlogistic(sum['is_attributed'])
