@@ -1738,17 +1738,17 @@ train_config_124_37 = copy.deepcopy(train_config_124_36)
 train_config_124_37.add_features_list = add_features_list_smooth_cvr_from_search_121_13_reduced
 
 
-train_config_124_37 = copy.deepcopy(train_config_124)
-train_config_124_37.train_from = id_7_0am
-train_config_124_37.train_to = id_9_0am
-train_config_124_37.val_from = id_9_4am
-train_config_124_37.val_to = id_9_3pm
-
 train_config_124_38 = copy.deepcopy(train_config_124)
-train_config_124_38.train_from = id_8_0am
+train_config_124_38.train_from = id_7_0am
 train_config_124_38.train_to = id_9_0am
 train_config_124_38.val_from = id_9_4am
 train_config_124_38.val_to = id_9_3pm
+
+train_config_124_39 = copy.deepcopy(train_config_124)
+train_config_124_39.train_from = id_8_0am
+train_config_124_39.train_to = id_9_0am
+train_config_124_39.val_from = id_9_4am
+train_config_124_39.val_to = id_9_3pm
 
 
 train_config_126_1 = ConfigScheme(False, False, False,
