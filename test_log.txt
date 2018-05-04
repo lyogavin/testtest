@@ -1204,12 +1204,12 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         aliyun: bugg'ed sampled.
         rerun-python part first: DONE
         gen new new_test.sp again(typo, should be renamed to new_val.sp later):DONE
-        train and score stacking val: running
+        train and score stacking val: DONE
     2. skip 7's data in 123_0, and score 7's data for stacking:
         pub kernel:OOM
         gyun: Failed bug in the rcount==130000000 trick:
         A. try remove this trick to train all the data:
-            gyun: running
+            gyun: DONE
             need to submit once trained to check the score first: LB:0.9751
         B.
     3. based on 124_3:  grid test 4: OOM
@@ -1217,9 +1217,9 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     4. based on 124_9:  grid test 2: DONE
     5. based on 124_11: grid test 3: DONE
     6. based on 124_17: grid test: OOM
-        azzureyun: running
+        azzureyun: DONE
     7. based on 124_37: azzureyun: DONE
-    8. based on 117_11: aliyun: running
+    8. based on 117_11: aliyun: DONE
 
 
 to do test:
