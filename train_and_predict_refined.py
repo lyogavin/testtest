@@ -114,7 +114,7 @@ import warnings
 
 dump_train_data = False
 
-use_sample = True
+use_sample = False
 debug = False
 persist_intermediate = False
 print_verbose = False
@@ -2074,7 +2074,7 @@ def gen_iteractive_categorical_features(data):
                 else:
                     data[interactive_features_name] = data[interactive_features_name] + \
                                                       '_' + data[interactive_feature_item].astype(str)
-                data[interactive_features_name] = (data[interactive_features_name].apply(mmh3.hash) % 1000000).astype('uint32')
+            data[interactive_features_name] = (data[interactive_features_name].apply(mmh3.hash) % 1000000).astype('uint32')
             if not interactive_features_name in categorical:
                 categorical.append(interactive_features_name)
                 print('added iterative fts:',interactive_features_name )
@@ -3609,7 +3609,7 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
                                                    use_ft_cache = use_ft_cache,
                                                    ft_cache_prefix='test')
         with timer('gen interactive features'):
-            train = gen_iteractive_categorical_features(train)
+            test = gen_iteractive_categorical_features(test)
 
         if config_scheme_to_use.add_lgbm_fts_from_saved_model:
             with timer('predict val LGBM features:'):
