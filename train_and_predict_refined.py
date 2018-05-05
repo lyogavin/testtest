@@ -60,7 +60,7 @@ import objgraph
 import os, psutil
 
 
-def cpuStats():
+def cpuStats(pp = False):
     pid = os.getpid()
     py = psutil.Process(pid)
     memoryUse = py.memory_info()[0] / 2. ** 30
@@ -68,7 +68,11 @@ def cpuStats():
     # all_objects = muppy.get_objects()
     # sum1 = summary.summarize(all_objects)
     # summary.print_(sum1)(Pdb) import objgraph
-    objgraph.show_growth(limit=20)
+    if False:
+        aa = objgraph.at_addrs(objgraph.get_new_ids(limit=20)['Series'])
+        for aaa in aa:
+            pprint(aaa)
+            pprint(gc.is_tracked(aaa))
     return memoryUse
 
 @contextmanager
@@ -2727,8 +2731,12 @@ def convert_features_to_text(data, predictors, hash = False):
             print('mem after gc:', cpuStats())
             i += 1
 
-        str_array = str_array.values
-        return str_array
+        str_array_ret  = np.copy(str_array.values)
+        del str_array
+        gc.collect()
+        print('mem after gc str_array:', cpuStats())
+
+        return str_array_ret
 
 
 def train_lgbm(train, val, new_features, do_val_prediction=False):
@@ -3513,15 +3521,15 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
 
     return importances, val_auc
 
+NR_BINS = 1000000
 
+def hashstr(input):
+    #return str(int(hashlib.md5(input.encode('utf8')).hexdigest(), 16) % (NR_BINS - 1) + 1)
+    return str(mmh3.hash_from_buffer(input, signed=False) % (NR_BINS - 1) + 1)
 
 def convert_features_to_text_for_libffm(data, predictors, new_format = False):
-    NR_BINS = 1000000
     #print('converting:', data['is_attributed'].head().to_string())
 
-    def hashstr(input):
-        #return str(int(hashlib.md5(input.encode('utf8')).hexdigest(), 16) % (NR_BINS - 1) + 1)
-        return str(mmh3.hash_from_buffer(input, signed=False) % (NR_BINS - 1) + 1)
 
     with timer('convert_features_to_text'):
         i = 0
@@ -3550,18 +3558,24 @@ def convert_features_to_text_for_libffm(data, predictors, new_format = False):
                         str_array = data.index.astype(str) + ' ' + str_array
 
             elif new_format:
+                ss = data[feature].copy(True)
                 if feature in categorical:
-                    temp = data[feature].astype(str).apply(hashstr) + ':1'
+                    temp = ss.astype(str).apply(hashstr) + ':1'
                 else:
-                    temp = '0:' + data[feature].astype(str)
-                str_array = str_array + " " + str(i) + ':' + temp
+                    temp = '0:' + ss.astype(str)
+                str_array += " " + str(i) + ':' + temp
+                del temp
+                del ss
+                gc.collect()
             else:
                 temp = (acro_name_to_dump + "_" + data[feature].astype(str)). \
                         apply(hashstr)
-                str_array = str_array + " " + temp
+                str_array += " " + temp
+                del temp
+                gc.collect()
 
             gc.collect()
-            print('mem after gc:', cpuStats())
+            print('mem after gc ft:', cpuStats(True))
             i += 1
 
         str_array = str_array.values
