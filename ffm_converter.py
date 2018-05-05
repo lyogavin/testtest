@@ -268,14 +268,20 @@ with timer("convert data:"):
 
             ffm_train_data.to_csv(args['va_dst_path'], index=False)
     else:
-        with timer('load train:'):
-            data = pd.read_csv(args['tr_src_path'], dtype=dtypes, header=0, engine='c')  # .sample(1000)
-        with timer('convert train:'):
-            str_array = convert_features_to_text(data, data.columns, True)
-            np.savetxt(open(args['tr_dst_path'], 'w'), str_array, '%s')
-
-        with timer('load val:'):
-            data = pd.read_csv(args['va_src_path'], dtype=dtypes, header=0, engine='c')  # .sample(1000)
-        with timer('convert val:'):
-            str_array = convert_features_to_text(data, data.columns, True)
-            np.savetxt(open(args['va_dst_path'], 'w'), str_array, '%s')
+        batchsize = 100*10000
+        totalsize = 0
+        with open(args['tr_dst_path'], 'w') as fh:
+            for data in pd.read_csv(args['tr_src_path'], dtype=dtypes, header=0, chunksize = batchsize):  # .sample(1000)
+                print('dumping pos:', totalsize)
+                totalsize += batchsize
+                with timer('convert train:'):
+                    str_array = convert_features_to_text(data, data.columns, True)
+                    np.savetxt(fh, str_array, '%s')
+        totalsize = 0
+        with open(args['va_dst_path'], 'w') as fh:
+            for data in pd.read_csv(args['va_src_path'], dtype=dtypes, header=0, chunksize = batchsize):  # .sample(1000)
+                print('dumping pos:', totalsize)
+                totalsize += batchsize
+                with timer('convert val:'):
+                    str_array = convert_features_to_text(data, data.columns, True)
+                    np.savetxt(fh, str_array, '%s')

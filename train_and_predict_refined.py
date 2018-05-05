@@ -3483,6 +3483,60 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
     return importances, val_auc
 
 
+
+def convert_features_to_text_for_libffm(data, predictors, hash = False, for_new=False):
+    NR_BINS = 1000000
+
+    def hashstr(input):
+        #return str(int(hashlib.md5(input.encode('utf8')).hexdigest(), 16) % (NR_BINS - 1) + 1)
+        return str(mmh3.hash_from_buffer(input, signed=False) % (NR_BINS - 1) + 1)
+
+    with timer('convert_features_to_text'):
+        i = 0
+        str_array = None
+        assign_name_id = 0
+        for feature in predictors:
+            if feature == 'click_id':
+                continue
+            acro_name_to_dump = ''
+            if not feature in acro_names:
+                print('{} missing acronym, assign name AN{}'.format(feature, assign_name_id))
+                acro_name_to_dump = 'AN' + str(assign_name_id)
+                assign_name_id += 1
+            else:
+                acro_name_to_dump =  acro_names[feature]
+            if str_array is None:
+                if 'click_id' in data.columns:
+                    str_array = data['click_id'].astype(str) + ' '
+                else:
+                    str_array = data.index.astype(str) + ' '
+
+                if 'is_attributed' in data.columns:
+                    str_array = str_array + data['is_attributed'].astype(str)
+                else:
+                    str_array = str_array + '0'
+            else:
+                if not hash:
+                    str_array = str_array + " " + acro_name_to_dump + "_" + data[feature].astype(str)
+                else:
+                    temp = (acro_name_to_dump + "_" + data[feature].astype(str)). \
+                        apply(hashstr)
+                    str_array = str_array + " " + temp
+
+            gc.collect()
+            print('mem after gc:', cpuStats())
+            i += 1
+
+        str_array = str_array.values
+        return str_array
+
+
+def dump_for_libffm(data, filehandle, new_format = False):
+    dump_batchsize = 100*10000
+
+    for pos in range(0, len(data), dump_batchsize):
+
+
 def gen_ft_caches_seperately(com_fts_list):
 
     with timer('loading train df:'):
@@ -3553,10 +3607,14 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
             gc.collect()
 
     print('dump train fe data for fts:', predictors1)
-    if use_sample:
-        train[predictors1].to_csv('train_fe_sample.csv', index=False)
+    if config_scheme_to_use.new_lib_ffm_output:
+        with open('new_libffm_train{}.csv'.format('_sample' if use_sample else ''), 'w') as filehandle:
+            dump_for_new_libffm(train[predictors1], filehandle)
     else:
-        train[predictors1].to_csv('train_fe.csv', index=False)
+        if use_sample:
+            train[predictors1].to_csv('train_fe_sample.csv', index=False)
+        else:
+            train[predictors1].to_csv('train_fe.csv', index=False)
 
     print('dump dtypes')
 
