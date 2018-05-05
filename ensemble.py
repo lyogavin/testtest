@@ -204,9 +204,11 @@ for filename in to_process:
 
     values = vlogit(lgbm_submission['is_attributed'].clip(almost_zero, almost_one))
 
-    std = values.std()
-    std = 1 if std == 0 else std
-    values = (values - values.mean()) / std *  scale
+    normalization = Fales
+    if normalization:
+        std = values.std()
+        std = 1 if std == 0 else std
+        values = (values - values.mean()) / std *  scale
 
 
     if sum is None:
