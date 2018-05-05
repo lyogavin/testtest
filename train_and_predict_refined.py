@@ -136,6 +136,12 @@ try:
 except:
     None
 
+try:
+    os.mkdir('./new_libffm_output')
+except:
+    None
+
+
 path_train = path + 'train.csv'
 path_train_sample = path + 'train_sample.csv'
 path_test = path + 'test.csv'
@@ -3645,7 +3651,7 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
 
     print('dump train fe data for fts:', predictors1)
     if True:
-        with open('new_libffm_train{}.csv'.format('_sample' if use_sample else ''), 'w') as filehandle:
+        with open('./new_libffm_output/new_libffm_train{}.csv'.format('_sample' if use_sample else ''), 'w') as filehandle:
             dump_for_libffm(train[predictors1], filehandle, config_scheme_to_use.new_lib_ffm_output)
     else:
         if use_sample:
@@ -3698,7 +3704,7 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
     print('dump val fe data for fts:', predictors1)
 
     if True:
-        with open('new_libffm_val{}.csv'.format('_sample' if use_sample else ''), 'w') as filehandle:
+        with open('./new_libffm_output/new_libffm_val{}.csv'.format('_sample' if use_sample else ''), 'w') as filehandle:
             dump_for_libffm(val[predictors1], filehandle, config_scheme_to_use.new_lib_ffm_output)
     else:
         if use_sample:
@@ -3759,7 +3765,7 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
         test_to_dump['click_id'] = click_id_df['click_id']
 
         if True:
-            with open('new_libffm_test{}.csv'.format('_sample' if use_sample else ''), 'w') as filehandle:
+            with open('./new_libffm_output/new_libffm_test{}.csv'.format('_sample' if use_sample else ''), 'w') as filehandle:
                 dump_for_libffm(test_to_dump, filehandle, config_scheme_to_use.new_lib_ffm_output)
         else:
             test_to_dump.to_csv('test_fe.csv' + '.sample' if use_sample else 'test_fe.csv', index=False)
