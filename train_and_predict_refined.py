@@ -858,7 +858,8 @@ class ConfigScheme:
                  add_lgbm_fts_from_saved_model_predictors_pickle_filename = \
                          'train_config_124_3_model_predictors.pickle',
                  lgbm_stacking_val_from = None,
-                 lgbm_stacking_val_to =None
+                 lgbm_stacking_val_to =None,
+                 new_lib_ffm_output = False
                  ):
         self.predict = predict
         self.train = train
@@ -914,6 +915,7 @@ class ConfigScheme:
             add_lgbm_fts_from_saved_model_predictors_pickle_filename
         self.lgbm_stacking_val_from = lgbm_stacking_val_from
         self.lgbm_stacking_val_to = lgbm_stacking_val_to
+        self.new_lib_ffm_output = new_lib_ffm_output
 
 
 
@@ -1350,6 +1352,18 @@ train_config_117_12.train_to = id_9_3pm_reserve_last_250w
 train_config_117_12.val_filter = None
 train_config_117_12.val_from = id_9_3pm_reserve_last_250w
 train_config_117_12.val_to = id_9_3pm
+
+
+train_config_117_13 = copy.deepcopy(train_config_117_8)
+train_config_117_13.add_features_list = add_features_list_smooth_cvr
+train_config_117_13.use_interactive_features = True
+train_config_117_13.train_to = id_9_3pm_reserve_last_250w
+
+train_config_117_13.val_filter = None
+train_config_117_13.val_from = id_9_3pm_reserve_last_250w
+train_config_117_13.val_to = id_9_3pm
+train_config_117_13.new_lib_ffm_output = True
+train_config_117_13.log_discretization = False
 
 
 
@@ -2012,7 +2026,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_117_12')
+config_scheme_to_use = use_config_scheme('train_config_117_13')
 
 
 dtypes = {
@@ -3484,8 +3498,9 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
 
 
 
-def convert_features_to_text_for_libffm(data, predictors, hash = False, for_new=False):
+def convert_features_to_text_for_libffm(data, predictors, new_format = False):
     NR_BINS = 1000000
+    #print('converting:', data['is_attributed'].head().to_string())
 
     def hashstr(input):
         #return str(int(hashlib.md5(input.encode('utf8')).hexdigest(), 16) % (NR_BINS - 1) + 1)
@@ -3506,22 +3521,27 @@ def convert_features_to_text_for_libffm(data, predictors, hash = False, for_new=
             else:
                 acro_name_to_dump =  acro_names[feature]
             if str_array is None:
-                if 'click_id' in data.columns:
-                    str_array = data['click_id'].astype(str) + ' '
-                else:
-                    str_array = data.index.astype(str) + ' '
-
                 if 'is_attributed' in data.columns:
-                    str_array = str_array + data['is_attributed'].astype(str)
+                    str_array = data['is_attributed'].astype(str)
                 else:
-                    str_array = str_array + '0'
+                    str_array = '0'
+
+                if not new_format:
+                    if 'click_id' in data.columns:
+                        str_array = data['click_id'].astype(str) + ' ' + str_array
+                    else:
+                        str_array = data.index.astype(str) + ' ' + str_array
+
+            elif new_format:
+                if feature in categorical:
+                    temp = data[feature].astype(str).apply(hashstr) + ':1'
+                else:
+                    temp = '0:' + data[feature].astype(str)
+                str_array = str_array + " " + str(i) + ':' + temp
             else:
-                if not hash:
-                    str_array = str_array + " " + acro_name_to_dump + "_" + data[feature].astype(str)
-                else:
-                    temp = (acro_name_to_dump + "_" + data[feature].astype(str)). \
+                temp = (acro_name_to_dump + "_" + data[feature].astype(str)). \
                         apply(hashstr)
-                    str_array = str_array + " " + temp
+                str_array = str_array + " " + temp
 
             gc.collect()
             print('mem after gc:', cpuStats())
@@ -3535,7 +3555,8 @@ def dump_for_libffm(data, filehandle, new_format = False):
     dump_batchsize = 100*10000
 
     for pos in range(0, len(data), dump_batchsize):
-
+        str_array =convert_features_to_text_for_libffm(data[pos:pos+dump_batchsize], data.columns, new_format)
+        np.savetxt(filehandle, str_array, '%s')
 
 def gen_ft_caches_seperately(com_fts_list):
 
@@ -3609,7 +3630,7 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
     print('dump train fe data for fts:', predictors1)
     if config_scheme_to_use.new_lib_ffm_output:
         with open('new_libffm_train{}.csv'.format('_sample' if use_sample else ''), 'w') as filehandle:
-            dump_for_new_libffm(train[predictors1], filehandle)
+            dump_for_libffm(train[predictors1], filehandle, True)
     else:
         if use_sample:
             train[predictors1].to_csv('train_fe_sample.csv', index=False)
@@ -3656,10 +3677,14 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
 
     print('dump val fe data for fts:', predictors1)
 
-    if use_sample:
-        val[predictors1].to_csv('val_fe_sample.csv', index=False)
+    if config_scheme_to_use.new_lib_ffm_output:
+        with open('new_libffm_val{}.csv'.format('_sample' if use_sample else ''), 'w') as filehandle:
+            dump_for_libffm(val[predictors1], filehandle, True)
     else:
-        val[predictors1].to_csv('val_fe.csv', index=False)
+        if use_sample:
+            val[predictors1].to_csv('val_fe_sample.csv', index=False)
+        else:
+            val[predictors1].to_csv('val_fe.csv', index=False)
 
     del val
     gc.collect()
@@ -3700,7 +3725,12 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
         #pay attention to adding column of dataframe here, need to reset_index() first
         test_to_dump = test[predictors1].copy(True).reset_index(drop=True)
         test_to_dump['click_id'] = click_id_df['click_id']
-        test_to_dump.to_csv('test_fe.csv' + '.sample' if use_sample else 'test_fe.csv', index=False)
+
+        if config_scheme_to_use.new_lib_ffm_output:
+            with open('new_libffm_test{}.csv'.format('_sample' if use_sample else ''), 'w') as filehandle:
+                dump_for_libffm(test_to_dump, filehandle, True)
+        else:
+            test_to_dump.to_csv('test_fe.csv' + '.sample' if use_sample else 'test_fe.csv', index=False)
     else:
         print('new_predict false, skip testing data.')
     print('gen fe data for ffm done.')

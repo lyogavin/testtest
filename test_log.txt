@@ -748,6 +748,7 @@ _cvr']
             aliyun: 0.9775
     12. new cvr features + interactive features + use 09 last 250w as val
         aliyun: running
+    13. new libffm format
 
 
 118 ensemble of: 117_2, 116_3, 103_11
