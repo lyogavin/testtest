@@ -204,7 +204,7 @@ for filename in to_process:
 
     values = vlogit(lgbm_submission['is_attributed'].clip(almost_zero, almost_one))
 
-    normalization = Fales
+    normalization = False
     if normalization:
         std = values.std()
         std = 1 if std == 0 else std
