@@ -2026,7 +2026,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_117_12')
+config_scheme_to_use = use_config_scheme('train_config_117_13')
 
 
 dtypes = {
@@ -3552,11 +3552,13 @@ def convert_features_to_text_for_libffm(data, predictors, new_format = False):
 
 
 def dump_for_libffm(data, filehandle, new_format = False):
-    dump_batchsize = 100*10000
+    dump_batchsize = 300*10000
 
     for pos in range(0, len(data), dump_batchsize):
         str_array =convert_features_to_text_for_libffm(data[pos:pos+dump_batchsize], data.columns, new_format)
         np.savetxt(filehandle, str_array, '%s')
+        del str_array
+        gc.collect()
 
 def gen_ft_caches_seperately(com_fts_list):
 
