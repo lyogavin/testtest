@@ -3605,7 +3605,7 @@ def dump_for_libffm_internal(data, filehandle, new_format = False):
 
     for pos in range(0, len(data), dump_batchsize):
         print('dumping:', pos)
-        with timer('dumping ' + pos):
+        with timer('dumping ' + str(pos)):
             p = mp.Process(target=dump_for_libffm_internal_batch, args=(data[pos:pos+dump_batchsize], filehandle, new_format))
             p.start()
             p.join()
