@@ -2026,7 +2026,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_117_13')
+config_scheme_to_use = use_config_scheme('train_config_117_12')
 
 
 dtypes = {
@@ -3628,9 +3628,9 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
             gc.collect()
 
     print('dump train fe data for fts:', predictors1)
-    if config_scheme_to_use.new_lib_ffm_output:
+    if True:
         with open('new_libffm_train{}.csv'.format('_sample' if use_sample else ''), 'w') as filehandle:
-            dump_for_libffm(train[predictors1], filehandle, True)
+            dump_for_libffm(train[predictors1], filehandle, config_scheme_to_use.new_lib_ffm_output)
     else:
         if use_sample:
             train[predictors1].to_csv('train_fe_sample.csv', index=False)
@@ -3677,9 +3677,9 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
 
     print('dump val fe data for fts:', predictors1)
 
-    if config_scheme_to_use.new_lib_ffm_output:
+    if True:
         with open('new_libffm_val{}.csv'.format('_sample' if use_sample else ''), 'w') as filehandle:
-            dump_for_libffm(val[predictors1], filehandle, True)
+            dump_for_libffm(val[predictors1], filehandle, config_scheme_to_use.new_lib_ffm_output)
     else:
         if use_sample:
             val[predictors1].to_csv('val_fe_sample.csv', index=False)
@@ -3726,9 +3726,9 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
         test_to_dump = test[predictors1].copy(True).reset_index(drop=True)
         test_to_dump['click_id'] = click_id_df['click_id']
 
-        if config_scheme_to_use.new_lib_ffm_output:
+        if True:
             with open('new_libffm_test{}.csv'.format('_sample' if use_sample else ''), 'w') as filehandle:
-                dump_for_libffm(test_to_dump, filehandle, True)
+                dump_for_libffm(test_to_dump, filehandle, config_scheme_to_use.new_lib_ffm_output)
         else:
             test_to_dump.to_csv('test_fe.csv' + '.sample' if use_sample else 'test_fe.csv', index=False)
     else:
