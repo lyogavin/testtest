@@ -3591,6 +3591,11 @@ def convert_features_to_text_for_libffm(data, predictors, new_format = False):
         str_array = str_array.values
         return str_array
 
+def dump_for_libffm_internal_batch(data, filehandle, new_format = False):
+    str_array =convert_features_to_text_for_libffm(data, data.columns, new_format)
+    np.savetxt(filehandle, str_array, '%s')
+    print('[{}]mem after gc ft:{}'.format(os.getpid(), cpuStats(False)))
+
 
 def dump_for_libffm_internal(data, filehandle, new_format = False):
 
@@ -3600,11 +3605,10 @@ def dump_for_libffm_internal(data, filehandle, new_format = False):
 
     for pos in range(0, len(data), dump_batchsize):
         print('dumping:', pos)
-        str_array =convert_features_to_text_for_libffm(data[pos:pos + dump_batchsize], data.columns, new_format)
-        np.savetxt(filehandle, str_array, '%s')
-        del str_array
-        gc.collect()
-
+        with timer('dumping ' + pos):
+            p = mp.Process(target=dump_for_libffm_internal_batch, args=(data[pos:pos+dump_batchsize], filehandle, new_format))
+            p.start()
+            p.join()
 
         print('[{}]mem after gc ft:{}'.format(os.getpid(), cpuStats(False)))
 
