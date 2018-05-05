@@ -8,6 +8,7 @@
 import sys
 import copy
 from scipy import special as sp
+import multiprocessing as mp
 
 on_kernel = False
 
@@ -68,11 +69,23 @@ def cpuStats(pp = False):
     # all_objects = muppy.get_objects()
     # sum1 = summary.summarize(all_objects)
     # summary.print_(sum1)(Pdb) import objgraph
-    if False:
-        aa = objgraph.at_addrs(objgraph.get_new_ids(limit=20)['Series'])
-        for aaa in aa:
+    if pp:
+        aa = objgraph.at_addrs(objgraph.get_new_ids(limit=20)['list'])#['Series'])
+        if len(aa) < 20:
+            objgraph.show_backrefs(aa, filename='sample-backref-graph.png')
+
+        for aaa in []: #aa:
             pprint(aaa)
-            pprint(gc.is_tracked(aaa))
+            topnt = gc.get_referrers(aaa)
+            i = 0
+            for pnt in topnt:
+                print('obj:',i)
+                i+=1
+                if i == 2:
+                    print(str(pnt))
+                    #objgraph.show_backrefs(pnt, filename='sample-backref-graph.png')
+                else:
+                    print(str(pnt)[0:100])
     return memoryUse
 
 @contextmanager
@@ -3558,14 +3571,12 @@ def convert_features_to_text_for_libffm(data, predictors, new_format = False):
                         str_array = data.index.astype(str) + ' ' + str_array
 
             elif new_format:
-                ss = data[feature].copy(True)
                 if feature in categorical:
-                    temp = ss.astype(str).apply(hashstr) + ':1'
+                    temp = data[feature].astype(str).apply(hashstr) + ':1'
                 else:
-                    temp = '0:' + ss.astype(str)
+                    temp = '0:' + data[feature].astype(str)
                 str_array += " " + str(i) + ':' + temp
                 del temp
-                del ss
                 gc.collect()
             else:
                 temp = (acro_name_to_dump + "_" + data[feature].astype(str)). \
@@ -3575,21 +3586,39 @@ def convert_features_to_text_for_libffm(data, predictors, new_format = False):
                 gc.collect()
 
             gc.collect()
-            print('mem after gc ft:', cpuStats(True))
             i += 1
 
         str_array = str_array.values
         return str_array
 
 
-def dump_for_libffm(data, filehandle, new_format = False):
-    dump_batchsize = 300*10000
+def dump_for_libffm_internal(data, filehandle, new_format = False):
+
+
+    dump_batchsize = 1000*10000
+    #dump_batchsize = 1234
 
     for pos in range(0, len(data), dump_batchsize):
-        str_array =convert_features_to_text_for_libffm(data[pos:pos+dump_batchsize], data.columns, new_format)
+        print('dumping:', pos)
+        str_array =convert_features_to_text_for_libffm(data[pos:pos + dump_batchsize], data.columns, new_format)
         np.savetxt(filehandle, str_array, '%s')
         del str_array
         gc.collect()
+
+
+        print('[{}]mem after gc ft:{}'.format(os.getpid(), cpuStats(False)))
+
+def dump_for_libffm(data, filehandle, new_format = False):
+
+    print('[{}]mem before dump libffm file:{}'.format(os.getpid(), cpuStats(False)))
+
+    print('forking to avoid mem leak....')
+    p = mp.Process(target=dump_for_libffm_internal, args=(data, filehandle, new_format))
+    p.start()
+    p.join()
+
+    print('[{}]mem after dump libffm file:{}'.format(os.getpid(), cpuStats(False)))
+
 
 def gen_ft_caches_seperately(com_fts_list):
 
