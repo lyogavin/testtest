@@ -2026,7 +2026,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_117_13')
+config_scheme_to_use = use_config_scheme('train_config_117_12')
 
 
 dtypes = {
@@ -3543,6 +3543,7 @@ def convert_features_to_text_for_libffm(data, predictors, new_format = False):
                         apply(hashstr)
                 str_array = str_array + " " + temp
 
+            del temp
             gc.collect()
             print('mem after gc:', cpuStats())
             i += 1
@@ -3647,6 +3648,7 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
     # del y['Unnamed: 0']
     pickle.dump(y, open('output_dtypes.pickle', 'wb'))
 
+    del y
     del train
     gc.collect()
     print('mem after train dump:', cpuStats())
