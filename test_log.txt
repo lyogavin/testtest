@@ -1215,7 +1215,9 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     9. 130_8 * 0.95 + 117_8 * 0.05: LB: 0.9800
     10. 9 -> 0.85 /0.15 : LB:0.9798
     11. try normailzation before ensemble.
-    12.
+    12. 130_8 * 0.9 + 117_8 * 0.1: 0.9765
+    13.  124_3*0.2 + 124_20*0.3 + 124_37*0.2 + 123_0 * 0.3:  TODO:
+    14 123_28*0.1 +  124_3*0.2 + 124_20*0.3 + 124_37*0.2 + 123_0 * 0.2: TODO:
 
 131: use 7_4am to 7_3pm (34308844 lines) to generate val scores and train stacking LR model to stack:
     1. stacking val score for 117_8:
