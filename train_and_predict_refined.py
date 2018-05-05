@@ -131,7 +131,7 @@ import warnings
 
 dump_train_data = False
 
-use_sample = False
+use_sample = True
 debug = False
 persist_intermediate = False
 print_verbose = False
@@ -3594,6 +3594,7 @@ def convert_features_to_text_for_libffm(data, predictors, new_format = False):
 def dump_for_libffm_internal_batch(data, filehandle, new_format = False):
     str_array =convert_features_to_text_for_libffm(data, data.columns, new_format)
     np.savetxt(filehandle, str_array, '%s')
+    filehandle.flush()
     print('[{}]mem after gc ft:{}'.format(os.getpid(), cpuStats(False)))
 
 
@@ -3658,8 +3659,66 @@ def gen_ft_caches_seperately(com_fts_list):
                                            ft_cache_prefix='val',
                                            only_ft_cache = True)
     gc.collect()
-
 def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
+    #test only temporarily:
+    if config_scheme_to_use.new_predict:
+
+        if config_scheme_to_use.test_smoothcvr_cache_from is not None:
+            clear_smoothcvr_cache()
+            gen_smoothcvr_cache(config_scheme_to_use.test_smoothcvr_cache_from,
+                                config_scheme_to_use.test_smoothcvr_cache_to)
+
+
+        print('dump test fe data...')
+        with timer('loading test df:'):
+            test = get_test_df()
+        with timer('gen categorical features for test'):
+            test = gen_categorical_features(test)
+        with timer('gen statistical hist features for test'):
+            test, new_features, discretization_bins_used = \
+                generate_counting_history_features(test,
+                                                   discretization=config_scheme_to_use.discretization,
+                                                   add_features_list=com_fts_list,
+                                                   discretization_bins=None,
+                                                   use_ft_cache = use_ft_cache,
+                                                   ft_cache_prefix='test')
+        with timer('gen interactive features'):
+            test = gen_iteractive_categorical_features(test)
+        predictors1 = categorical + new_features + ['is_attributed']
+
+        if config_scheme_to_use.add_lgbm_fts_from_saved_model:
+            lgb_model = lgb.Booster(model_file=config_scheme_to_use.add_lgbm_fts_from_saved_model_filename)
+            lgb_predictors = pickle.load(
+                open(config_scheme_to_use.add_lgbm_fts_from_saved_model_predictors_pickle_filename, 'rb'))
+            lgb_fts_count = config_scheme_to_use.add_lgbm_fts_from_saved_model_count
+            with timer('predict val LGBM features:'):
+                predict_result = lgb_model.predict(test[lgb_predictors], num_iteration=lgb_fts_count, pred_leaf=True)
+                ft_df = pd.DataFrame(predict_result, dtype='uint8',
+                                     columns=['T' + str(i) for i in range(len(predict_result[0]))])
+                del predict_result
+                gc.collect()
+                test = pd.concat([test, ft_df], axis=1)
+                del ft_df
+                gc.collect()
+
+        click_id_df = pd.read_csv(path_test_sample if use_sample else path_test,
+                             dtype='uint64',
+                             header=0,
+                             usecols=['click_id'])
+        #pay attention to adding column of dataframe here, need to reset_index() first
+        test_to_dump = test[predictors1].copy(True).reset_index(drop=True)
+        test_to_dump['click_id'] = click_id_df['click_id']
+
+        if True:
+            with open('./new_libffm_output/new_libffm_test{}.csv'.format('_sample' if use_sample else ''), 'w') as filehandle:
+                dump_for_libffm(test_to_dump, filehandle, config_scheme_to_use.new_lib_ffm_output)
+        else:
+            test_to_dump.to_csv('test_fe.csv' + '.sample' if use_sample else 'test_fe.csv', index=False)
+    else:
+        print('new_predict false, skip testing data.')
+    print('gen fe data for ffm done.')
+
+def ffm_data_gen_seperately_temp_rename(com_fts_list, use_ft_cache=False):
     if config_scheme_to_use.train_smoothcvr_cache_from is not None:
         gen_smoothcvr_cache(config_scheme_to_use.train_smoothcvr_cache_from, config_scheme_to_use.train_smoothcvr_cache_to)
 
