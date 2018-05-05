@@ -3600,7 +3600,7 @@ def dump_for_libffm_internal_batch(data, filehandle, new_format = False):
 def dump_for_libffm_internal(data, filehandle, new_format = False):
 
 
-    dump_batchsize = 1000*10000
+    dump_batchsize = 250*10000
     #dump_batchsize = 1234
 
     for pos in range(0, len(data), dump_batchsize):
