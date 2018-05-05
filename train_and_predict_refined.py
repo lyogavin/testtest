@@ -56,7 +56,7 @@ def get_dated_filename(filename):
 import os
 import pickle
 from contextlib import contextmanager
-
+import objgraph
 import os, psutil
 
 
@@ -67,8 +67,8 @@ def cpuStats():
     gc.collect()
     # all_objects = muppy.get_objects()
     # sum1 = summary.summarize(all_objects)
-    # summary.print_(sum1)
-
+    # summary.print_(sum1)(Pdb) import objgraph
+    objgraph.show_growth(limit=20)
     return memoryUse
 
 @contextmanager
@@ -114,7 +114,7 @@ import warnings
 
 dump_train_data = False
 
-use_sample = False
+use_sample = True
 debug = False
 persist_intermediate = False
 print_verbose = False
@@ -1346,6 +1346,10 @@ train_config_117_11.add_lgbm_fts_from_saved_model_predictors_pickle_filename = \
 
 train_config_117_12 = copy.deepcopy(train_config_117_8)
 train_config_117_12.add_features_list = add_features_list_smooth_cvr
+train_config_117_12.train_smoothcvr_cache_from = id_8_4am
+train_config_117_12.train_smoothcvr_cache_to = id_8_3pm
+train_config_117_12.test_smoothcvr_cache_from = id_9_4am
+train_config_117_12.test_smoothcvr_cache_to = id_9_3pm
 train_config_117_12.use_interactive_features = True
 train_config_117_12.train_to = id_9_3pm_reserve_last_250w
 
@@ -1353,9 +1357,12 @@ train_config_117_12.val_filter = None
 train_config_117_12.val_from = id_9_3pm_reserve_last_250w
 train_config_117_12.val_to = id_9_3pm
 
-
 train_config_117_13 = copy.deepcopy(train_config_117_8)
 train_config_117_13.add_features_list = add_features_list_smooth_cvr
+train_config_117_13.train_smoothcvr_cache_from = id_8_4am
+train_config_117_13.train_smoothcvr_cache_to = id_8_3pm
+train_config_117_13.test_smoothcvr_cache_from = id_9_4am
+train_config_117_13.test_smoothcvr_cache_to = id_9_3pm
 train_config_117_13.use_interactive_features = True
 train_config_117_13.train_to = id_9_3pm_reserve_last_250w
 
@@ -2477,7 +2484,9 @@ def gen_smoothcvr_cache(frm, to):
                 del temp_count
                 del temp_sum['is_attributed']
                 gc.collect()
-                add_statistic_feature.train_cvr_cache[feature_name_added] = temp_sum
+                add_statistic_feature.train_cvr_cache[feature_name_added] = temp_sum.copy(True)
+                del temp_sum
+                gc.collect()
             else:
                 if not hasattr(add_statistic_feature, 'hourly_alpha_beta'):
                     add_statistic_feature.hourly_alpha_beta = train[['hour', 'is_attributed']].\
@@ -2527,7 +2536,9 @@ def gen_smoothcvr_cache(frm, to):
                 #del temp_count['is_attributed']
 
                 gc.collect()
-                add_statistic_feature.train_cvr_cache[feature_name_added] = temp_count
+                add_statistic_feature.train_cvr_cache[feature_name_added] = temp_count.copy(True)
+                del temp_count
+                gc.collect()
 
     print('setting global cvr for fillna...')
     if not hasattr(add_statistic_feature, 'global_cvr'):
@@ -3543,7 +3554,6 @@ def convert_features_to_text_for_libffm(data, predictors, new_format = False):
                         apply(hashstr)
                 str_array = str_array + " " + temp
 
-            del temp
             gc.collect()
             print('mem after gc:', cpuStats())
             i += 1
@@ -3597,6 +3607,9 @@ def gen_ft_caches_seperately(com_fts_list):
     gc.collect()
 
 def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
+    if config_scheme_to_use.train_smoothcvr_cache_from is not None:
+        gen_smoothcvr_cache(config_scheme_to_use.train_smoothcvr_cache_from, config_scheme_to_use.train_smoothcvr_cache_to)
+
     with timer('loading train df:'):
         train = get_train_df()
     with timer('gen categorical features for train'):
@@ -3653,6 +3666,9 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
     gc.collect()
     print('mem after train dump:', cpuStats())
 
+    #pprint(gc.get_objects())
+
+
     with timer('loading val df:'):
         val = get_val_df()
     with timer('gen categorical features for val'):
@@ -3690,11 +3706,23 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
         else:
             val[predictors1].to_csv('val_fe.csv', index=False)
 
+    clear_smoothcvr_cache()
+
     del val
     gc.collect()
     print('mem after val dump:', cpuStats())
+    #pprint(gc.get_objects())
+
+
 
     if config_scheme_to_use.new_predict:
+
+        if config_scheme_to_use.test_smoothcvr_cache_from is not None:
+            clear_smoothcvr_cache()
+            gen_smoothcvr_cache(config_scheme_to_use.test_smoothcvr_cache_from,
+                                config_scheme_to_use.test_smoothcvr_cache_to)
+
+
         print('dump test fe data...')
         with timer('loading test df:'):
             test = get_test_df()
