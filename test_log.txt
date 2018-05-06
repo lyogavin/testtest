@@ -747,9 +747,10 @@ _cvr']
         B. use model generated from A
             aliyun: 0.9775
     12. new cvr features + interactive features + use 09 last 250w as val
-        aliyun: running
+        aliyun: 0.9767
+        higher reg:
     13. new libffm format
-        azzureyun: 0.9322
+        azzureyun: 0.9322 <- bug: fix and rerun: running
 
 
 118 ensemble of: 117_2, 116_3, 103_11
@@ -932,6 +933,7 @@ _cvr']
     8. full batchsize, skip from 8 4am: azzureyun: OOM
     9. recover orginal train/val split, train FM-FTRL: use last 250w lines til 9 3pm as stacking val
         gyun: running
+    10. DNN model: aliyun running
 
 124: LGBM seperately:
     0. train seperately with best params:

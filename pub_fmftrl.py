@@ -30,9 +30,9 @@ start_time = time.time()
 
 mean_auc= 0
 
-wordbatch_model = 'FM_FTRL'
+#wordbatch_model = 'FM_FTRL'
 #wordbatch_model = 'FTRL'
-
+wordbatch_model = 'NN_ReLU_H1'
 
 def fit_batch(clf, X, y, w):
     if not isinstance(clf, FM_FTRL):
