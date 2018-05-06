@@ -2714,7 +2714,7 @@ def convert_features_to_text(data, predictors, hash = False):
 
     def hashstr(input):
         #return str(int(hashlib.md5(input.encode('utf8')).hexdigest(), 16) % (NR_BINS - 1) + 1)
-        return str(mmh3.hash_from_buffer(input, signed=False) % (NR_BINS - 1) + 1)
+        ret = str(mmh3.hash_from_buffer(input, signed=False) % (NR_BINS - 1) + 1)
 
     with timer('convert_features_to_text'):
         i = 0
@@ -3538,7 +3538,10 @@ NR_BINS = 1000000
 
 def hashstr(input):
     #return str(int(hashlib.md5(input.encode('utf8')).hexdigest(), 16) % (NR_BINS - 1) + 1)
-    return str(mmh3.hash_from_buffer(input, signed=False) % (NR_BINS - 1) + 1)
+    ret= str(mmh3.hash_from_buffer(input, signed=False) % (NR_BINS - 1) + 1)
+    #if ret ==  '66552':
+    #    print('in {}, out {}'.format(input, ret))
+    return ret
 
 def convert_features_to_text_for_libffm(data, predictors, new_format = False):
     #print('converting:', data['is_attributed'].head().to_string())
@@ -3549,6 +3552,7 @@ def convert_features_to_text_for_libffm(data, predictors, new_format = False):
         str_array = None
         assign_name_id = 0
         for feature in predictors:
+            print('processing ', feature)
             if feature == 'click_id':
                 continue
             acro_name_to_dump = ''
@@ -3570,7 +3574,7 @@ def convert_features_to_text_for_libffm(data, predictors, new_format = False):
                     else:
                         str_array = data.index.astype(str) + ' ' + str_array
 
-            elif new_format:
+            if new_format:
                 if feature in categorical:
                     temp = data[feature].astype(str).apply(hashstr) + ':1'
                 else:
@@ -3592,7 +3596,11 @@ def convert_features_to_text_for_libffm(data, predictors, new_format = False):
         return str_array
 
 def dump_for_libffm_internal_batch(data, filehandle, new_format = False):
+    #print('before hash:', data.head())
     str_array =convert_features_to_text_for_libffm(data, data.columns, new_format)
+    #print('after bash:', data.columns)
+
+    #print('after bash:', str_array[0:10])
     np.savetxt(filehandle, str_array, '%s')
     filehandle.flush()
     print('[{}]mem after gc ft:{}'.format(os.getpid(), cpuStats(False)))
@@ -3659,7 +3667,7 @@ def gen_ft_caches_seperately(com_fts_list):
                                            ft_cache_prefix='val',
                                            only_ft_cache = True)
     gc.collect()
-def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
+def ffm_data_gen_seperately_test_only(com_fts_list, use_ft_cache=False):
     #test only temporarily:
     if config_scheme_to_use.new_predict:
 
@@ -3718,7 +3726,7 @@ def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
         print('new_predict false, skip testing data.')
     print('gen fe data for ffm done.')
 
-def ffm_data_gen_seperately_temp_rename(com_fts_list, use_ft_cache=False):
+def ffm_data_gen_seperately(com_fts_list, use_ft_cache=False):
     if config_scheme_to_use.train_smoothcvr_cache_from is not None:
         gen_smoothcvr_cache(config_scheme_to_use.train_smoothcvr_cache_from, config_scheme_to_use.train_smoothcvr_cache_to)
 
