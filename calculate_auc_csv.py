@@ -26,8 +26,8 @@ print('reading label data:')
 label = pd.read_csv(args['label_path'],header=None,sep=' ').iloc[:,[1]]
 print('label len:', len(label))
 
-#predict = pd.read_csv(args['predict_path'], dtype='float', usecols=['is_attributed'])
-predict= pd.read_csv(args['predict_path'],header=None,sep=' ').iloc[:,[0]]
+predict = pd.read_csv(args['predict_path'], dtype='float', usecols=['is_attributed'])
+#predict= pd.read_csv(args['predict_path'],header=None,sep=' ').iloc[:,[0]]
 print('label len:', len(label))
 
 
