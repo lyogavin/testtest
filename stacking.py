@@ -51,7 +51,9 @@ id_7_0am = 9308570
 id_9_0am = 131886955
 id_8_0am = 68941880
 
-use_sample = True
+id_9_3pm_reserve_last_250w = id_9_3pm - 250*10000
+
+use_sample = False
 
 path = '../input/talkingdata-adtracking-fraud-detection/'
 
@@ -114,8 +116,8 @@ with timer('preparing training data.'):
 
 
     print('loading validation labels:')
-    lgbm_stacking_val_from = id_7_4am
-    lgbm_stacking_val_to = id_7_3pm
+    lgbm_stacking_val_from = id_9_3pm_reserve_last_250w
+    lgbm_stacking_val_to = id_9_3pm
 
     print('the stacking val score time ranges has to stay the same with training: {}~{}'.
           format(lgbm_stacking_val_from, lgbm_stacking_val_to))
