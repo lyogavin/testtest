@@ -210,7 +210,8 @@ for filename in to_process:
     if normalization:
         std = values.std()
         std = 1 if std == 0 else std
-        values = (values - values.mean()) / std *  scale
+        values = (values - values.mean()) / std
+    values = values * scale
 
 
     if sum is None:
