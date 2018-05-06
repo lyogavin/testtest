@@ -5,6 +5,8 @@ sys.path.insert(0, '../input/randomstate/randomstate/')
 import wordbatch
 from wordbatch.extractors import WordHash
 from wordbatch.models import FM_FTRL
+from wordbatch.models import FTRL
+from wordbatch.models import NN_ReLU_H1
 from wordbatch.data_utils import *
 import threading
 import pandas as pd

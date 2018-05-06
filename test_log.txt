@@ -749,7 +749,7 @@ _cvr']
     12. new cvr features + interactive features + use 09 last 250w as val
         aliyun: 0.9767
         higher reg: nohup ./mark/mark1/mark1 -l 0.000005 -r 0.05 -s 12 -t 8 ./new_libffm_output/new_libffm_test.csv ./new_libffm_output/new_libffm_train.csv
-
+        0.9777
     13. new libffm format
         azzureyun: 0.9322 <- bug: fix and rerun: running
 
