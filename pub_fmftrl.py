@@ -17,7 +17,8 @@ from contextlib import contextmanager
 def timer(name):
 	t0 = time.time()
 	yield
-	print(f'[{name}] done in {time.time() - t0:.0f} s')
+	print('[{}] done in {} s'.format(name, time.time() - t0))
+
 
 import os, psutil
 def cpuStats():
