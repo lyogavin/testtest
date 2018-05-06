@@ -1222,6 +1222,7 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     16. 13 -> 123_0->0.4, 124_3->0.1: 0.9800
     17. 123_0->0.5, 124_20->0.25, 124_37->0.15 0.9800
     18. 123_0->0.65, 124_20 -> 0.2, 124_
+    19. 7 + normailized
 
 131: use 7_4am to 7_3pm (34308844 lines) to generate val scores and train stacking LR model to stack:
     1. stacking val score for 117_8:

@@ -196,6 +196,8 @@ for filename in to_process:
     #ffm_submision = pd.read_csv('new_test.sp.prd', header = 0, usecols=['click'])
     #ffm_submision = pd.read_csv('submission_notebook.csv.02-04-2018_22:48:59', header = 0)
     #print('min:', lgbm_submission['is_attributed'].min())
+    print(lgbm_submission.head())
+    print('len:', len(lgbm_submission))
 
     if filename[-10:-3] == '_SCALE_':
         scale = int(filename[-3:]) / 1000
