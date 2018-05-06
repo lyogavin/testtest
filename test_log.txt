@@ -1248,6 +1248,9 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
 
     Stacking:
         azzureyun: 131_1 gen'ed, LB:0.9794
+    9. new stacking of 123_0/124_40: LB:0.9792
+    10. new stacking 8:2 lgb 117_8: 0.9795
+
 
 
 to do test:
