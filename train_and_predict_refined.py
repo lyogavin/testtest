@@ -882,7 +882,8 @@ class ConfigScheme:
                          'train_config_124_3_model_predictors.pickle',
                  lgbm_stacking_val_from = None,
                  lgbm_stacking_val_to =None,
-                 new_lib_ffm_output = False
+                 new_lib_ffm_output = False,
+                 use_hour_group = None
                  ):
         self.predict = predict
         self.train = train
@@ -939,6 +940,7 @@ class ConfigScheme:
         self.lgbm_stacking_val_from = lgbm_stacking_val_from
         self.lgbm_stacking_val_to = lgbm_stacking_val_to
         self.new_lib_ffm_output = new_lib_ffm_output
+        self.use_hour_group = use_hour_group
 
 
 
@@ -1807,6 +1809,13 @@ train_config_124_40.lgbm_stacking_val_from = id_9_3pm_reserve_last_250w
 train_config_124_40.lgbm_stacking_val_to = id_9_3pm
 
 
+train_config_124_41 = copy.deepcopy(train_config_124)
+train_config_124_41.train_from = id_7_0am
+train_config_124_41.train_to = id_9_0am
+train_config_124_41.val_from = id_9_4am
+train_config_124_41.val_to = id_9_3pm
+train_config_124_41.use_hour_group = 3
+
 train_config_126_1 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
                                  random_sample_filter_0_5,
@@ -2056,7 +2065,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_117_13')
+config_scheme_to_use = use_config_scheme('train_config_124_41')
 
 
 dtypes = {
@@ -2105,7 +2114,8 @@ def gen_categorical_features(data):
                               - 2 * data[dimension].isin(most_freq_values_in_test_data[dimension])
                               - 1 * data[dimension].isin(least_freq_values_in_test_data[dimension])).astype('uint8')
     #126 8
-    #data['hour'] = data['hour'] // 3
+    if not config_scheme_to_use.use_hour_group is None:
+        data['hour'] = data['hour'] // config_scheme_to_use.use_hour_group
 
     return data
 
