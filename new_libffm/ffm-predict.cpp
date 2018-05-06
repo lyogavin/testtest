@@ -60,18 +60,21 @@ void predict(string test_path, string model_path, string output_path) {
         x.clear();
         char *y_char = strtok(line, " \t");
         ffm_float y = (atoi(y_char)>0)? 1.0f : -1.0f;
+        int field_id = -1;
 
         while(true) {
-            char *field_char = strtok(nullptr,":");
-            char *idx_char = strtok(nullptr,":");
-            char *value_char = strtok(nullptr," \t");
-            if(field_char == nullptr || *field_char == '\n')
+            field_id++;
+
+            //char *field_char = strtok(nullptr,":");
+            //char *idx_char = strtok(nullptr,":");
+            char *idx_char = strtok(nullptr," \t");
+            if(idx_char == nullptr || *idx_char == '\n')
                 break;
 
             ffm_node N;
-            N.f = atoi(field_char);
+            N.f = field_id; //atoi(field_char);
             N.j = atoi(idx_char);
-            N.v = atof(value_char);
+            N.v = 1.0f;//atof(value_char);
 
             x.push_back(N);
         }

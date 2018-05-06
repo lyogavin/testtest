@@ -131,7 +131,7 @@ import warnings
 
 dump_train_data = False
 
-use_sample = False
+use_sample = True
 debug = False
 persist_intermediate = False
 print_verbose = False
@@ -3597,7 +3597,10 @@ def convert_features_to_text_for_libffm(data, predictors, new_format = False):
 
 def dump_for_libffm_internal_batch(data, filehandle, new_format = False):
     #print('before hash:', data.head())
-    str_array =convert_features_to_text_for_libffm(data, data.columns, new_format)
+    predictors = list(data.columns)
+    predictors.remove('is_attributed')
+
+    str_array =convert_features_to_text_for_libffm(data, predictors, new_format)
     #print('after bash:', data.columns)
 
     #print('after bash:', str_array[0:10])

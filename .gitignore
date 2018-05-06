@@ -17,3 +17,6 @@ util/.gitignore
 *.pickle
 mark1
 mark/mark1/mark1
+new_libffm/ffm-predict
+new_libffm/ffm-train
+*.o
