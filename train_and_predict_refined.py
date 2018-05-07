@@ -1821,6 +1821,12 @@ train_config_124_41.use_hour_group = 3
 train_config_124_42 = copy.deepcopy(train_config_124_3)
 train_config_124_42.add_n_min_as_hour = 15
 
+train_config_124_43 = copy.deepcopy(train_config_124)
+train_config_124_43.train_from = id_7_0am
+train_config_124_43.train_to = id_9_0am
+train_config_124_43.val_from = id_9_4am
+train_config_124_43.val_to = id_9_3pm
+train_config_124_43.use_hour_group = 6
 
 
 train_config_126_1 = ConfigScheme(False, False, False,
@@ -2072,7 +2078,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_42')
+config_scheme_to_use = use_config_scheme('train_config_124_43')
 
 
 dtypes = {
