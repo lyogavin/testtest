@@ -75,6 +75,12 @@ ensemble_models = {
         'LB': 0.9786,
         'note': 'use 3 hours counting features to simulate streaming kernel'
     },
+    '124_42':{
+        'file':'/mnt/ensemble_predictions_lgbm/124_42.csv',
+        'scale':1.0,
+        'LB': 0.9780,
+        'note': 'use 15 min as hour counting features as multi scale '
+    },
     '117_8':{
         'file':'/mnt/ensemble_predictions_l2/117_8.csv_SCALE_500',
         'scale':1.0,
@@ -135,8 +141,17 @@ ensemble_theme_132_1 = {
     '123_10': 0.02,
 }
 
-ensembel_theme_to_use = ensemble_theme_132_1
-ensembel_theme_to_use_name = 'WRONG'
+ensemble_theme_132_2 = {
+    '130_20': 0.68,
+    '124_41': 0.05,
+    '117_8': 0.05,
+    '117_12': 0.05,
+    '123_0': 0.10,
+    '123_10': 0.02,
+    '124_42': 0.05
+}
+
+ensembel_theme_to_use_name = '!!!!!!!!!WRONG!!!!!!!!!!!!!'
 
 def use_ensemble_theme(str):
     global ensembel_theme_to_use
@@ -148,7 +163,7 @@ def use_ensemble_theme(str):
 if len(sys.argv) > 1:
     use_ensemble_theme(sys.argv[1])
 else:
-    use_ensemble_theme('ensemble_theme_132_1')
+    use_ensemble_theme('ensemble_theme_132_2')
 
 
 if debug:

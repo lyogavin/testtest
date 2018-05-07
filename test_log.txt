@@ -1103,7 +1103,7 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
     41. based on 38, use 3 hours counting features to simulate streaming kernel:
         gyun: 0.9786 <-- should ensemble as multi-scale
     42. based on 124.3, use 15 min as hour to ensembel multi-scale
-        azzureyun: running
+        azzureyun: LB: 0.9780
     43. similar to 41, 6 hours multiscale:
         based on 124.3
         aliyun: running
