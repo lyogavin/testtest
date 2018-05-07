@@ -753,7 +753,7 @@ _cvr']
     13. new libffm format
         azzureyun: 0.9322 <- bug: fix and rerun:
         LB: 0.9615
-    14.
+    14. following 117_8, refine the params to early stop to avoid overfitting
 
 
 118 ensemble of: 117_2, 116_3, 103_11
@@ -936,7 +936,7 @@ _cvr']
     8. full batchsize, skip from 8 4am: azzureyun: OOM
     9. recover orginal train/val split, train FM-FTRL: use last 250w lines til 9 3pm as stacking val
         gyun: running
-    10. DNN model: aliyun running
+    10. DNN model: aliyun LB: 0.9710
 
 124: LGBM seperately:
     0. train seperately with best params:
@@ -1103,6 +1103,7 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
     41. based on 38, use 3 hours counting features to simulate streaming kernel:
         gyun: 0.9786 <-- should ensemble as multi-scale
     42. based on 124.3, use 15 min as hour to ensembel multi-scale
+        azzureyun: running
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature
@@ -1231,7 +1232,7 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     17. 123_0->0.5, 124_20->0.25, 124_37->0.15 0.9800
     18. 123_0->0.65, 124_20 -> 0.2, 124_
     19. 7 + normailized
-    20. 124_3*0.375 + 124_20*0.375 + 124_37*0.25 = 0.9798
+    20. 124_3*0.375 + 124_20*0.375 + 124_37*0.25 based on 13 = 0.9798
     21. ensemble 8 lgbm models: 0.9797
 
 131: use 7_4am to 7_3pm (34308844 lines) to generate val scores and train stacking LR model to stack:
@@ -1261,7 +1262,8 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     9. new stacking of 123_0/124_40: LB:0.9792
     10. new stacking 8:2 lgb 117_8: 0.9795
 
-
+132 config based ensemble:
+    1.
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
