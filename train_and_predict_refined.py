@@ -2196,7 +2196,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_126_18')
+config_scheme_to_use = use_config_scheme('train_config_126_17')
 
 
 dtypes = {
@@ -2535,7 +2535,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
 
     gc.collect()
     no_type_cast = False
-    if not no_type_cast and not log_discretization and discretization == 0:
+    if not no_type_cast and not log_discretization and discretization == 0 and False:
         if training[feature_name_added].max() <= 65535 and \
             op in ['count', 'nunique','cumcount']:
             training[feature_name_added] = training[feature_name_added].astype('uint16')
