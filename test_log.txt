@@ -1220,7 +1220,7 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
     27. more data joint training with 20's fts no days:
         grid test4: train's auc: 0.98176	valid's auc: 0.971532
         rerun to check reproducibility:
-            aliyun: running
+            aliyun: train's auc: 0.982099	valid's auc: 0.971486
     28. more data joint training with pub kern's fts:
         grid test 2: train's auc: 0.980688	valid's auc: 0.96973
     29. more data with my original with days:
@@ -1231,8 +1231,11 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
         train's auc: 0.979741	valid's auc: 0.969463
 
 
-    33. increase val data to improve reproducibility:
-
+    33. increase val data to 1/2 sample to improve reproducibility:
+        azzureyun: [245] train's auc: 0.982339	valid's auc: 0.972163
+        grid test: running
+        grid test3: running
+        aliyun: running
 127. ensembles:
     1. ensemble of 123.0 + 124.3
     aliyun: LB:0.9795
@@ -1339,7 +1342,8 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     1. LB: 0.9800
     2. added new 124_42, 15min multiscale: LB: 0.9800
     3. increase small models: LB: 0.9799
-    4. 2 + pub: 140_1:
+    4. 132_2 * 0.65 + pub: 140_1 * 0.35:
+    5. 132_2 * 0.6 + pub: 140_1 * 0.4:
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE

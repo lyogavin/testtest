@@ -2101,10 +2101,6 @@ train_config_126_19.add_features_list = add_features_list_fts_search_reduced_gai
 train_config_126_20 = copy.deepcopy(train_config_126_18)
 train_config_126_20.add_features_list = add_features_list_fts_search_reduced_split
 
-train_config_126_33 = copy.deepcopy(train_config_126_18)
-train_config_126_33.add_features_list = add_features_list_fts_search_reduced_split
-train_config_126_33.val_filter=random_sample_filter_0_5
-
 train_config_126_21 = copy.deepcopy(train_config_126_18)
 train_config_126_21.add_features_list = add_features_list_origin_no_channel_next_click
 
@@ -2144,6 +2140,11 @@ train_config_126_30.lgbm_params = lgbm_params_pub_entire_set
 
 train_config_126_31 = copy.deepcopy(train_config_126_30)
 train_config_126_31.run_theme = 'train_and_predict'
+
+
+train_config_126_33 = copy.deepcopy(train_config_126_18)
+train_config_126_33.add_features_list = add_features_list_fts_search_reduced_split
+train_config_126_33.val_filter=random_sample_filter_0_5
 
 
 
