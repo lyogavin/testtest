@@ -1214,17 +1214,19 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
     25. more data with pub kernel's fts:
         grid test: train's auc: 0.980178	valid's auc: 0.969537
     26. more data joint training with my original no days:
-        azzure: running
+        azzure: 	train's auc: 0.979983	valid's auc: 0.970402
     27. more data joint training with 20's fts no days:
-        grid test4: running
+        grid test4: train's auc: 0.98176	valid's auc: 0.971532
+        rerun to check reproducibility:
+            aliyun: running
     28. more data joint training with pub kern's fts:
-        grid test 2: running
+        grid test 2: train's auc: 0.980688	valid's auc: 0.96973
     29. more data with my original with days:
-        grid test: running
+        grid test: train's auc: 0.980892	valid's auc: 0.970022
     30. more data with pub fts, pub lgbm params:
-        gird test3: running
+        gird test3: train's auc: 0.977917	valid's auc: 0.968429
     31. more data joint training with pub kern's fts and pub kern's lgbm params:
-        TODO: aliyun:
+        train's auc: 0.979741	valid's auc: 0.969463
 127. ensembles:
     1. ensemble of 123.0 + 124.3
     aliyun: LB:0.9795
