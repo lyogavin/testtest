@@ -584,6 +584,31 @@ add_features_list_smooth_cvr_from_search_121_13_reduced = [
     #{'group': ['os', 'channel', 'is_attributed'], 'op': 'smoothcvr'}
 ]
 
+add_features_list_pub_entire_set = [
+
+    {'group': ['ip', 'channel'], 'op': 'nunique'},
+    {'group': ['ip', 'day','hour'], 'op': 'nunique'},
+    {'group': ['ip', 'app'], 'op': 'nunique'},
+    {'group': ['ip', 'app','os'], 'op': 'nunique'},
+    {'group': ['ip', 'device'], 'op': 'nunique'},
+    {'group': ['app', 'channel'], 'op': 'nunique'},
+    {'group': ['ip', 'device','os'], 'op': 'nunique'},
+
+    {'group': ['ip','os'], 'op': 'cumcount'},
+    {'group': ['ip','device','os','app'], 'op': 'cumcount'},
+    {'group': ['ip','device','os','channel'], 'op': 'cumcount'},
+
+    {'group': ['ip', 'app','channel','is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'device', 'os','app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'os', 'is_attributed'], 'op': 'count'},
+
+    {'group': ['ip', 'day', 'channel','hour'], 'op': 'var'},
+    {'group': ['ip', 'app', 'os','hour'], 'op': 'var'},
+    {'group': ['ip', 'app', 'channel','day'], 'op': 'var'},
+    {'group': ['ip', 'app', 'channel','hour'], 'op': 'mean'},
+
+]
 
 add_features_list_fts_search = [
 
@@ -617,7 +642,7 @@ add_features_list_fts_search = [
     {'group': ['ip', 'device','os','app'], 'op': 'cumcount'},
 
     {'group': ['ip','os'], 'op': 'cumcount'},
-    {'group': ['ip','device','os'], 'op': 'cumcount'},
+    {'group': ['ip','device','os','app'], 'op': 'cumcount'},
     {'group': ['ip','device','os','channel'], 'op': 'cumcount'},
 
     {'group': ['ip', 'app','channel','is_attributed'], 'op': 'count'},
