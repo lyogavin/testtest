@@ -150,6 +150,15 @@ ensemble_theme_132_2 = {
     '123_10': 0.02,
     '124_42': 0.05
 }
+ensemble_theme_132_3 = {
+    '130_20': 0.60,
+    '124_41': 0.07,
+    '117_8': 0.05,
+    '117_12': 0.07,
+    '123_0': 0.10,
+    '123_10': 0.03,
+    '124_42': 0.08
+}
 
 ensembel_theme_to_use_name = '!!!!!!!!!WRONG!!!!!!!!!!!!!'
 
@@ -163,7 +172,7 @@ def use_ensemble_theme(str):
 if len(sys.argv) > 1:
     use_ensemble_theme(sys.argv[1])
 else:
-    use_ensemble_theme('ensemble_theme_132_2')
+    use_ensemble_theme('ensemble_theme_132_3')
 
 
 if debug:
