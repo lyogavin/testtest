@@ -130,8 +130,13 @@ ensemble_models = {
     #ensembled models:
     '132_3' : {
         'file':'/mnt/ensemble_submission_ensemble_theme_132_3.csv',
-        'LB': 0.9800,
+        'LB': 0.9799,
         'note': 'from ensemble 132_3'
+    },
+    '132_2' : {
+        'file':'/mnt/ensemble_submission_ensemble_theme_132_2.csv',
+        'LB': 0.9800,
+        'note': 'from ensemble 132_2'
     },
 
 }
