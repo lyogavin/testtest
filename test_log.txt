@@ -1189,7 +1189,7 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
              ('ip_channelnunique', 1690214.9694824219),
              ('channel', 21906519.45251465),
              ('app', 48804697.217926025)]
-         grid test 4: running
+         grid test 4: train's auc: 0.982933	valid's auc: 0.969768
     20. based on 17, reduce less split important ones
          ('ip_device_os_app_is_attributedcount', 40),
          ('ip_appnunique', 46),
@@ -1207,8 +1207,12 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
         azzure: train's auc: 0.982564	valid's auc: 0.970444
     22. use my original nodays fts to compare
         grid test3: train's auc: 0.982597	valid's auc: 0.971147
-    23. more data with my original no days:
-        aliyun:
+    23. more data (from 0)with my original no days:
+        aliyun: running
+    24. more data (from 0) with 20's  fts
+        azzure: running
+    25. more data with pub kernel's fts:
+        grid test: running
 
 127. ensembles:
     1. ensemble of 123.0 + 124.3

@@ -2085,9 +2085,15 @@ train_config_126_21.add_features_list = add_features_list_origin_no_channel_next
 train_config_126_22 = copy.deepcopy(train_config_126_18)
 train_config_126_22.add_features_list = add_features_list_origin_no_channel_next_click_no_day
 
-train_config_126_23 = copy.deepcopy(train_config_126_18)
-train_config_126_23.add_features_list = add_features_list_origin_no_channel_next_click_no_day
+train_config_126_23 = copy.deepcopy(train_config_126_22)
 train_config_126_23.train_from = 0
+
+train_config_126_24 = copy.deepcopy(train_config_126_20)
+train_config_126_24.train_from = 0
+
+
+train_config_126_25 = copy.deepcopy(train_config_126_18)
+train_config_126_25.train_from = 0
 
 train_config_121_7 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
@@ -2216,7 +2222,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_126_23')
+config_scheme_to_use = use_config_scheme('train_config_126_24')
 
 
 dtypes = {
