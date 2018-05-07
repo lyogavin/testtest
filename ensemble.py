@@ -127,6 +127,11 @@ ensemble_models = {
         'LB': 0.0,
         'note': 'from log-and-harmonic-mean-lets-go'
     },
+    '140_4' : {
+        'file':'/mnt/ensemble_predictions_pub/submission_final4.csv',
+        'LB': 0.9812,
+        'note': 'simple merge and avg'
+    },
     #ensembled models:
     '132_3' : {
         'file':'/mnt/ensemble_submission_ensemble_theme_132_3.csv',
@@ -137,6 +142,11 @@ ensemble_models = {
         'file':'/mnt/ensemble_submission_ensemble_theme_132_2.csv',
         'LB': 0.9800,
         'note': 'from ensemble 132_2'
+    },
+    '132_5' : {
+        'file':'/mnt/ensemble_submission_ensemble_theme_132_5.csv',
+        'LB': 0.9804,
+        'note': 'from ensemble 132_5'
     },
 
 }
@@ -198,6 +208,10 @@ ensemble_theme_132_5 = {
     '132_2': 0.60,
     '140_1': 0.40
 }
+ensemble_theme_132_6 = {
+    '132_5': 0.20,
+    '140_4': 0.80
+}
 
 ensembel_theme_to_use_name = '!!!!!!!!!WRONG!!!!!!!!!!!!!'
 
@@ -211,7 +225,7 @@ def use_ensemble_theme(str):
 if len(sys.argv) > 1:
     use_ensemble_theme(sys.argv[1])
 else:
-    use_ensemble_theme('ensemble_theme_132_5')
+    use_ensemble_theme('ensemble_theme_132_6')
 
 
 if debug:
