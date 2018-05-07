@@ -1204,7 +1204,7 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
          ('channel', 484)]
         grid test:train's auc: 0.983361	valid's auc: 0.971509
         rerun to test reproducibility:
-            azzureyun: running
+            azzureyun: train's auc: 0.983537	valid's auc: 0.971942
     21. use my orinigal fts to compare
         azzure: train's auc: 0.982564	valid's auc: 0.970444
     22. use my original nodays fts to compare
@@ -1229,6 +1229,10 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
         gird test3: train's auc: 0.977917	valid's auc: 0.968429
     31. more data joint training with pub kern's fts and pub kern's lgbm params:
         train's auc: 0.979741	valid's auc: 0.969463
+
+
+    33. increase val data to improve reproducibility:
+
 127. ensembles:
     1. ensemble of 123.0 + 124.3
     aliyun: LB:0.9795

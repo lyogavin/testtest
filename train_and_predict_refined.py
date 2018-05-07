@@ -2101,6 +2101,10 @@ train_config_126_19.add_features_list = add_features_list_fts_search_reduced_gai
 train_config_126_20 = copy.deepcopy(train_config_126_18)
 train_config_126_20.add_features_list = add_features_list_fts_search_reduced_split
 
+train_config_126_33 = copy.deepcopy(train_config_126_18)
+train_config_126_33.add_features_list = add_features_list_fts_search_reduced_split
+train_config_126_33.val_filter=random_sample_filter_0_5
+
 train_config_126_21 = copy.deepcopy(train_config_126_18)
 train_config_126_21.add_features_list = add_features_list_origin_no_channel_next_click
 
@@ -2270,7 +2274,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_126_20')
+config_scheme_to_use = use_config_scheme('train_config_126_33')
 
 
 dtypes = {
