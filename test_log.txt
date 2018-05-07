@@ -1167,15 +1167,48 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
         grid test4:DONE
     [296]	train's auc: 0.98452	valid's auc: 0.971571
     17. feature engineering:
-        aliyun: running
+        aliyun: train's auc: 0.982362	valid's auc: 0.970196
     18. pub entire set kernel to compare with 17:
         azzureyun:
          train's auc: 0.980088   valid's auc: 0.967148
     19. based on 17, reduce less gain important ones
+             ('ip_app_device_os_is_attributednextclick', 173517.64086914062),
+             ('ip_day_hour_is_attributedcount', 191736.09509277344),
+             ('ip_hour_is_attributedcount', 201711.4906616211),
+             ('ip_in_test_hh_is_attributedcount', 254914.98706054688),
+             ('device', 282786.8454284668),
+             ('ip_device_is_attributedcount', 284967.88592529297),
+             ('ip_app_hour_os_is_attributedcount', 398987.1303405762),
+             ('hour', 411009.764251709),
+             ('ip_app_osnunique', 425227.0106201172),
+             ('app_channel_ipnunique', 755985.9567871094),
+             ('ip_appnunique', 796338.018951416),
+             ('ip_is_attributedcount', 1098913.5748901367),
+             ('app_channel_hour_ipnunique', 1374072.0768432617),
+             ('os', 1602122.4081115723),
+             ('ip_channelnunique', 1690214.9694824219),
+             ('channel', 21906519.45251465),
+             ('app', 48804697.217926025)]
+         grid test 4: running
     20. based on 17, reduce less split important ones
+         ('ip_device_os_app_is_attributedcount', 40),
+         ('ip_appnunique', 46),
+         ('ip_is_attributedcount', 47),
+         ('app_channel_ipnunique', 49),
+         ('ip_app_device_os_is_attributednextclick', 50),
+         ('ip_device_is_attributedcount', 51),
+         ('ip_app_hour_os_is_attributedcount', 55),
+         ('hour', 137),
+         ('os', 253),
+         ('app', 297),
+         ('channel', 484)]
+        grid test:train's auc: 0.983361	valid's auc: 0.971509
     21. use my orinigal fts to compare
-        azzure: running
+        azzure: train's auc: 0.982564	valid's auc: 0.970444
     22. use my original nodays fts to compare
+        grid test3: train's auc: 0.982597	valid's auc: 0.971147
+    23. more data with my original no days:
+        aliyun:
 
 127. ensembles:
     1. ensemble of 123.0 + 124.3

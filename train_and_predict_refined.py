@@ -57,7 +57,7 @@ def get_dated_filename(filename):
 import os
 import pickle
 from contextlib import contextmanager
-import objgraph
+#import objgraph
 import os, psutil
 
 
@@ -69,23 +69,7 @@ def cpuStats(pp = False):
     # all_objects = muppy.get_objects()
     # sum1 = summary.summarize(all_objects)
     # summary.print_(sum1)(Pdb) import objgraph
-    if pp:
-        aa = objgraph.at_addrs(objgraph.get_new_ids(limit=20)['list'])#['Series'])
-        if len(aa) < 20:
-            objgraph.show_backrefs(aa, filename='sample-backref-graph.png')
 
-        for aaa in []: #aa:
-            pprint(aaa)
-            topnt = gc.get_referrers(aaa)
-            i = 0
-            for pnt in topnt:
-                print('obj:',i)
-                i+=1
-                if i == 2:
-                    print(str(pnt))
-                    #objgraph.show_backrefs(pnt, filename='sample-backref-graph.png')
-                else:
-                    print(str(pnt)[0:100])
     return memoryUse
 
 @contextmanager
@@ -660,94 +644,27 @@ add_features_list_fts_search = [
 
 add_features_list_fts_search_reduced_gain = [
 
-    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
-    {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
-    {'group': ['ip', 'hour', 'os', 'is_attributed'], 'op': 'count'},
-    #{'group': ['ip', 'day', 'hour', 'app', 'is_attributed'], 'op': 'count'},
-    #{'group': ['ip', 'day', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
-    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
-
-    # no smooth cvr first
-    #{'group': ['app', 'ip', 'is_attributed'], 'op': 'smoothcvr'},
-    #{'group': ['os', 'ip', 'is_attributed'], 'op': 'smoothcvr'},
-    #{'group': ['app', 'hour', 'is_attributed'], 'op': 'smoothcvr'},
-
-    {'group': ['ip', 'is_attributed'], 'op': 'count'},
-    {'group': ['ip', 'device', 'is_attributed'], 'op': 'count'},
-    {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
-
-    {'group': ['app', 'channel', 'ip'], 'op': 'nunique'},
-    {'group': ['app', 'channel', 'hour', 'ip'], 'op': 'nunique'},
-
     {'group': ['ip', 'channel'], 'op': 'nunique'},
-    {'group': ['ip', 'day','hour'], 'op': 'nunique'},
+    {'group': ['app', 'channel', 'hour', 'ip'], 'op': 'nunique'},
+    {'group': ['ip', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'app'], 'op': 'nunique'},
-    {'group': ['ip', 'app','os'], 'op': 'nunique'},
-    {'group': ['ip', 'device'], 'op': 'nunique'},
-    {'group': ['app', 'channel'], 'op': 'nunique'},
-    {'group': ['ip', 'device','os','app'], 'op': 'nunique'},
-    {'group': ['ip', 'device','os','app'], 'op': 'cumcount'},
+    {'group': ['app', 'channel', 'ip'], 'op': 'nunique'},
+    {'group': ['ip', 'app', 'os'], 'op': 'nunique'},
 
-    {'group': ['ip','os'], 'op': 'cumcount'},
-    {'group': ['ip','device','os','app'], 'op': 'cumcount'},
-    {'group': ['ip','device','os','channel'], 'op': 'cumcount'},
-
-    {'group': ['ip', 'app','channel','is_attributed'], 'op': 'count'},
-    {'group': ['ip', 'device', 'os','app', 'is_attributed'], 'op': 'count'},
-    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
-    {'group': ['ip', 'app', 'os', 'is_attributed'], 'op': 'count'},
-
-    {'group': ['ip', 'day', 'channel','hour'], 'op': 'var'},
-    {'group': ['ip', 'app', 'os','hour'], 'op': 'var'},
-    {'group': ['ip', 'app', 'channel','day'], 'op': 'var'},
-    {'group': ['ip', 'app', 'channel','hour'], 'op': 'mean'},
-
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
 ]
 
 
 add_features_list_fts_search_reduced_split = [
 
-    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
-    {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
-    {'group': ['ip', 'hour', 'os', 'is_attributed'], 'op': 'count'},
-    #{'group': ['ip', 'day', 'hour', 'app', 'is_attributed'], 'op': 'count'},
-    #{'group': ['ip', 'day', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
-    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
-
-    # no smooth cvr first
-    #{'group': ['app', 'ip', 'is_attributed'], 'op': 'smoothcvr'},
-    #{'group': ['os', 'ip', 'is_attributed'], 'op': 'smoothcvr'},
-    #{'group': ['app', 'hour', 'is_attributed'], 'op': 'smoothcvr'},
-
-    {'group': ['ip', 'is_attributed'], 'op': 'count'},
-    {'group': ['ip', 'device', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
-
+    {'group': ['ip', 'device', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
     {'group': ['app', 'channel', 'ip'], 'op': 'nunique'},
-    {'group': ['app', 'channel', 'hour', 'ip'], 'op': 'nunique'},
-
-    {'group': ['ip', 'channel'], 'op': 'nunique'},
-    {'group': ['ip', 'day','hour'], 'op': 'nunique'},
+    {'group': ['ip', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'app'], 'op': 'nunique'},
-    {'group': ['ip', 'app','os'], 'op': 'nunique'},
-    {'group': ['ip', 'device'], 'op': 'nunique'},
-    {'group': ['app', 'channel'], 'op': 'nunique'},
-    {'group': ['ip', 'device','os','app'], 'op': 'nunique'},
-    {'group': ['ip', 'device','os','app'], 'op': 'cumcount'},
-
-    {'group': ['ip','os'], 'op': 'cumcount'},
-    {'group': ['ip','device','os','app'], 'op': 'cumcount'},
-    {'group': ['ip','device','os','channel'], 'op': 'cumcount'},
-
-    {'group': ['ip', 'app','channel','is_attributed'], 'op': 'count'},
-    {'group': ['ip', 'device', 'os','app', 'is_attributed'], 'op': 'count'},
-    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
-    {'group': ['ip', 'app', 'os', 'is_attributed'], 'op': 'count'},
-
-    {'group': ['ip', 'day', 'channel','hour'], 'op': 'var'},
-    {'group': ['ip', 'app', 'os','hour'], 'op': 'var'},
-    {'group': ['ip', 'app', 'channel','day'], 'op': 'var'},
-    {'group': ['ip', 'app', 'channel','hour'], 'op': 'mean'},
+    {'group': ['ip', 'device', 'os', 'app', 'is_attributed'], 'op': 'count'},
 
 ]
 add_features_list_smooth_cvr = [
@@ -2157,16 +2074,20 @@ train_config_126_18.train_filter = random_sample_filter_0_2
 train_config_126_18.val_filter = random_sample_filter_0_2
 
 train_config_126_19 = copy.deepcopy(train_config_126_18)
-train_config_126_17.add_features_list = add_features_list_fts_search_reduced_gain
+train_config_126_19.add_features_list = add_features_list_fts_search_reduced_gain
 
 train_config_126_20 = copy.deepcopy(train_config_126_18)
-train_config_126_17.add_features_list = add_features_list_fts_search_reduced_split
+train_config_126_20.add_features_list = add_features_list_fts_search_reduced_split
 
 train_config_126_21 = copy.deepcopy(train_config_126_18)
 train_config_126_21.add_features_list = add_features_list_origin_no_channel_next_click
 
 train_config_126_22 = copy.deepcopy(train_config_126_18)
 train_config_126_22.add_features_list = add_features_list_origin_no_channel_next_click_no_day
+
+train_config_126_23 = copy.deepcopy(train_config_126_18)
+train_config_126_23.add_features_list = add_features_list_origin_no_channel_next_click_no_day
+train_config_126_23.train_from = 0
 
 train_config_121_7 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
@@ -2295,7 +2216,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_126_21')
+config_scheme_to_use = use_config_scheme('train_config_126_23')
 
 
 dtypes = {
