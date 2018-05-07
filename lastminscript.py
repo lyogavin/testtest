@@ -32,7 +32,7 @@ import gc
 import matplotlib.pyplot as plt
 import os
 
-path = '... add your path...'
+path = '../input/talkingdata-adtracking-fraud-detection/'
 
 
 # In[ ]:
@@ -417,10 +417,10 @@ def DO(frm,to,fileno):
     gc.collect()
 
 
-    ax = lgb.plot_importance(bst, max_num_features=300)
+    #ax = lgb.plot_importance(bst, max_num_features=300)
     
-    plt.savefig('test%d.png'%(fileno), dpi=600,bbox_inches="tight")
-    plt.show()
+    #plt.savefig('test%d.png'%(fileno), dpi=600,bbox_inches="tight")
+    #plt.show()
 
 
     print("Features importance...")
@@ -490,7 +490,7 @@ def DO(frm,to,fileno):
 # In[ ]:
 
 ####### Chunk size defining and final run  ############
-'''
+
 nrows=184903891-1
 nchunk=25000000
 #val_size=2500000
@@ -508,11 +508,11 @@ if debug:
 
 
 sub=DO(frm,to,FILENO)
-'''
+
 
 
 # In[6]:
-
+'''
 # This Python 3 environment comes with many helpful analytics libraries installed
 # It is defined by the kaggle/python docker image: https://github.com/kaggle/docker-python
 # For example, here's several helpful packages to load in 
@@ -529,7 +529,7 @@ print(os.listdir("../input"))
 df1 = pd.read_csv('../input/sub-it200102csv/sub_it200102.csv')
 print(len(df1))
 df1.to_csv('sub-it200102csv', index=False, float_format='%.9f')
-
+'''
 
 # In[ ]:
 
