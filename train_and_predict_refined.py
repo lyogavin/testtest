@@ -628,7 +628,6 @@ add_features_list_fts_search = [
     {'group': ['ip', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'device', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
-    {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
 
     {'group': ['app', 'channel', 'ip'], 'op': 'nunique'},
     {'group': ['app', 'channel', 'hour', 'ip'], 'op': 'nunique'},
@@ -2520,6 +2519,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
             temp1 = eval(tempstr + '.' + op + '()')
 
         n_chans = temp1.reset_index().rename(columns={counting_col: feature_name_added})
+
         training = training.merge(n_chans, on=group_by_cols if len(group_by_cols) >1 else group_by_cols[0],
                                   how='left')
         del n_chans
@@ -2535,7 +2535,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
 
     gc.collect()
     no_type_cast = False
-    if not no_type_cast and not log_discretization and discretization == 0 and False:
+    if not no_type_cast and not log_discretization and discretization == 0:
         if training[feature_name_added].max() <= 65535 and \
             op in ['count', 'nunique','cumcount']:
             training[feature_name_added] = training[feature_name_added].astype('uint16')
