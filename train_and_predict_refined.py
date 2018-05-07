@@ -2095,6 +2095,9 @@ train_config_126_24.train_from = 0
 train_config_126_25 = copy.deepcopy(train_config_126_18)
 train_config_126_25.train_from = 0
 
+train_config_126_26 = copy.deepcopy(train_config_126_23)
+train_config_126_26.run_theme = 'train_and_predict'
+
 train_config_121_7 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
                                  random_sample_filter_0_5,
@@ -2222,7 +2225,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_126_24')
+config_scheme_to_use = use_config_scheme('train_config_126_26')
 
 
 dtypes = {

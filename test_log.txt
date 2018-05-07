@@ -1210,10 +1210,13 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
     23. more data (from 0)with my original no days:
         aliyun: running
     24. more data (from 0) with 20's  fts
-        azzure: running
+        azzure: train's auc: 0.981043	valid's auc: 0.969882
     25. more data with pub kernel's fts:
         grid test: running
-
+    26. more data joint training with my original no days:
+        azzure: running
+    27. more data joint training with 20's fts no days:
+        TODO:
 127. ensembles:
     1. ensemble of 123.0 + 124.3
     aliyun: LB:0.9795
