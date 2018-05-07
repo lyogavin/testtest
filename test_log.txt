@@ -754,6 +754,7 @@ _cvr']
         azzureyun: 0.9322 <- bug: fix and rerun:
         LB: 0.9615
     14. following 117_8, refine the params to early stop to avoid overfitting
+        azzureyun: running
 
 
 118 ensemble of: 117_2, 116_3, 103_11
