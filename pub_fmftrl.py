@@ -5,6 +5,8 @@ sys.path.insert(0, '../input/randomstate/randomstate/')
 import wordbatch
 from wordbatch.extractors import WordHash
 from wordbatch.models import FM_FTRL
+from wordbatch.models import FTRL
+from wordbatch.models import NN_ReLU_H1
 from wordbatch.data_utils import *
 import threading
 import pandas as pd
@@ -17,7 +19,8 @@ from contextlib import contextmanager
 def timer(name):
 	t0 = time.time()
 	yield
-	print(f'[{name}] done in {time.time() - t0:.0f} s')
+	print('[{}] done in {} s'.format(name, time.time() - t0))
+
 
 import os, psutil
 def cpuStats():
@@ -30,9 +33,9 @@ start_time = time.time()
 
 mean_auc= 0
 
-wordbatch_model = 'FM_FTRL'
+#wordbatch_model = 'FM_FTRL'
 #wordbatch_model = 'FTRL'
-
+wordbatch_model = 'NN_ReLU_H1'
 
 def fit_batch(clf, X, y, w):
     if not isinstance(clf, FM_FTRL):
