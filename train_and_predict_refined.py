@@ -2148,6 +2148,14 @@ train_config_126_33.val_filter=random_sample_filter_0_5
 
 
 
+train_config_126_34 = copy.deepcopy(train_config_126_27)
+train_config_126_34.val_filter=random_sample_filter_0_5
+
+train_config_126_35 = copy.deepcopy(train_config_126_26)
+train_config_126_35.val_filter=random_sample_filter_0_5
+
+
+
 train_config_121_7 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
                                  random_sample_filter_0_5,
@@ -2275,7 +2283,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_126_33')
+config_scheme_to_use = use_config_scheme('train_config_126_34')
 
 
 dtypes = {

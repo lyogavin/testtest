@@ -1231,11 +1231,18 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
         train's auc: 0.979741	valid's auc: 0.969463
 
 
-    33. increase val data to 1/2 sample to improve reproducibility:
+    33. based on 20:
+        increase val data to 1/2 sample to improve reproducibility:
         azzureyun: [245] train's auc: 0.982339	valid's auc: 0.972163
-        grid test: running
+        grid test: [299]	train's auc: 0.982949	valid's auc: 0.972732
         grid test3: running
         aliyun: running
+    34. based on 27:
+        similar to 33 to test reproducibility:
+        aliyun:
+        azzure:
+        grid test: running
+
 127. ensembles:
     1. ensemble of 123.0 + 124.3
     aliyun: LB:0.9795
