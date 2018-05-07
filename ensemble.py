@@ -110,7 +110,30 @@ ensemble_models = {
         'scale':1.0,
         'LB': 0.9798,
         'note': '124_3*0.375 + 124_20*0.375 + 124_37*0.25'
-    }
+    },
+    # from pub kernels:
+    '140_1' : {
+        'file':'/mnt/ensemble_predictions_pub/sub_it6.csv',
+        'LB': 0.9798,
+        'note': 'from wenjie bai pub kernel trained full data'
+    },
+    '140_2' : {
+        'file':'/mnt/ensemble_predictions_pub/submission_geo.csv',
+        'LB': 0.0,
+        'note': 'from log-and-harmonic-mean-lets-go'
+    },
+    '140_3' : {
+        'file':'/mnt/ensemble_predictions_pub/submission_avg.csv',
+        'LB': 0.0,
+        'note': 'from log-and-harmonic-mean-lets-go'
+    },
+    #ensembled models:
+    '132_3' : {
+        'file':'/mnt/ensemble_submission_ensemble_theme_132_3.csv',
+        'LB': 0.9800,
+        'note': 'from ensemble 132_3'
+    },
+
 }
 
 if debug:
@@ -160,6 +183,11 @@ ensemble_theme_132_3 = {
     '124_42': 0.10
 }
 
+ensemble_theme_132_4 = {
+    '132_3': 0.65,
+    '140_1': 0.35
+}
+
 ensembel_theme_to_use_name = '!!!!!!!!!WRONG!!!!!!!!!!!!!'
 
 def use_ensemble_theme(str):
@@ -172,7 +200,7 @@ def use_ensemble_theme(str):
 if len(sys.argv) > 1:
     use_ensemble_theme(sys.argv[1])
 else:
-    use_ensemble_theme('ensemble_theme_132_3')
+    use_ensemble_theme('ensemble_theme_132_4')
 
 
 if debug:
