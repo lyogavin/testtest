@@ -225,13 +225,13 @@ def DO(frm,to,fileno):
     
     print('loading train data...',frm,to)
     # usecols:Using this parameter results in much faster parsing time and lower memory usage.
-    train_df = pd.read_csv("../input/train.csv", parse_dates=['click_time'], skiprows=range(1,frm), nrows=to-frm, dtype=dtypes, usecols=['ip','app','device','os', 'channel', 'click_time', 'is_attributed'])
+    train_df = pd.read_csv("../input/talkingdata-adtracking-fraud-detection/train.csv", parse_dates=['click_time'], skiprows=range(1,frm), nrows=to-frm, dtype=dtypes, usecols=['ip','app','device','os', 'channel', 'click_time', 'is_attributed'])
 
     print('loading test data...')
     if debug:
-        test_df = pd.read_csv("../input/test.csv", nrows=100000, parse_dates=['click_time'], dtype=dtypes, usecols=['ip','app','device','os', 'channel', 'click_time', 'click_id'])
+        test_df = pd.read_csv("../input/talkingdata-adtracking-fraud-detection/test.csv", nrows=100000, parse_dates=['click_time'], dtype=dtypes, usecols=['ip','app','device','os', 'channel', 'click_time', 'click_id'])
     else:
-        test_df = pd.read_csv("../input/test.csv", parse_dates=['click_time'], dtype=dtypes, usecols=['ip','app','device','os', 'channel', 'click_time', 'click_id'])
+        test_df = pd.read_csv("../input/talkingdata-adtracking-fraud-detection/test.csv", parse_dates=['click_time'], dtype=dtypes, usecols=['ip','app','device','os', 'channel', 'click_time', 'click_id'])
 
     len_train = len(train_df)
     train_df=train_df.append(test_df) # Shouldn't process individually,because of lots of count,mean,var variables
@@ -389,7 +389,7 @@ def DO(frm,to,fileno):
 
 # Main function-------------------------------------------------------------------------------------
 if __name__ == '__main__':
-    inpath = '../input/'
+    inpath = '../input/talkingdata-adtracking-fraud-detection/'
     
     #【In order to get 0.9798, you have to change nchunk to all and frm to 0 to use entire dataset】
     nrows=184903891-1 # the first line is columns' name
