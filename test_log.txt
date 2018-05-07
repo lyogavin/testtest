@@ -1107,7 +1107,10 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
         azzureyun: LB: 0.9780
     43. similar to 41, 6 hours multiscale:
         based on 124.3
+        aliyun: FAILED. TODO: to run later
+    44. remove 'day' in counting fts and use more data:
         aliyun: running
+
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature

@@ -537,6 +537,16 @@ add_features_list_origin_no_channel_next_click = [
     {'group': ['app', 'day', 'hour', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
     ]
+
+add_features_list_origin_no_channel_next_click_no_day = [
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+    {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'hour', 'app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
+]
 add_features_list_smooth_cvr_from_search_121_13 = [
 
     {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
@@ -1829,6 +1839,13 @@ train_config_124_43.val_to = id_9_3pm
 train_config_124_43.use_hour_group = 6
 
 
+train_config_124_43 = copy.deepcopy(train_config_124_5)
+train_config_124_43.lgbm_params = new_lgbm_params
+train_config_124_43.add_features_list = add_features_list_origin_no_channel_next_click_no_day
+
+
+
+
 train_config_126_1 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
                                  random_sample_filter_0_5,
@@ -2078,7 +2095,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_117_8')
+config_scheme_to_use = use_config_scheme('train_config_124_44')
 
 
 dtypes = {
