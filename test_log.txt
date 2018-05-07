@@ -1203,6 +1203,8 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
          ('app', 297),
          ('channel', 484)]
         grid test:train's auc: 0.983361	valid's auc: 0.971509
+        rerun to test reproducibility:
+            azzureyun: running
     21. use my orinigal fts to compare
         azzure: train's auc: 0.982564	valid's auc: 0.970444
     22. use my original nodays fts to compare
