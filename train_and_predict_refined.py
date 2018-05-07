@@ -2137,6 +2137,12 @@ train_config_126_29.train_from = 0
 train_config_126_30 = copy.deepcopy(train_config_126_25)
 train_config_126_30.lgbm_params = lgbm_params_pub_entire_set
 
+
+train_config_126_31 = copy.deepcopy(train_config_126_30)
+train_config_126_31.run_theme = 'train_and_predict'
+
+
+
 train_config_121_7 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
                                  random_sample_filter_0_5,
@@ -2264,7 +2270,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_126_28')
+config_scheme_to_use = use_config_scheme('train_config_126_31')
 
 
 dtypes = {

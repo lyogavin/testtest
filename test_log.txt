@@ -1208,7 +1208,7 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
     22. use my original nodays fts to compare
         grid test3: train's auc: 0.982597	valid's auc: 0.971147
     23. more data (from 0)with my original no days:
-        aliyun: running
+        aliyun: train's auc: 0.981528	valid's auc: 0.971143
     24. more data (from 0) with 20's  fts
         azzure: train's auc: 0.981043	valid's auc: 0.969882
     25. more data with pub kernel's fts:
@@ -1218,13 +1218,13 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
     27. more data joint training with 20's fts no days:
         grid test4: running
     28. more data joint training with pub kern's fts:
-        TODO: grid test 2: running
+        grid test 2: running
     29. more data with my original with days:
         grid test: running
     30. more data with pub fts, pub lgbm params:
         gird test3: running
     31. more data joint training with pub kern's fts and pub kern's lgbm params:
-        TODO:
+        TODO: aliyun:
 127. ensembles:
     1. ensemble of 123.0 + 124.3
     aliyun: LB:0.9795
