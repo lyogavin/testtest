@@ -518,6 +518,7 @@ hist_ft_sample_filter = {'filter_type': 'hist_ft'}
 
 random_sample_filter_0_5 = {'filter_type': 'random_sample', 'frac': 0.5}
 
+random_sample_filter_0_2 = {'filter_type': 'random_sample', 'frac': 0.2}
 
 skip = range(1, 140000000)
 print("Loading Data")
@@ -582,6 +583,56 @@ add_features_list_smooth_cvr_from_search_121_13_reduced = [
     #{'group': ['hour', 'ip', 'is_attributed'], 'op': 'smoothcvr'}
     #{'group': ['os', 'channel', 'is_attributed'], 'op': 'smoothcvr'}
 ]
+
+
+add_features_list_fts_search = [
+
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+    {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    #{'group': ['ip', 'day', 'hour', 'app', 'is_attributed'], 'op': 'count'},
+    #{'group': ['ip', 'day', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
+
+    # no smooth cvr first
+    #{'group': ['app', 'ip', 'is_attributed'], 'op': 'smoothcvr'},
+    #{'group': ['os', 'ip', 'is_attributed'], 'op': 'smoothcvr'},
+    #{'group': ['app', 'hour', 'is_attributed'], 'op': 'smoothcvr'},
+
+    {'group': ['ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'device', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+
+    {'group': ['app', 'channel', 'ip'], 'op': 'nunique'},
+    {'group': ['app', 'channel', 'hour', 'ip'], 'op': 'nunique'},
+
+    {'group': ['ip', 'channel'], 'op': 'nunique'},
+    {'group': ['ip', 'day','hour'], 'op': 'nunique'},
+    {'group': ['ip', 'app'], 'op': 'nunique'},
+    {'group': ['ip', 'app','os'], 'op': 'nunique'},
+    {'group': ['ip', 'device'], 'op': 'nunique'},
+    {'group': ['app', 'channel'], 'op': 'nunique'},
+    {'group': ['ip', 'device','os','app'], 'op': 'nunique'},
+    {'group': ['ip', 'device','os','app'], 'op': 'cumcount'},
+
+    {'group': ['ip','os'], 'op': 'cumcount'},
+    {'group': ['ip','device','os'], 'op': 'cumcount'},
+    {'group': ['ip','device','os','channel'], 'op': 'cumcount'},
+
+    {'group': ['ip', 'app','channel','is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'device', 'os','app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'os', 'is_attributed'], 'op': 'count'},
+
+    {'group': ['ip', 'day', 'channel','hour'], 'op': 'var'},
+    {'group': ['ip', 'app', 'os','hour'], 'op': 'var'},
+    {'group': ['ip', 'app', 'channel','day'], 'op': 'var'},
+    {'group': ['ip', 'app', 'channel','hour'], 'op': 'mean'},
+
+]
+
+
 
 add_features_list_smooth_cvr = [
 
@@ -1968,6 +2019,20 @@ train_config_126_16.use_hourly_alpha_beta = True
 train_config_126_16.train_smoothcvr_cache_from = id_7_4am
 train_config_126_16.train_smoothcvr_cache_to = id_7_3pm
 
+
+train_config_126_17 = copy.deepcopy(train_config_126_1)
+train_config_126_17.add_features_list = add_features_list_fts_search
+train_config_126_17.use_hourly_alpha_beta = True
+#train_config_126_17.train_smoothcvr_cache_from = 0
+#train_config_126_17.train_smoothcvr_cache_to = id_7_4am
+train_config_126_17.train_from = id_7_4am
+train_config_126_17.train_to = id_8_3pm
+train_config_126_17.train_filter = random_sample_filter_0_2
+train_config_126_17.val_filter = random_sample_filter_0_2
+
+
+
+
 train_config_121_7 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
                                  random_sample_filter_0_5,
@@ -2095,7 +2160,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_44')
+config_scheme_to_use = use_config_scheme('train_config_126_17')
 
 
 dtypes = {

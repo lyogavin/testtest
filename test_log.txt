@@ -1166,6 +1166,8 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
     16. hour based alpha, beta
         grid test4:DONE
     [296]	train's auc: 0.98452	valid's auc: 0.971571
+    17. feature engineering:
+
 
 127. ensembles:
     1. ensemble of 123.0 + 124.3
