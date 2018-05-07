@@ -1169,7 +1169,13 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
     17. feature engineering:
         aliyun: running
     18. pub entire set kernel to compare with 17:
-        azzureyun: running
+        azzureyun:
+         train's auc: 0.980088   valid's auc: 0.967148
+    19. based on 17, reduce less gain important ones
+    20. based on 17, reduce less split important ones
+    21. use my orinigal fts to compare
+        azzure: running
+    22. use my original nodays fts to compare
 
 127. ensembles:
     1. ensemble of 123.0 + 124.3
