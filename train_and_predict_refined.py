@@ -263,6 +263,9 @@ id_7_0am = 9308570
 id_9_0am = 131886955
 id_8_0am = 68941880
 id_9_3pm_reserve_last_250w = id_9_3pm - 250*10000
+id_9_4pm_reserve_last_250w = id_9_4pm - 250*10000
+
+
 
 sample_from_list = [0, 50000]
 sample_to_list = [49998, 90000]
@@ -456,6 +459,12 @@ new_lgbm_params_early_300 = {
     # 'is_unbalance': True,
     'scale_pos_weight': 99.0
 }
+
+
+new_lgbm_params_early_50 = dict(new_lgbm_params)
+new_lgbm_params_early_50['early_stopping_round'] = 50
+new_lgbm_params_early_50['nthread'] = 24
+
 
 new_lgbm_params_early_415 = dict(new_lgbm_params)
 new_lgbm_params_early_415['num_boost_round'] = 415
@@ -1949,6 +1958,19 @@ train_config_124_44 = copy.deepcopy(train_config_124_5)
 train_config_124_44.lgbm_params = new_lgbm_params
 train_config_124_44.add_features_list = add_features_list_origin_no_channel_next_click_no_day
 
+train_config_124_45 = ConfigScheme(False, False, False,
+                                 None,
+                                 None,
+                                 None,
+                                 lgbm_params=new_lgbm_params_early_50,
+                                 new_predict= True,
+                                 train_from=0,
+                                 train_to=id_9_4pm_reserve_last_250w,
+                                 val_from=id_9_4pm_reserve_last_250w,
+                                 val_to=id_9_4pm,
+                                 run_theme='train_and_predict',
+                                 add_features_list=add_features_list_origin_no_channel_next_click_no_day
+                                   )
 
 
 
@@ -2283,7 +2305,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_126_34')
+config_scheme_to_use = use_config_scheme('train_config_124_45')
 
 
 dtypes = {

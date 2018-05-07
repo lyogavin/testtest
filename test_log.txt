@@ -1109,7 +1109,9 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
         based on 124.3
         aliyun: FAILED. TODO: to run later
     44. remove 'day' in counting fts and use more data:
-        aliyun: running
+        aliyun: TODO:
+    45. no days fts, train with all data, train jointly, val last 250w, early_stopping:50
+        gyun: running
 
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
@@ -1235,14 +1237,22 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
         increase val data to 1/2 sample to improve reproducibility:
         azzureyun: [245] train's auc: 0.982339	valid's auc: 0.972163
         grid test: [299]	train's auc: 0.982949	valid's auc: 0.972732
-        grid test3: running
+        grid test3: [305]	train's auc: 0.983236	valid's auc: 0.972263
         aliyun: running
-    34. based on 27:
+    34. based on 27 - 20'fts:
+        similar to 33 to test reproducibility:
+        aliyun:
+        gyun: running
+        azzure: running
+        grid test: running
+        grid test3: running
+    35. based on 26 - original no days:
         similar to 33 to test reproducibility:
         aliyun:
         gyun:
         azzure:
-        grid test: running
+        grid test:
+        grid test3:
 
 127. ensembles:
     1. ensemble of 123.0 + 124.3
