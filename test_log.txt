@@ -1272,7 +1272,8 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
 132 config based ensemble:
     1. LB: 0.9800
     2. added new 124_42, 15min multiscale: LB: 0.9800
-    3. increase small models:
+    3. increase small models: LB: 0.9799
+    4. 2 + pub: 140_1: 
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
