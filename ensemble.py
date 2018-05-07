@@ -132,6 +132,11 @@ ensemble_models = {
         'LB': 0.9812,
         'note': 'simple merge and avg'
     },
+    '140_5' : {
+        'file':'/mnt/ensemble_predictions_pub/sub_it7.csv',
+        'LB': 0.9811,
+        'note': 'sub it 7'
+    },
     #ensembled models:
     '132_3' : {
         'file':'/mnt/ensemble_submission_ensemble_theme_132_3.csv',
@@ -212,6 +217,10 @@ ensemble_theme_132_6 = {
     '132_5': 0.20,
     '140_4': 0.80
 }
+ensemble_theme_132_7 = {
+    '132_5': 0.20,
+    '140_5': 0.80
+}
 
 ensembel_theme_to_use_name = '!!!!!!!!!WRONG!!!!!!!!!!!!!'
 
@@ -225,7 +234,7 @@ def use_ensemble_theme(str):
 if len(sys.argv) > 1:
     use_ensemble_theme(sys.argv[1])
 else:
-    use_ensemble_theme('ensemble_theme_132_6')
+    use_ensemble_theme('ensemble_theme_132_7')
 
 
 if debug:
