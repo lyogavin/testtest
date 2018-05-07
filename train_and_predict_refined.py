@@ -601,6 +601,7 @@ add_features_list_pub_entire_set = [
     {'group': ['ip', 'app','channel','is_attributed'], 'op': 'count'},
     {'group': ['ip', 'device', 'os','app', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'app', 'os', 'is_attributed'], 'op': 'count'},
 
     {'group': ['ip', 'day', 'channel','hour'], 'op': 'var'},
@@ -2055,6 +2056,16 @@ train_config_126_17.train_to = id_8_3pm
 train_config_126_17.train_filter = random_sample_filter_0_2
 train_config_126_17.val_filter = random_sample_filter_0_2
 
+train_config_126_18 = copy.deepcopy(train_config_126_1)
+train_config_126_18.add_features_list = add_features_list_pub_entire_set
+train_config_126_18.use_hourly_alpha_beta = True
+#train_config_126_17.train_smoothcvr_cache_from = 0
+#train_config_126_17.train_smoothcvr_cache_to = id_7_4am
+train_config_126_18.train_from = id_7_4am
+train_config_126_18.train_to = id_8_3pm
+train_config_126_18.train_filter = random_sample_filter_0_2
+train_config_126_18.val_filter = random_sample_filter_0_2
+
 
 
 
@@ -2185,7 +2196,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_126_17')
+config_scheme_to_use = use_config_scheme('train_config_126_18')
 
 
 dtypes = {
