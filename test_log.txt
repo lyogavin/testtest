@@ -751,7 +751,9 @@ _cvr']
         higher reg: nohup ./mark/mark1/mark1 -l 0.000005 -r 0.05 -s 12 -t 8 ./new_libffm_output/new_libffm_test.csv ./new_libffm_output/new_libffm_train.csv
         0.9777
     13. new libffm format
-        azzureyun: 0.9322 <- bug: fix and rerun: running
+        azzureyun: 0.9322 <- bug: fix and rerun:
+        LB: 0.9615
+    14.
 
 
 118 ensemble of: 117_2, 116_3, 103_11
@@ -1099,7 +1101,8 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
     40. 124.3 + stacking val + reserve last 250w as stacking val:
         azzureyun: running
     41. based on 38, use 3 hours counting features to simulate streaming kernel:
-        gyun: running
+        gyun: 0.9786 <-- should ensemble as multi-scale
+    42. based on 124.3, use 15 min as hour to ensembel multi-scale
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
     1. add number of 10 minutes feature

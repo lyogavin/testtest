@@ -883,7 +883,8 @@ class ConfigScheme:
                  lgbm_stacking_val_from = None,
                  lgbm_stacking_val_to =None,
                  new_lib_ffm_output = False,
-                 use_hour_group = None
+                 use_hour_group = None,
+                 add_n_min_as_hour = None
                  ):
         self.predict = predict
         self.train = train
@@ -941,6 +942,7 @@ class ConfigScheme:
         self.lgbm_stacking_val_to = lgbm_stacking_val_to
         self.new_lib_ffm_output = new_lib_ffm_output
         self.use_hour_group = use_hour_group
+        self.add_n_min_as_hour = add_n_min_as_hour
 
 
 
@@ -1816,6 +1818,11 @@ train_config_124_41.val_from = id_9_4am
 train_config_124_41.val_to = id_9_3pm
 train_config_124_41.use_hour_group = 3
 
+train_config_124_42 = copy.deepcopy(train_config_124_3)
+train_config_124_42.add_n_min_as_hour = 15
+
+
+
 train_config_126_1 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
                                  random_sample_filter_0_5,
@@ -2065,7 +2072,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_41')
+config_scheme_to_use = use_config_scheme('train_config_124_42')
 
 
 dtypes = {
@@ -2116,6 +2123,9 @@ def gen_categorical_features(data):
     #126 8
     if not config_scheme_to_use.use_hour_group is None:
         data['hour'] = data['hour'] // config_scheme_to_use.use_hour_group
+
+    if not config_scheme_to_use.add_n_min_as_hour is None:
+        data['hour'] = data.click_time.astype(int) // (10 ** 9 * 60* config_scheme_to_use.add_n_min_as_hour)
 
     return data
 
