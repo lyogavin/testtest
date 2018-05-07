@@ -370,11 +370,11 @@ def DO(frm,to,fileno):
     print('[{}]: model training time'.format(time.time() - start_time))
 
     print('Plot feature importances...')
-    lgb.plot_importance(bst)
+    #lgb.plot_importance(bst)
     # plt.show()
-    plt.gcf().savefig('feature_importance_runnablelightgbm_split.png')
-    lgb.plot_importance(bst,importance_type='gain')
-    plt.gcf().savefig('feature_importance_runnablelightgbm_gain.png')
+    #plt.gcf().savefig('feature_importance_runnablelightgbm_split.png')
+    #lgb.plot_importance(bst,importance_type='gain')
+    #plt.gcf().savefig('feature_importance_runnablelightgbm_gain.png')
 
     print("Predicting...")
     sub['is_attributed'] = bst.predict(test_df[predictors],num_iteration=best_iteration)
