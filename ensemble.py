@@ -24,7 +24,7 @@ def get_dated_filename(filename):
 
 
 
-debug = True
+debug = False
 
 ensemble_models = {
     '124_3':{
