@@ -1839,9 +1839,9 @@ train_config_124_43.val_to = id_9_3pm
 train_config_124_43.use_hour_group = 6
 
 
-train_config_124_43 = copy.deepcopy(train_config_124_5)
-train_config_124_43.lgbm_params = new_lgbm_params
-train_config_124_43.add_features_list = add_features_list_origin_no_channel_next_click_no_day
+train_config_124_44 = copy.deepcopy(train_config_124_5)
+train_config_124_44.lgbm_params = new_lgbm_params
+train_config_124_44.add_features_list = add_features_list_origin_no_channel_next_click_no_day
 
 
 
