@@ -160,7 +160,7 @@ def lgb_modelfit_nocv(dtrain, dvalid, predictors, target='target', feval=None, e
         'min_split_gain': 0,  # lambda_l1, lambda_l2 and min_gain_to_split to regularization
         'reg_alpha': 0,  # L1 regularization term on weights
         'reg_lambda': 0,  # L2 regularization term on weights
-        'nthread': 4, # should be equal to REAL cores:http://xgboost.readthedocs.io/en/latest/how_to/external_memory.html
+        'nthread': 24, # should be equal to REAL cores:http://xgboost.readthedocs.io/en/latest/how_to/external_memory.html
         'verbose': 0
         #         'device': 'gpu',
 #         'gpu_platform_id':1
@@ -393,9 +393,9 @@ if __name__ == '__main__':
     
     #【In order to get 0.9798, you have to change nchunk to all and frm to 0 to use entire dataset】
     nrows=184903891-1 # the first line is columns' name
-    nchunk=25000000 # 【The more the better】
+    nchunk=nrows # 【The more the better】
     val_size=2500000
-    frm=nrows-75000000
+    frm=0 #nrows-75000000
     
     debug=False
     # debug=True
