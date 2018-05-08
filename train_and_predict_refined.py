@@ -572,7 +572,7 @@ add_features_list_origin_no_channel_next_click_no_day_scvr = [
     {'group': ['ip', 'hour', 'app', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
     {'group': ['app', 'hour', 'is_attributed'], 'op': 'count'},
-    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
     {'group': ['app', 'ip', 'is_attributed'], 'op': 'smoothcvr'},
     {'group': ['os', 'ip', 'is_attributed'], 'op': 'smoothcvr'},
     {'group': ['ip', 'device', 'is_attributed'], 'op': 'smoothcvr'},
