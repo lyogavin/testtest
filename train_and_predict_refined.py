@@ -565,6 +565,20 @@ add_features_list_origin_no_channel_next_click_no_day = [
 ]
 
 
+add_features_list_origin_no_channel_next_click_no_day_scvr = [
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+    {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'hour', 'app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
+    {'group': ['app', 'ip', 'is_attributed'], 'op': 'smoothcvr'},
+    {'group': ['os', 'ip', 'is_attributed'], 'op': 'smoothcvr'},
+    {'group': ['ip', 'device', 'is_attributed'], 'op': 'smoothcvr'},
+    {'group': ['ip', 'app', 'os', 'is_attributed'], 'op': 'smoothcvr'},
+]
+
 add_features_list_fts_search_reduced_split_scvr = [
 
     {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
@@ -1992,6 +2006,20 @@ train_config_124_45 = ConfigScheme(False, False, False,
                                    )
 
 
+train_config_124_45 = ConfigScheme(False, False, False,
+                                 None,
+                                 None,
+                                 None,
+                                 lgbm_params=new_lgbm_params_early_50,
+                                 new_predict= True,
+                                 train_from=0,
+                                 train_to=id_9_4pm_reserve_last_250w,
+                                 val_from=id_9_4pm_reserve_last_250w,
+                                 val_to=id_9_4pm,
+                                 run_theme='train_and_predict',
+                                 add_features_list=add_features_list_origin_no_channel_next_click_no_day_scvr
+                                   )
+
 
 train_config_126_1 = ConfigScheme(False, False, False,
                                   random_sample_filter_0_5,
@@ -2323,6 +2351,8 @@ train_config_133_2 = copy.deepcopy(train_config_133_1)
 train_config_133_2.add_features_list = add_features_list_fts_search_reduced_split
 train_config_133_3 = copy.deepcopy(train_config_133_1)
 train_config_133_3.add_features_list = add_features_list_fts_search_reduced_split_scvr
+train_config_133_4 = copy.deepcopy(train_config_133_1)
+train_config_133_4.add_features_list = add_features_list_origin_no_channel_next_click_no_day_scvr
 
 
 def use_config_scheme(str):
@@ -2343,7 +2373,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_2')
+config_scheme_to_use = use_config_scheme('train_config_133_4')
 
 
 dtypes = {

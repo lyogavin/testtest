@@ -1365,10 +1365,12 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
 
 133 9 as validation, 7/8 to train, jointly training, fts search:
     1. baseline: no day features:
-        aliyun: running
+        aliyun: OOM
     2. fts search, reduced split:
-        azzureyun: running
+        azzureyun: OOM
     3. 2 + smooth cvr
+    4. original no day + scvr to validate
+        gyun: running
 
 
 to do test:
