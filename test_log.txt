@@ -1367,11 +1367,14 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     1. baseline: no day features:
         aliyun: OOM
         reduce mem, only use 8 4-15 to train: rerun:
+        [377]	train's auc: 0.98743	valid's auc: 0.980783
     2. fts search, reduced split:
         azzureyun: OOM
     3. 2 + smooth cvr
     4. original no day + scvr to validate
         gyun: running
+    5. based on 1, use day 7 and 8 hour:4-15:
+        aliyun: running
 
 
 to do test:

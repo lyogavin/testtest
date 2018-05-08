@@ -2370,6 +2370,9 @@ train_config_133_4.train_smoothcvr_cache_to = id_7_0am
 train_config_133_4.val_smoothcvr_cache_from = id_7_0am
 train_config_133_4.val_smoothcvr_cache_to = id_9_0am
 
+train_config_133_5 = copy.deepcopy(train_config_133_1)
+train_config_133_5.train_from = [id_7_4am,id_8_4am]
+train_config_133_5.train_to = [id_7_3pm,id_8_3pm]
 
 def use_config_scheme(str):
     ret = eval(str)
@@ -2389,7 +2392,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_4')
+config_scheme_to_use = use_config_scheme('train_config_133_5')
 
 
 dtypes = {
