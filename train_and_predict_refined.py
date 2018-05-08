@@ -2675,7 +2675,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
             if feature_name_added in add_statistic_feature.train_cvr_cache:
                 temp_sum = add_statistic_feature.train_cvr_cache[feature_name_added]
             else:
-                if ft_cache_prefix != 'train':
+                if ft_cache_prefix != 'train' and ft_cache_prefix != 'joint':
                     print("!!!!!!non-train should only use cache, which should be there!!!!!!!")
                     exit(-1)
                 temp_count = training[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[['is_attributed']].count()
