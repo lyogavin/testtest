@@ -2868,7 +2868,19 @@ def generate_counting_history_features(data,
                                        add_features_list=None,
                                        use_ft_cache = False,
                                        ft_cache_prefix = '',
-                                       only_ft_cache = False):
+                                       only_ft_cache = False,
+                                       val_start = None,
+                                       val_end = None):
+    if val_start is not None:
+        print('clear val(data[{}:{}]) is_attributed before gen sta fts and restore after'.format(val_start, val_end))
+        print('sum of val target col before clear:',
+              data.iloc[val_start:val_end, data.columns.values.tolist().index('is_attributed')].sum())
+
+        #print(data.iloc[val_start:val_end,data.columns.values.tolist().index('is_attributed')].head())
+        data['is_attributed_backup'] = data['is_attributed']
+
+        data.iloc[val_start:val_end, data.columns.values.tolist().index('is_attributed')] = 0
+        print('sum of val target col:', data.iloc[val_start:val_end, data.columns.values.tolist().index('is_attributed')].sum())
     print('discretization bins to use:', discretization_bins)
 
     new_features = []
@@ -2994,6 +3006,15 @@ def generate_counting_history_features(data,
         new_features = new_features + ['click_count_later']
 
     print('data dtypes:',data.dtypes)
+
+    if val_start is not None:
+        print('restore val is_attributed')
+        data['is_attributed']= data['is_attributed_backup']
+        del data['is_attributed_backup']
+        print('sum of val target col:',
+              data.iloc[val_start:val_end, data.columns.values.tolist().index('is_attributed')].sum())
+
+
     return data, new_features, discretization_bins_used
 
 
@@ -3411,7 +3432,9 @@ def ffm_data_gen(com_fts_list, use_ft_cache=False):
                                            discretization=config_scheme_to_use.discretization,
                                            use_ft_cache = use_ft_cache,
                                            ft_cache_prefix='joint',
-                                           add_features_list=com_fts_list)
+                                           add_features_list=com_fts_list,
+                                           val_start = train_len,
+                                           val_end = train_len + val_len)
 
     train = combined_df[:train_len]
     val = combined_df[train_len:train_len + val_len]
@@ -3735,7 +3758,9 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
                                            discretization=config_scheme_to_use.discretization,
                                            use_ft_cache = use_ft_cache,
                                            ft_cache_prefix='joint',
-                                           add_features_list=com_fts_list)
+                                           add_features_list=com_fts_list,
+                                           val_start = train_len,
+                                           val_end = train_len + val_len)
 
     train = combined_df[:train_len]
     val = combined_df[train_len:train_len + val_len]

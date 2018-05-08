@@ -1111,7 +1111,7 @@ Best params: {'colsample_bytree': 0.7773614836495996, 'learning_rate': 0.2, 'max
     44. remove 'day' in counting fts and use more data:
         aliyun: TODO:
     45. no days fts, train with all data, train jointly, val last 250w, early_stopping:50
-        gyun: running
+        gyun: LB: 0.9796812
 
 
 125:TODO: how to incorperate the timeseries pattern from the pub kernel?
