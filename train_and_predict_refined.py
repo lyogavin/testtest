@@ -2287,6 +2287,21 @@ train_config_131_8.val_to = id_7_3pm
 
 
 
+train_config_133_1 = ConfigScheme(False, False, False,
+                                  None,
+                                 None,
+                                 None,
+                                 lgbm_params=new_lgbm_params,
+                                 new_predict= False,
+                                 train_from=id_7_0am,
+                                 train_to=id_9_0am,
+                                 val_from=id_9_4am,
+                                 val_to=id_9_3pm,
+                                 run_theme='train_and_predict',
+                                 add_features_list=add_features_list_origin_no_channel_next_click_no_day
+                                   )
+
+
 def use_config_scheme(str):
     ret = eval(str)
     if debug:
@@ -2305,7 +2320,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_124_45')
+config_scheme_to_use = use_config_scheme('train_config_133_1')
 
 
 dtypes = {

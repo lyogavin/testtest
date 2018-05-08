@@ -1363,6 +1363,11 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     4. 132_2 * 0.65 + pub: 140_1 * 0.35:
     5. 132_2 * 0.6 + pub: 140_1 * 0.4:
 
+133 9 as validation, 7/8 to train, jointly training, fts search:
+    1. baseline: no day features:
+        aliyun: running
+
+
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
 2. break down auc by dimensions and filter data and train separately and ensemble DONE
