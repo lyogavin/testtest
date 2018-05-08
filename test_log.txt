@@ -1366,6 +1366,7 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
 133 9 as validation, 7/8 to train, jointly training, fts search:
     1. baseline: no day features:
         aliyun: OOM
+        reduce mem, only use 8 4-15 to train: rerun:
     2. fts search, reduced split:
         azzureyun: OOM
     3. 2 + smooth cvr

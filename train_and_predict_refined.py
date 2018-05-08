@@ -2334,7 +2334,7 @@ train_config_131_8.val_to = id_7_3pm
 
 
 
-train_config_133_1 = ConfigScheme(False, False, False,
+train_config_133_78_baseline = ConfigScheme(False, False, False,
                                   None,
                                  None,
                                  None,
@@ -2347,11 +2347,15 @@ train_config_133_1 = ConfigScheme(False, False, False,
                                  run_theme='train_and_predict',
                                  add_features_list=add_features_list_origin_no_channel_next_click_no_day
                                    )
+train_config_133_1 = copy.deepcopy(train_config_133_78_baseline)
+train_config_133_1.train_from = id_8_4am
+train_config_133_1.train_to = id_8_3pm
+
 train_config_133_2 = copy.deepcopy(train_config_133_1)
 train_config_133_2.add_features_list = add_features_list_fts_search_reduced_split
 train_config_133_3 = copy.deepcopy(train_config_133_1)
 train_config_133_3.add_features_list = add_features_list_fts_search_reduced_split_scvr
-train_config_133_4 = copy.deepcopy(train_config_133_1)
+train_config_133_4 = copy.deepcopy(train_config_133_78_baseline)
 train_config_133_4.add_features_list = add_features_list_origin_no_channel_next_click_no_day_scvr
 
 
@@ -2373,7 +2377,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_4')
+config_scheme_to_use = use_config_scheme('train_config_133_1')
 
 
 dtypes = {
