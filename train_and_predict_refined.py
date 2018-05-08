@@ -1041,7 +1041,9 @@ class ConfigScheme:
                  new_lib_ffm_output = False,
                  use_hour_group = None,
                  add_n_min_as_hour = None,
-                 auto_type_cast = False
+                 auto_type_cast = False,
+                 val_smoothcvr_cache_from = None,
+                 val_smoothcvr_cache_to = None,
                  ):
         self.predict = predict
         self.train = train
@@ -1088,6 +1090,8 @@ class ConfigScheme:
         self.add_lgbm_fts_from_saved_model = add_lgbm_fts_from_saved_model
         self.train_smoothcvr_cache_from = train_smoothcvr_cache_from
         self.train_smoothcvr_cache_to = train_smoothcvr_cache_to
+        self.val_smoothcvr_cache_from = val_smoothcvr_cache_from
+        self.val_smoothcvr_cache_to = val_smoothcvr_cache_to
         self.test_smoothcvr_cache_from = test_smoothcvr_cache_from
         self.test_smoothcvr_cache_to = test_smoothcvr_cache_to
         self.add_lgbm_fts_from_saved_model_count = add_lgbm_fts_from_saved_model_count
@@ -2358,8 +2362,13 @@ train_config_133_2.auto_type_cast = False
 
 train_config_133_3 = copy.deepcopy(train_config_133_1)
 train_config_133_3.add_features_list = add_features_list_fts_search_reduced_split_scvr
+
 train_config_133_4 = copy.deepcopy(train_config_133_78_baseline)
 train_config_133_4.add_features_list = add_features_list_origin_no_channel_next_click_no_day_scvr
+train_config_133_4.train_smoothcvr_cache_from = 0
+train_config_133_4.train_smoothcvr_cache_to = id_7_0am
+train_config_133_4.val_smoothcvr_cache_from = id_7_0am
+train_config_133_4.val_smoothcvr_cache_to = id_9_0am
 
 
 def use_config_scheme(str):
@@ -2380,7 +2389,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_2')
+config_scheme_to_use = use_config_scheme('train_config_133_4')
 
 
 dtypes = {
@@ -2676,9 +2685,8 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
             if feature_name_added in add_statistic_feature.train_cvr_cache:
                 temp_sum = add_statistic_feature.train_cvr_cache[feature_name_added]
             else:
-                if ft_cache_prefix != 'train' and ft_cache_prefix != 'joint':
-                    print("!!!!!!non-train should only use cache, which should be there!!!!!!!")
-                    exit(-1)
+                print("!!!!!!non-train should only use cache, which should be there!!!!!!!")
+                exit(-1)
                 temp_count = training[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[['is_attributed']].count()
                 temp_sum = training[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[['is_attributed']].sum()
                 temp_sum[feature_name_added] = (temp_sum['is_attributed'] + add_statistic_feature.alpha) /  \
@@ -2918,7 +2926,8 @@ def generate_counting_history_features(data,
                                        ft_cache_prefix = '',
                                        only_ft_cache = False,
                                        val_start = None,
-                                       val_end = None):
+                                       val_end = None,
+                                       only_scvr_ft = 3):
     if val_start is not None:
         print('clear val(data[{}:{}]) is_attributed before gen sta fts and restore after'.format(val_start, val_end))
         print('sum of val target col before clear:',
@@ -2953,6 +2962,11 @@ def generate_counting_history_features(data,
     i = -1
     for add_feature in add_features_list:
         i += 1
+        if only_scvr_ft == 1 and add_feature['op'] != 'smoothcvr':
+            continue
+        elif only_scvr_ft == 2 and add_feature['op'] == 'smoothcvr':
+            continue
+
         #with timer('adding feature:' + str(add_feature)):
         with timer('adding feature: {}/{}, {}'.format(i, len(add_features_list), str(add_feature))):
             data, features_added, discretization_bins_used_current_feature = add_statistic_feature(
@@ -3808,10 +3822,38 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
                                            ft_cache_prefix='joint',
                                            add_features_list=com_fts_list,
                                            val_start = train_len,
-                                           val_end = train_len + val_len)
+                                           val_end = train_len + val_len,
+                                           only_scvr_ft = 2)
+
+
+
 
     train = combined_df[:train_len]
     val = combined_df[train_len:train_len + val_len]
+
+
+    if config_scheme_to_use.train_smoothcvr_cache_from is not None:
+        gen_smoothcvr_cache(config_scheme_to_use.train_smoothcvr_cache_from, config_scheme_to_use.train_smoothcvr_cache_to)
+
+        train, new_features_cvr, _ = \
+            generate_counting_history_features(train,
+                                           discretization=config_scheme_to_use.discretization,
+                                           use_ft_cache=use_ft_cache,
+                                           ft_cache_prefix='joint',
+                                           add_features_list=com_fts_list,
+                                           only_scvr_ft=1)
+        new_features += new_features_cvr
+
+        clear_smoothcvr_cache()
+        gen_smoothcvr_cache(config_scheme_to_use.val_smoothcvr_cache_from, config_scheme_to_use.val_smoothcvr_cache_to)
+        val, _, _ = \
+            generate_counting_history_features(val,
+                                           discretization=config_scheme_to_use.discretization,
+                                           use_ft_cache=use_ft_cache,
+                                           ft_cache_prefix='joint',
+                                           add_features_list=com_fts_list,
+                                           only_scvr_ft=1)
+
     if dump_train_data and config_scheme_to_use.new_predict:
         test = combined_df[train_len + val_len:]
         test[categorical + new_features].to_csv("test_ft_dump.csv.bz2", compression='bz2',index=False)
@@ -3823,6 +3865,18 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
         with timer('predict test data:'):
             if not dump_train_data: # because for dump case, it'll be set above
                 test = combined_df[train_len + val_len: train_len+val_len+test_len]
+
+            if config_scheme_to_use.train_smoothcvr_cache_from is not None:
+                clear_smoothcvr_cache()
+                gen_smoothcvr_cache(config_scheme_to_use.test_smoothcvr_cache_from,
+                                    config_scheme_to_use.test_smoothcvr_cache_to)
+                test, _, _ = \
+                    generate_counting_history_features(test,
+                                                       discretization=config_scheme_to_use.discretization,
+                                                       use_ft_cache=use_ft_cache,
+                                                       ft_cache_prefix='joint',
+                                                       add_features_list=com_fts_list,
+                                                       only_scvr_ft=1)
 
             print('NAN next click count in test:', len(test.query('ip_app_device_os_is_attributednextclick > 1489000000')))
 
