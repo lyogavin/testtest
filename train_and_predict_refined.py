@@ -1044,6 +1044,7 @@ class ConfigScheme:
                  auto_type_cast = False,
                  val_smoothcvr_cache_from = None,
                  val_smoothcvr_cache_to = None,
+                 dump_train_data=False
                  ):
         self.predict = predict
         self.train = train
@@ -1105,6 +1106,7 @@ class ConfigScheme:
         self.use_hour_group = use_hour_group
         self.add_n_min_as_hour = add_n_min_as_hour
         self.auto_type_cast = auto_type_cast
+        self.dump_train_data = dump_train_data
 
 
 
@@ -2359,6 +2361,7 @@ train_config_133_2 = copy.deepcopy(train_config_133_1)
 train_config_133_2.add_features_list = add_features_list_fts_search
 train_config_133_2.lgbm_params = lgbm_params_pub_entire_set
 train_config_133_2.auto_type_cast = False
+train_config_133_2.dump_train_data = True
 
 train_config_133_3 = copy.deepcopy(train_config_133_1)
 train_config_133_3.add_features_list = add_features_list_fts_search_reduced_split_scvr
@@ -2392,7 +2395,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_5')
+config_scheme_to_use = use_config_scheme('train_config_133_2')
 
 
 dtypes = {
@@ -3856,6 +3859,10 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
                                            ft_cache_prefix='joint',
                                            add_features_list=com_fts_list,
                                            only_scvr_ft=1)
+
+    if config_scheme_to_use.dump_train_data:
+        train.to_csv("train_ft_dump.csv.bz2", compression='bz2',index=False)
+        val.to_csv("val_ft_dump.csv.bz2", compression='bz2',index=False)
 
     if dump_train_data and config_scheme_to_use.new_predict:
         test = combined_df[train_len + val_len:]
