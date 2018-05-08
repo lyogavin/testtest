@@ -563,6 +563,25 @@ add_features_list_origin_no_channel_next_click_no_day = [
     {'group': ['app', 'hour', 'is_attributed'], 'op': 'count'},
     {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'}
 ]
+
+
+add_features_list_fts_search_reduced_split_scvr = [
+
+    {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'device', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+    {'group': ['app', 'channel', 'ip'], 'op': 'nunique'},
+    {'group': ['ip', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app'], 'op': 'nunique'},
+    {'group': ['ip', 'device', 'os', 'app', 'is_attributed'], 'op': 'count'},
+
+    {'group': ['app', 'ip', 'is_attributed'], 'op': 'smoothcvr'},
+    {'group': ['os', 'ip', 'is_attributed'], 'op': 'smoothcvr'},
+    {'group': ['ip', 'device', 'is_attributed'], 'op': 'smoothcvr'},
+    {'group': ['ip', 'app', 'os', 'is_attributed'], 'op': 'smoothcvr'},
+
+]
+
 add_features_list_smooth_cvr_from_search_121_13 = [
 
     {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
@@ -2300,6 +2319,10 @@ train_config_133_1 = ConfigScheme(False, False, False,
                                  run_theme='train_and_predict',
                                  add_features_list=add_features_list_origin_no_channel_next_click_no_day
                                    )
+train_config_133_2 = copy.deepcopy(train_config_133_1)
+train_config_133_2.add_features_list = add_features_list_fts_search_reduced_split
+train_config_133_3 = copy.deepcopy(train_config_133_1)
+train_config_133_3.add_features_list = add_features_list_fts_search_reduced_split_scvr
 
 
 def use_config_scheme(str):
@@ -2320,7 +2343,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_1')
+config_scheme_to_use = use_config_scheme('train_config_133_2')
 
 
 dtypes = {
