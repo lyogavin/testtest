@@ -2352,7 +2352,9 @@ train_config_133_1.train_from = id_8_4am
 train_config_133_1.train_to = id_8_3pm
 
 train_config_133_2 = copy.deepcopy(train_config_133_1)
-train_config_133_2.add_features_list = add_features_list_fts_search_reduced_split
+train_config_133_2.add_features_list = add_features_list_fts_search
+train_config_133_2.lgbm_params = lgbm_params_pub_entire_set
+
 train_config_133_3 = copy.deepcopy(train_config_133_1)
 train_config_133_3.add_features_list = add_features_list_fts_search_reduced_split_scvr
 train_config_133_4 = copy.deepcopy(train_config_133_78_baseline)
