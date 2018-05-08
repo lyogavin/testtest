@@ -1372,9 +1372,10 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         azzureyun: OOM
     3. 2 + smooth cvr
     4. original no day + scvr to validate
-        gyun: running
+        gyun: [202]   train's auc: 0.985005   valid's auc: 0.98063
     5. based on 1, use day 7 and 8 hour:4-15:
-        aliyun: running
+        aliyun: OOM
+        gyun: running
 
 
 to do test:
