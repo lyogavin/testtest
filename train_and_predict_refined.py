@@ -115,7 +115,7 @@ import warnings
 
 dump_train_data = False
 
-use_sample = False
+use_sample = True
 debug = False
 persist_intermediate = False
 print_verbose = False
@@ -662,20 +662,18 @@ add_features_list_pub_entire_set = [
 add_features_list_fts_search = [
 
     {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
-    {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
-    {'group': ['ip', 'hour', 'os', 'is_attributed'], 'op': 'count'},
-    #{'group': ['ip', 'day', 'hour', 'app', 'is_attributed'], 'op': 'count'},
-    #{'group': ['ip', 'day', 'hour', 'app', 'os', 'is_attributed'], 'op': 'count'},
-    {'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
+    #{'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+    #{'group': ['ip', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    #{'group': ['ip', 'in_test_hh', 'is_attributed'], 'op': 'count'},
 
     # no smooth cvr first
     #{'group': ['app', 'ip', 'is_attributed'], 'op': 'smoothcvr'},
     #{'group': ['os', 'ip', 'is_attributed'], 'op': 'smoothcvr'},
     #{'group': ['app', 'hour', 'is_attributed'], 'op': 'smoothcvr'},
 
-    {'group': ['ip', 'is_attributed'], 'op': 'count'},
-    {'group': ['ip', 'device', 'is_attributed'], 'op': 'count'},
-    {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    #{'group': ['ip', 'is_attributed'], 'op': 'count'},
+    #{'group': ['ip', 'device', 'is_attributed'], 'op': 'count'},
+    #{'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
 
     {'group': ['app', 'channel', 'ip'], 'op': 'nunique'},
     {'group': ['app', 'channel', 'hour', 'ip'], 'op': 'nunique'},
@@ -1042,7 +1040,8 @@ class ConfigScheme:
                  lgbm_stacking_val_to =None,
                  new_lib_ffm_output = False,
                  use_hour_group = None,
-                 add_n_min_as_hour = None
+                 add_n_min_as_hour = None,
+                 auto_type_cast = False
                  ):
         self.predict = predict
         self.train = train
@@ -1101,6 +1100,7 @@ class ConfigScheme:
         self.new_lib_ffm_output = new_lib_ffm_output
         self.use_hour_group = use_hour_group
         self.add_n_min_as_hour = add_n_min_as_hour
+        self.auto_type_cast = auto_type_cast
 
 
 
@@ -2354,6 +2354,7 @@ train_config_133_1.train_to = id_8_3pm
 train_config_133_2 = copy.deepcopy(train_config_133_1)
 train_config_133_2.add_features_list = add_features_list_fts_search
 train_config_133_2.lgbm_params = lgbm_params_pub_entire_set
+train_config_133_2.auto_type_cast = False
 
 train_config_133_3 = copy.deepcopy(train_config_133_1)
 train_config_133_3.add_features_list = add_features_list_fts_search_reduced_split_scvr
@@ -2379,7 +2380,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_4')
+config_scheme_to_use = use_config_scheme('train_config_133_2')
 
 
 dtypes = {
@@ -2718,6 +2719,17 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
 
 
     gc.collect()
+
+    # auto type cast:
+    auto_type_cast_ops_list = ['count', 'nunique', 'cumcount']
+    if config_scheme_to_use.auto_type_cast and op in auto_type_cast_ops_list:
+        if training[feature_name_added].max() <= 65535:
+            training[feature_name_added] = training[feature_name_added].astype('uint16')
+        elif  training[feature_name_added].max() <= 2 ** 32 -1:
+            training[feature_name_added] = training[feature_name_added].astype('uint32')
+        elif  training[feature_name_added].max() <= 255:
+            training[feature_name_added] = training[feature_name_added].astype('uint8')
+
     no_type_cast = False
     if not no_type_cast and not log_discretization and discretization == 0:
         if training[feature_name_added].max() <= 65535 and \
