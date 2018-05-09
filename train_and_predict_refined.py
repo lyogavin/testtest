@@ -2360,7 +2360,7 @@ train_config_133_1.train_to = id_8_3pm
 train_config_133_2 = copy.deepcopy(train_config_133_1)
 train_config_133_2.add_features_list = add_features_list_fts_search
 train_config_133_2.lgbm_params = lgbm_params_pub_entire_set
-train_config_133_2.auto_type_cast = False
+train_config_133_2.auto_type_cast = True
 train_config_133_2.dump_train_data = True
 
 train_config_133_3 = copy.deepcopy(train_config_133_1)
@@ -2376,6 +2376,10 @@ train_config_133_4.val_smoothcvr_cache_to = id_9_0am
 train_config_133_5 = copy.deepcopy(train_config_133_1)
 train_config_133_5.train_from = [id_7_4am,id_8_4am]
 train_config_133_5.train_to = [id_7_3pm,id_8_3pm]
+
+train_config_133_6 = copy.deepcopy(train_config_133_2)
+train_config_133_6.train_from = [id_7_4am,id_8_4am]
+train_config_133_6.train_to = [id_7_3pm,id_8_3pm]
 
 def use_config_scheme(str):
     ret = eval(str)
@@ -2395,7 +2399,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_5')
+config_scheme_to_use = use_config_scheme('train_config_133_6')
 
 
 dtypes = {

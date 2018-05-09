@@ -1375,6 +1375,8 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         gyun: [202]   train's auc: 0.985005   valid's auc: 0.98063
     5. based on 1, use day 7 and 8 hour:4-15:
         aliyun: OOM
+        gyun: [531]   train's auc: 0.986667   valid's auc: 0.981512
+    6 based on 2, day 7 and 8, hour 4-15:
         gyun: running
 
 
