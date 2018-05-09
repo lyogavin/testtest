@@ -247,8 +247,11 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
                           ft_cache_prefix = '',
                           only_ft_cache = False,
                           astype=None):
-    print('\n\n------running add_statistic_feature in pid [{}]-------\n\n'.format(os.getpid()))
+    #print('\n\n------running add_statistic_feature in pid [{}]-------\nonly_ft_cache:{}\n'.format(
+    #    os.getpid(), only_ft_cache))
     print('[PID {}] adding: {}, {}'.format(os.getpid(), str(group_by_cols), op))
+
+
     input_len = len(training)
     feature_name_added = '_'.join(group_by_cols) + op
 
@@ -258,23 +261,28 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
 
     loaded_from_cache = False
 
-    if use_ft_cache and Path(ft_cache_path + ft_cache_file_name).is_file():
+    print('checking {}, exist:{}'.format(ft_cache_path + ft_cache_file_name, os.path.exists((ft_cache_path + ft_cache_file_name))))
+    if use_ft_cache and os.path.exists ((ft_cache_path + ft_cache_file_name)):
         if only_ft_cache:
             print('cache only, cache exists, return.')
             return
         print('[PID {}] cache file exist, loading: {}'.format(os.getpid(), ft_cache_path + ft_cache_file_name))
 
         try:
-            ft_cache_data = pd.read_csv(ft_cache_path + ft_cache_file_name,
-                                    dtype='float32',
-                                    header=0, engine='c',
+            ft_cache_data = pd.read_pickle(ft_cache_path + ft_cache_file_name,
+                                    #dtype='float32',
+                                    #header=0, engine='c',
                                     compression='bz2')
         except:
             print('[PID {}] err loading: {}'.format(os.getpid(), ft_cache_path + ft_cache_file_name))
             raise ValueError('[PID {}] err loading: {}'.format(os.getpid(), ft_cache_path + ft_cache_file_name))
 
-        training[feature_name_added] = ft_cache_data
-        print('[PID {}] loaded {} from file {}'.format(os.getpid(), feature_name_added, ft_cache_path + ft_cache_file_name))
+        #print('before merge', training.columns)
+        #training = training.join(ft_cache_data)#training.merge(ft_cache_data, how='left', left_index=True, right_index=True)
+        #print(training.head())
+        training[feature_name_added] = ft_cache_data[feature_name_added]
+        print('[PID {}] loaded {} from file {}, count:({})'.format(
+            os.getpid(), feature_name_added, ft_cache_path + ft_cache_file_name, training[feature_name_added].count()))
         loaded_from_cache=True
         return training, [feature_name_added], None
 
@@ -283,7 +291,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
     group_by_cols = group_by_cols[0:len(group_by_cols) - 1]
     features_added = []
     discretization_bins_used = {}
-    print('[PID {}] count ip with group by:'.format(os.getpid(),str(group_by_cols)))
+    #print('[PID {}] count with group by: {}'.format(os.getpid(), str(group_by_cols)))
 
     if op == 'cumcount':
         gp = training[group_by_cols + [counting_col]].\
@@ -426,10 +434,16 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
             temp1 = eval(tempstr + '.' + op + '()')
 
         n_chans = temp1.reset_index().rename(columns={counting_col: feature_name_added})
+        #training.sort_index(inplace=True)
 
-        training = training.merge(n_chans, on=group_by_cols if len(group_by_cols) >1 else group_by_cols[0],
+        #print('nan count: ', n_chans[n_chans[feature_name_added].isnull()])
+        print('[PID {}] nan count: {}'.format(os.getpid(), n_chans[feature_name_added].isnull().sum()))
+        training = training.merge(n_chans, on=group_by_cols,# if len(group_by_cols) >1 else group_by_cols[0],
                                   how='left')
         del n_chans
+        #training.sort_index(inplace=True)
+
+
 
         if config_scheme_to_use.normalization and op == 'count':
             if hasattr(add_statistic_feature, first_df_count):
@@ -496,9 +510,9 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
     print('[PID {}] added features:'.format(os.getpid(), features_added))
     if print_verbose:
         print(training[feature_name_added].describe())
-    print('nan count: ', training[feature_name_added].isnull().sum())
+    #print('nan count: ', training[training[feature_name_added].isnull()])
 
-    print('[PID {}] columns after added: '.format(os.getpid(), training.columns.values))
+    print('[PID {}] columns after added: {}'.format(os.getpid(), training.columns.values))
 
     if use_ft_cache and not loaded_from_cache:
 
@@ -506,12 +520,17 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
             os.mkdir(ft_cache_path)
             print('created dir', ft_cache_path)
         except:
-            print(ft_cache_path + ' already exist.')
+            #print(ft_cache_path + ' already exist.')
             None
 
-        pd.DataFrame(training[feature_name_added]).to_csv(ft_cache_path + ft_cache_file_name,
-                                                          index=False,compression='bz2')
-        print('[PID {}] saved {} to file {}'.format(os.getpid(), feature_name_added, ft_cache_path + ft_cache_file_name))
+
+        pd.DataFrame(training[feature_name_added].to_frame()).to_pickle(
+            ft_cache_path + ft_cache_file_name,compression='bz2')
+        #print('[PID {}] saved {} to file {} sum:({})'.format(
+        #    os.getpid(), feature_name_added, ft_cache_path + ft_cache_file_name, training[feature_name_added].sample(6, random_state=98)))
+        print('[PID {}] saved {} to file {} count:({})'.format(
+            os.getpid(), feature_name_added, ft_cache_path + ft_cache_file_name, training[feature_name_added].count()))
+
         if only_ft_cache:
             del training[feature_name_added]
             del features_added[-1]
@@ -651,6 +670,10 @@ def generate_counting_history_features(data,
                                        val_end = None,
                                        only_scvr_ft = 3,
                                        checksum = 'checksum'):
+    #print('tail all before:',data.tail())
+    #print('DEBUG:', data.query('ip == 123517 & day==7 &channel ==328'))
+    #print('DEBUG:', data.loc[6,:])
+
     if val_start is not None:
         print('clear val(data[{}:{}]) is_attributed before gen sta fts and restore after'.format(val_start, val_end))
         print('sum of val target col before clear:',
@@ -675,7 +698,7 @@ def generate_counting_history_features(data,
             ad_val_bst = lgb.Booster(model_file='ad_val_model.txt')
             ad_val_predictors = ['app', 'device', 'os', 'channel', 'ip', 'hour']
             data['ad_val'] = ad_val_bst.predict(data[ad_val_predictors])
-            print('add ad_val fts:', data['ad_val'].describe())
+            #print('add ad_val fts:', data['ad_val'].describe())
             new_features.append('ad_val')
 
             del ad_val_bst
@@ -693,39 +716,45 @@ def generate_counting_history_features(data,
 
         to_run_in_pool.append(add_feature)
 
+    print('TORUN:',to_run_in_pool)
+
     with timer('adding feature caches first round: {}/{}, {}'.format(i, len(add_features_list), str(add_feature))):
         p_list = []
-        for add_feature in to_run_in_pool:
-            p = Process(target=add_statistic_feature, args = (
-                                    add_feature['group'], #group_by_cols
-                                    data, #training
-                                    0,#qcut
-                                    discretization, #discretization
-                                    discretization_bins,#discretization_bins
-                                    config_scheme_to_use.log_discretization, #log_discretization
-                                    add_feature['op'],
-                                    use_ft_cache,
-                                    checksum,#ft_cache_prefix
-                                    True, #only_ft_cache,
-                                    add_feature['astype'] if 'astype' in add_feature else None #astype
-                                ))
-            p.start()
-            p_list.append(p)
+        #data.sort_index(inplace=True)
+        if use_ft_cache:
+            for add_feature in to_run_in_pool:
 
-            while len(p_list) >= process_poll_size:
-                p_list[0].join(1)
-                for p in p_list:
-                    if not p.is_alive():
-                        p_list.remove(p)
-                        break
+                p = Process(target=add_statistic_feature, args = (
+                                        add_feature['group'], #group_by_cols
+                                        data, #training
+                                        0,#qcut
+                                        discretization, #discretization
+                                        discretization_bins,#discretization_bins
+                                        config_scheme_to_use.log_discretization, #log_discretization
+                                        add_feature['op'],
+                                        use_ft_cache,
+                                        checksum,#ft_cache_prefix
+                                        True, #only_ft_cache,
+                                        add_feature['astype'] if 'astype' in add_feature else None #astype
+                                    ))
+                p.start()
+                p_list.append(p)
 
+                while len(p_list) >= process_poll_size:
+                    p_list[0].join(1)
+                    for p in p_list:
+                        if not p.is_alive():
+                            p_list.remove(p)
+                            break
+
+        #data.sort_index(inplace=True)
 
         print('second round load cache files:')
         for add_feature in to_run_in_pool:
             data, features_added,discretization_bins_used_current_feature = \
                 add_statistic_feature(
                                     list(add_feature['group']), #group_by_cols
-                                    data.copy(), #training
+                                    data, #training
                                     0,#qcut
                                     discretization, #discretization
                                     discretization_bins,#discretization_bins
@@ -1109,7 +1138,8 @@ def get_checksum_from_df(df):
     #m = hashlib.md5()
     #df.apply(lambda x: m.update(x.to_string().encode('utf8')), axis = 1)
     #m.update(df.to_string().encode('utf8'))
-    ret = mmh3.hash_from_buffer(df.get_values().copy(order='C'), signed = False)
+    #ret = mmh3.hash_from_buffer(df['click_time'].astype(str).get_values().copy(order='C'), signed = False)
+    ret = mmh3.hash_from_buffer(df['click_time'].sample(frac=0.1, random_state=88).to_string(), signed = False)
     gc.collect()
     return str(ret)
 

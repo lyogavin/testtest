@@ -146,7 +146,6 @@ add_features_list_fts_search = [
     {'group': ['ip', 'device','os','app'], 'op': 'cumcount'},
 
     {'group': ['ip','os'], 'op': 'cumcount'},
-    {'group': ['ip','device','os','app'], 'op': 'cumcount'},
     {'group': ['ip','device','os','channel'], 'op': 'cumcount'},
 
     {'group': ['ip', 'app','channel','is_attributed'], 'op': 'count'},
