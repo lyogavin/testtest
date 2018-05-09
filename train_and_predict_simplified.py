@@ -257,7 +257,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
 
     ft_cache_file_name = config_scheme_to_use.use_ft_cache_from + "_" + ft_cache_prefix + '_' + feature_name_added
     ft_cache_file_name = ft_cache_file_name + '_sample' if use_sample else ft_cache_file_name
-    ft_cache_file_name = ft_cache_file_name + '.csv.bz2'
+    ft_cache_file_name = ft_cache_file_name + '.pickle.bz2'
 
     loaded_from_cache = False
 
@@ -280,7 +280,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
         #print('before merge', training.columns)
         #training = training.join(ft_cache_data)#training.merge(ft_cache_data, how='left', left_index=True, right_index=True)
         #print(training.head())
-        training[feature_name_added] = ft_cache_data[feature_name_added]
+        training[feature_name_added] = ft_cache_data
         print('[PID {}] loaded {} from file {}, count:({})'.format(
             os.getpid(), feature_name_added, ft_cache_path + ft_cache_file_name, training[feature_name_added].count()))
         loaded_from_cache=True
@@ -524,7 +524,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
             None
 
 
-        pd.DataFrame(training[feature_name_added].to_frame()).to_pickle(
+        pd.DataFrame(training[feature_name_added]).to_pickle(
             ft_cache_path + ft_cache_file_name,compression='bz2')
         #print('[PID {}] saved {} to file {} sum:({})'.format(
         #    os.getpid(), feature_name_added, ft_cache_path + ft_cache_file_name, training[feature_name_added].sample(6, random_state=98)))
