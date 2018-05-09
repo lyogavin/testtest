@@ -2381,6 +2381,11 @@ train_config_133_6 = copy.deepcopy(train_config_133_2)
 train_config_133_6.train_from = [id_7_4am,id_8_4am]
 train_config_133_6.train_to = [id_7_3pm,id_8_3pm]
 
+train_config_133_7 = copy.deepcopy(train_config_133_4)
+train_config_133_7.lgbm_params = lgbm_params_pub_entire_set
+train_config_133_7.auto_type_cast = True
+
+
 def use_config_scheme(str):
     ret = eval(str)
     if debug:
@@ -2399,7 +2404,7 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_2')
+config_scheme_to_use = use_config_scheme('train_config_133_7')
 
 
 dtypes = {
