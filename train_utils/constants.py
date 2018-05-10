@@ -173,6 +173,6 @@ dtypes = {
 }
 
 
-process_poll_size = 4
+process_poll_size = 10
 
 neg_sample_rate = 200

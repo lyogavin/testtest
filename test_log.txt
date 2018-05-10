@@ -1383,6 +1383,7 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     8. based on 1, add cvr fts, use day 7 and 8 hour:4-15:
 
     9. based on 133, down sample neg 1/200
+        gyun: running
 
 
 

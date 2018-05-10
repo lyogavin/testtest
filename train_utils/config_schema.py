@@ -1414,7 +1414,7 @@ train_config_133_7.use_ft_cache = True
 
 
 train_config_133_9 = copy.deepcopy(train_config_133_6)
-train_config_133_9.use_neg_sample = True
+train_config_133_9.use_neg_sample = False
 
 debug = False
 
