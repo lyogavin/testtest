@@ -1390,7 +1390,7 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         azzyun2:[143]	train's auc: 0.98534	valid's auc: 0.97911
         gyun3:SAME
         10.4:use different neg sample seed 666
-            gyun: running
+            gyun: [188]   train's auc: 0.985627   valid's auc: 0.978909
     11. based on 1, down sampling 1/200:
         gyun: [135]	train's auc: 0.984818	valid's auc: 0.978801
         11_2: azzure yun: use different seed 666: running

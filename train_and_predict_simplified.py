@@ -788,12 +788,13 @@ def generate_counting_history_features(data,
                 p.start()
                 p_list.append(p)
 
-                while len(p_list) >= process_poll_size:
-                    p_list[0].join(1)
+                alive_count = 100
+                while alive_count >= process_poll_size:
+                    time.sleep(1)
+                    alive_count = 0
                     for p in p_list:
-                        if not p.is_alive():
-                            p_list.remove(p)
-
+                        alive_count += p.is_alive()
+                        
             for p in p_list:
                 p.join()
         #data.sort_index(inplace=True)
