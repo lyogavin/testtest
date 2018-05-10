@@ -1384,10 +1384,13 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
 
     9. based on 133 6, no down sample neg 1/200
         gyun: Done gen cache
+        [265]	train's auc: 0.986412	valid's auc: 0.981291
     10. based on 133 6,  down sample neg 1/200
-        azzyun: running
+        azzyun1: [143]   train's auc: 0.98534    valid's auc: 0.97911
+        azzyun2:running
+        gyun3:running
     11. based on 1, down sampling 1/200:
-        gyun: running
+        gyun: TODO
 
 
 to do test:
