@@ -60,6 +60,9 @@ add_features_list_fts_search_reduced_split_scvr_add_var = add_features_list_fts_
     {'group': ['ip', 'app', 'os','hour'], 'op': 'var'},
     {'group': ['ip', 'app', 'channel','day'], 'op': 'var'},
 ]
+add_features_list_fts_search_reduced_split_scvr_add_var_only_1 = add_features_list_fts_search_reduced_split_scvr + [
+    {'group': ['ip', 'day', 'channel','hour'], 'op': 'var'},
+]
 
 add_features_list_smooth_cvr_from_search_121_13 = [
 
