@@ -1475,7 +1475,12 @@ train_config_133_18 = copy.deepcopy(train_config_133_12)
 train_config_133_18.add_features_list = add_features_list_fts_search_reduced_split_add_counting_1
 
 train_config_133_19 = copy.deepcopy(train_config_133_15)
-train_config_133_19.use_scvr_cache_file = False
+train_config_133_19.use_scvr_cache_file = True
+
+train_config_133_20 = copy.deepcopy(train_config_133_15)
+train_config_133_20.use_scvr_cache_file = True
+train_config_133_20.add_features_list = add_features_list_fts_search_reduced_split
+train_config_133_20.run_theme = 'train_and_predict_ft_search'
 
 debug = False
 
@@ -1502,4 +1507,4 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_19')
+config_scheme_to_use = use_config_scheme('train_config_133_20')

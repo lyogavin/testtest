@@ -37,6 +37,7 @@ from train_utils.constants import *
 import train_utils.model_params
 import train_utils.features_def
 import random
+import itertools
 from train_utils.config_schema import *
 from train_utils.utils import *
 
@@ -1609,6 +1610,22 @@ def lgbm_params_search(com_fts_list):
     # Fit the model
     result = bayes_cv_tuner.fit(train[predictors1].values, train['is_attributed'].values, callback=status_print)
 
+def train_and_predict_ft_search(op = 'smoothcvr'):
+    raw_cols = ['app', 'device', 'os', 'channel', 'hour', 'ip']
+    com_fts_list_to_use = config_scheme_to_use.add_features_list
+
+    for cols_count in range(1, 4):  # max 4 to avoid over-fitting, tried 7, overfitting too badly
+        for cols_coms in itertools.combinations(raw_cols, cols_count):
+            temp = []
+            temp.extend(cols_coms)
+            temp.append('is_attributed')
+            # add both mean and var:
+            com_fts_list_to_use.append({'group': list(temp), 'op': op})
+            print('======================================================')
+            print('testing ', str({'group': list(temp), 'op': op}))
+            print('======================================================')
+
+            train_and_predict(com_fts_list_to_use, config_scheme_to_use.use_ft_cache)
 
 def run_model():
     print('run theme: ', config_scheme_to_use.run_theme)
@@ -1627,6 +1644,10 @@ def run_model():
         print('add features list: ')
         pprint(config_scheme_to_use.add_features_list)
         lgbm_params_search(config_scheme_to_use.add_features_list)
+    elif config_scheme_to_use.run_theme == 'train_and_predict_ft_search':
+        print('add features list: ')
+        pprint(config_scheme_to_use.add_features_list)
+        train_and_predict_ft_search()
     else:
         print("nothing to run... exit")
 
