@@ -1425,6 +1425,10 @@ train_config_133_11.use_neg_sample = True
 train_config_133_11.add_features_list= add_features_list_origin_no_channel_next_click_no_day
 
 
+train_config_133_12 = copy.deepcopy(train_config_133_6)
+train_config_133_12.use_neg_sample = True
+train_config_133_12.add_features_list = add_features_list_fts_search_reduced_split_scvr
+
 debug = False
 
 def use_config_scheme(str):
@@ -1445,4 +1449,4 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_11')
+config_scheme_to_use = use_config_scheme('train_config_133_12')
