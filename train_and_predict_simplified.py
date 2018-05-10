@@ -794,7 +794,7 @@ def generate_counting_history_features(data,
                     alive_count = 0
                     for p in p_list:
                         alive_count += p.is_alive()
-                        
+
             for p in p_list:
                 p.join()
         #data.sort_index(inplace=True)
@@ -820,6 +820,7 @@ def generate_counting_history_features(data,
 
             for add_feature in pdict:
                 preload_dfs[str(add_feature)] = pdict[str(add_feature)].join()
+                assert (len(preload_dfs[str(add_feature)]) == len(df_before_sample)), 'cache len loaded should be the same as original df'
 
         for add_feature in to_run_in_pool:
             data, features_added,discretization_bins_used_current_feature = \
