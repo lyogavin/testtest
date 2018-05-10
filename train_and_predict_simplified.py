@@ -37,7 +37,7 @@ from multiprocessing import Pool, TimeoutError
 from train_utils.constants import *
 import train_utils.model_params
 import train_utils.features_def
-
+import random
 from train_utils.config_schema import *
 
 
@@ -82,6 +82,9 @@ def timer(name):
 dump_train_data = False
 
 use_sample = False
+
+if use_sample:
+    neg_sample_rate = 2
 persist_intermediate = False
 print_verbose = False
 
@@ -246,7 +249,8 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
                           use_ft_cache = False,
                           ft_cache_prefix = '',
                           only_ft_cache = False,
-                          astype=None):
+                          astype=None,
+                          sample_indice = None):
     #print('\n\n------running add_statistic_feature in pid [{}]-------\nonly_ft_cache:{}\n'.format(
     #    os.getpid(), only_ft_cache))
     print('[PID {}] adding: {}, {}'.format(os.getpid(), str(group_by_cols), op))
@@ -273,6 +277,13 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
                                     #dtype='float32',
                                     #header=0, engine='c',
                                     compression='bz2')
+            if sample_indice is not None:
+                #print(ft_cache_data)
+                #print(sample_indice)
+                ft_cache_data = ft_cache_data.loc[sample_indice]
+                print('sample indice applied, len after sample of ft cache:',len(ft_cache_data))
+            print('SAMPLE:{}-{}'.format(feature_name_added, ft_cache_data.sample(5, random_state=88)))
+
         except:
             print('[PID {}] err loading: {}'.format(os.getpid(), ft_cache_path + ft_cache_file_name))
             raise ValueError('[PID {}] err loading: {}'.format(os.getpid(), ft_cache_path + ft_cache_file_name))
@@ -284,6 +295,8 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
         print('[PID {}] loaded {} from file {}, count:({})'.format(
             os.getpid(), feature_name_added, ft_cache_path + ft_cache_file_name, training[feature_name_added].count()))
         loaded_from_cache=True
+        del ft_cache_data
+        gc.collect()
         return training, [feature_name_added], None
 
 
@@ -514,6 +527,9 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
 
     print('[PID {}] columns after added: {}'.format(os.getpid(), training.columns.values))
 
+    #for test:
+    #print('SAMPLE:{}-{}'.format(feature_name_added, training[feature_name_added].sample(5, random_state=88)))
+
     if use_ft_cache and not loaded_from_cache:
 
         try:
@@ -669,7 +685,8 @@ def generate_counting_history_features(data,
                                        val_start = None,
                                        val_end = None,
                                        only_scvr_ft = 3,
-                                       checksum = 'checksum'):
+                                       checksum = 'checksum',
+                                       sample_indice = None):
     #print('tail all before:',data.tail())
     #print('DEBUG:', data.query('ip == 123517 & day==7 &channel ==328'))
     #print('DEBUG:', data.loc[6,:])
@@ -763,7 +780,8 @@ def generate_counting_history_features(data,
                                     use_ft_cache,
                                     checksum,#ft_cache_prefix
                                     only_ft_cache,
-                                    add_feature['astype'] if 'astype' in add_feature else None #astype
+                                    add_feature['astype'] if 'astype' in add_feature else None, #astype,
+                                    sample_indice
                                 )
             #print('returned from pool: data-{} features_added-{} discretization_bins_used_current_feature-{}'.format(
             #    res[0], features_added, discretization_bins_used
@@ -1149,10 +1167,24 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
         combined_df, train_len, val_len, test_len = get_combined_df(config_scheme_to_use.new_predict or gen_fts,
                                                                     load_test_supplement = load_test_supplement)
         print('total len: {}, train len: {}, val len: {}.'.format(len(combined_df), train_len, val_len))
+        combined_df.reset_index(drop=True,inplace=True)
 
     with timer('checksum data'):
         checksum = get_checksum_from_df(combined_df)
         print('md5 checksum of whole data set:', checksum)
+
+    neg_sample_indice = None
+    if config_scheme_to_use.use_neg_sample:
+        print('neg sample 1/200(1:2 pos:neg) after checksum...')
+        np.random.seed(888)
+        #neg_sample_indice = random.sample(range(len(combined_df)),len(combined_df) // 200)
+        neg_sample_indice = (np.random.randint(0, neg_sample_rate, len(combined_df), np.uint8) == 0) \
+                            | (combined_df['is_attributed'] == 1) \
+                            | np.concatenate((np.zeros(train_len, np.bool_) ,np.ones(val_len + test_len,np.bool_)))
+        #print('neg sample indice: len:{}, tail:{}'.format(len(neg_sample_indice), neg_sample_indice[-10:]))
+        #print('neg sample indice: len:{}, head:{}'.format(len(neg_sample_indice), neg_sample_indice[:10]))
+
+        combined_df = combined_df[neg_sample_indice]
     with timer('gen categorical features'):
         combined_df = gen_categorical_features(combined_df)
 
@@ -1168,9 +1200,13 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
                                            val_start = train_len,
                                            val_end = train_len + val_len,
                                            only_scvr_ft = 2,
-                                           checksum = checksum)
+                                           checksum = checksum,
+                                           sample_indice = neg_sample_indice)
 
-
+    #test
+    #print('sample:',combined_df.sample(10,random_state=888).to_string())
+    #print('poslen: {}, neglen:{}'.format(len(combined_df.query('is_attributed == 1')),
+    #                                     len(combined_df.query('is_attributed == 0'))))
 
 
     train = combined_df[:train_len]
@@ -1373,6 +1409,7 @@ def lgbm_params_search(com_fts_list):
                 subsample_for_bin = 200000,
                 subsample_freq=1,
                 min_split_gain=0,
+                random_state=666,
                 n_estimators =50
             ),
             search_spaces=search_spaces_128,

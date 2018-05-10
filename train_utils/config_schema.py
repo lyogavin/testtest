@@ -65,7 +65,8 @@ class ConfigScheme:
                  auto_type_cast = False,
                  val_smoothcvr_cache_from = None,
                  val_smoothcvr_cache_to = None,
-                 dump_train_data=False
+                 dump_train_data=False,
+                 use_neg_sample = False
                  ):
         self.predict = predict
         self.train = train
@@ -128,6 +129,7 @@ class ConfigScheme:
         self.add_n_min_as_hour = add_n_min_as_hour
         self.auto_type_cast = auto_type_cast
         self.dump_train_data = dump_train_data
+        self.use_neg_sample = use_neg_sample
 
 
 
@@ -1382,6 +1384,8 @@ train_config_133_2 = copy.deepcopy(train_config_133_1)
 train_config_133_2.add_features_list = add_features_list_fts_search
 train_config_133_2.lgbm_params = lgbm_params_pub_entire_set
 train_config_133_2.auto_type_cast = True
+train_config_133_2.use_ft_cache = True
+
 #train_config_133_2.dump_train_data = True
 
 train_config_133_3 = copy.deepcopy(train_config_133_1)
@@ -1408,6 +1412,10 @@ train_config_133_7.lgbm_params = lgbm_params_pub_entire_set
 train_config_133_7.auto_type_cast = True
 train_config_133_7.use_ft_cache = True
 
+
+train_config_133_9 = copy.deepcopy(train_config_133_6)
+train_config_133_9.use_neg_sample = True
+
 debug = False
 
 def use_config_scheme(str):
@@ -1428,4 +1436,4 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_6')
+config_scheme_to_use = use_config_scheme('train_config_133_9')

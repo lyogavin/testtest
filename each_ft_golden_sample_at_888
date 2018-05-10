@@ -1,0 +1,146 @@
+SAMPLE:ip_app_device_os_is_attributednextclick-       ip_app_device_os_is_attributednextclick
+91395                               1489932161
+54449                               1489759925
+14322                                    87864
+5723                                    -40698
+90541                                        0
+--
+SAMPLE:app_channel_ipnunique-        app_channel_ipnunique
+191395                   1137
+154449                    740
+114322                    233
+105723                   1775
+90541                    2069
+--
+SAMPLE:app_channel_hour_ipnunique-        app_channel_hour_ipnunique
+191395                          83
+154449                          34
+114322                           9
+105723                         110
+90541                          102
+--
+SAMPLE:ip_channelnunique-        ip_channelnunique
+191395                  1
+154449                  8
+114322                 11
+105723                 24
+90541                   1
+--
+SAMPLE:ip_day_hournunique-        ip_day_hournunique
+191395                   1
+154449                   4
+114322                   5
+105723                   7
+90541                    1
+--
+SAMPLE:ip_appnunique-        ip_appnunique
+191395              1
+154449              8
+114322              8
+105723             10
+90541               1
+--
+SAMPLE:ip_app_osnunique-        ip_app_osnunique
+191395                 1
+154449                 1
+114322                 3
+105723                 4
+90541                  1
+--
+SAMPLE:ip_devicenunique-        ip_devicenunique
+191395                 1
+154449                 1
+114322                 1
+105723                 3
+90541                  1
+--
+SAMPLE:app_channelnunique-        app_channelnunique
+191395                  29
+154449                   1
+114322                  26
+105723                  21
+90541                   26
+--
+SAMPLE:ip_device_os_appnunique-        ip_device_os_appnunique
+191395                        1
+154449                        2
+114322                        1
+105723                        3
+90541                         1
+--
+SAMPLE:ip_device_os_appcumcount-       ip_device_os_appcumcount
+91395                         1
+54449                         2
+14322                         2
+5723                          4
+90541                         0
+--
+SAMPLE:ip_oscumcount-       ip_oscumcount
+91395              1
+54449             13
+14322             12
+5723              38
+90541              0
+--
+SAMPLE:ip_device_os_channelcumcount-       ip_device_os_channelcumcount
+91395                             1
+54449                             2
+14322                             2
+5723                              4
+90541                             0
+--
+SAMPLE:ip_app_channel_is_attributedcount-        ip_app_channel_is_attributedcount
+191395                                  2
+154449                                  2
+114322                                  2
+105723                                  6
+90541                                   2
+--
+SAMPLE:ip_device_os_app_is_attributedcount-        ip_device_os_app_is_attributedcount
+191395                                    2
+154449                                    2
+114322                                    4
+105723                                    4
+90541                                     2
+--
+SAMPLE:ip_day_hour_is_attributedcount-        ip_day_hour_is_attributedcount
+191395                               2
+154449                               2
+114322                               2
+105723                               4
+90541                                2
+--
+SAMPLE:ip_app_os_is_attributedcount-        ip_app_os_is_attributedcount
+191395                             2
+154449                             2
+114322                             4
+105723                             4
+90541                              2
+--
+SAMPLE:ip_day_channel_hourvar-        ip_day_channel_hourvar
+191395                0.000000
+154449                0.000000
+114322                0.000000
+105723               40.333333
+90541                 0.000000
+--
+SAMPLE:ip_app_os_hourvar-        ip_app_os_hourvar
+191395           0.000000
+154449           0.000000
+114322           0.000000
+105723          40.333333
+90541            0.000000
+--
+SAMPLE:ip_app_channel_dayvar-        ip_app_channel_dayvar
+191395               0.000000
+154449               0.000000
+114322               0.000000
+105723               0.266667
+90541                0.000000
+--
+SAMPLE:ip_app_channel_hourmean-        ip_app_channel_hourmean
+191395                15.000000
+154449                15.000000
+114322                15.000000
+105723                 7.666667
+90541                  0.000000
