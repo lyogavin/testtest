@@ -4,6 +4,8 @@ import json
 from train_utils.constants import *
 from train_utils.model_params import *
 from train_utils.features_def import *
+import collections
+
 
 
 class ConfigScheme:
@@ -1486,7 +1488,8 @@ def use_config_scheme(str):
         ret.val_to=debug_val_to
 
     print('deduping the add_feature_list:')
-    ret.add_features_list = [json.loads(e) for e in {json.dumps(r) for r in ret.add_features_list}]
+    ret.add_features_list = [json.loads(e) for e in collections.OrderedDict(\
+        {json.dumps(r):None for r in ret.add_features_list})]
 
     print('using config var name and test log: ', str)
     ret.config_name = str
@@ -1499,4 +1502,4 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_18')
+config_scheme_to_use = use_config_scheme('train_config_133_19')
