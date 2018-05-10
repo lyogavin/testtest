@@ -791,8 +791,9 @@ def generate_counting_history_features(data,
                     for p in p_list:
                         if not p.is_alive():
                             p_list.remove(p)
-                            break
 
+            for p in p_list:
+                p.join()
         #data.sort_index(inplace=True)
 
         print('second round load cache files:')
@@ -805,6 +806,15 @@ def generate_counting_history_features(data,
                                           args=(list(add_feature['group']), add_feature['op'],checksum))
                 pdict[str(add_feature)] = p
                 p.start()
+
+                alive_count = 100
+                while alive_count >= process_poll_size:
+                    time.sleep(1)
+                    alive_count = 0
+                    for pp in pdict:
+                        alive_count += pdict[pp].is_alive()
+
+
             for add_feature in pdict:
                 preload_dfs[str(add_feature)] = pdict[str(add_feature)].join()
 
@@ -1206,6 +1216,11 @@ def get_checksum_from_df(df):
     gc.collect()
     return str(ret)
 
+def do_data_validation(df):
+    df = do_countuniq( df, ['ip', 'device', 'os'], 'channel', 'A0', show_max=False ); gc.collect()
+
+    print()
+
 def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
                                          use_base_data_cache=False, gen_fts = False, load_test_supplement = False):
     with timer('load combined data df'):
@@ -1257,6 +1272,9 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
                                            sample_indice = neg_sample_indice,
                                            df_before_sample = combined_df_before_sample)
 
+    data_validation = True
+    if data_validation:
+        do_data_validation(combined_df)
     #test
     #print('sample:',combined_df.sample(10,random_state=888).to_string())
     #print('poslen: {}, neglen:{}'.format(len(combined_df.query('is_attributed == 1')),
