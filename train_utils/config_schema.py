@@ -1,6 +1,6 @@
 import copy
 from pprint import pprint
-
+import json
 from train_utils.constants import *
 from train_utils.model_params import *
 from train_utils.features_def import *
@@ -67,7 +67,8 @@ class ConfigScheme:
                  val_smoothcvr_cache_to = None,
                  dump_train_data=False,
                  use_neg_sample = False,
-                 neg_sample_seed=888
+                 neg_sample_seed=888,
+                 use_scvr_cache_file = False
                  ):
         self.predict = predict
         self.train = train
@@ -132,6 +133,7 @@ class ConfigScheme:
         self.dump_train_data = dump_train_data
         self.use_neg_sample = use_neg_sample
         self.neg_sample_seed = neg_sample_seed
+        self.use_scvr_cache_file = use_scvr_cache_file
 
 
 
@@ -1470,6 +1472,9 @@ train_config_133_17.add_features_list = add_features_list_fts_search_reduced_spl
 train_config_133_18 = copy.deepcopy(train_config_133_12)
 train_config_133_18.add_features_list = add_features_list_fts_search_reduced_split_add_counting_1
 
+train_config_133_19 = copy.deepcopy(train_config_133_15)
+train_config_133_19.use_scvr_cache_file = False
+
 debug = False
 
 def use_config_scheme(str):
@@ -1479,6 +1484,10 @@ def use_config_scheme(str):
         ret.train_to = debug_train_to
         ret.val_from=debug_val_from
         ret.val_to=debug_val_to
+
+    print('deduping the add_feature_list:')
+    ret.add_features_list = [json.loads(e) for e in {json.dumps(r) for r in ret.add_features_list}]
+
     print('using config var name and test log: ', str)
     ret.config_name = str
     if ret.use_ft_cache_from is None:

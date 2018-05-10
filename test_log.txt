@@ -1411,9 +1411,11 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     16. 14 + 1 best var ft:
         azzure: [151]	train's auc: 0.985225	valid's auc: 0.97937
     17. 15 + keep only 1 best scvr:
-        gyun: running
+        gyun: [151]	train's auc: 0.985222	valid's auc: 0.979273
     18. 12 + ip_hour count, best from 11:
         azzure: running
+    19. 15 + use scvr cachefile:
+
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE

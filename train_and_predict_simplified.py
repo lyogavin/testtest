@@ -556,7 +556,8 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
     print('[PID {}] columns after added: {}'.format(os.getpid(), training.columns.values))
 
     #for test:
-    #print('SAMPLE:{}-{}'.format(feature_name_added, training[feature_name_added].sample(5, random_state=88)))
+    if op == 'smoothcvr':
+        print('SAMPLE:{}-{}'.format(feature_name_added, training[feature_name_added].sample(5, random_state=88)))
 
     if use_ft_cache and not loaded_from_cache:
 
@@ -599,6 +600,8 @@ def gen_smoothcvr_cache(frm, to):
                             nrows=to - frm \
                                 if not use_sample and frm is not None else None,
                             parse_dates=["click_time"])
+        if config_scheme_to_use.use_scvr_cache_file:
+            checksum = get_checksum_from_df(train)
 
     print('mem after loaded train data:', cpuStats())
 
@@ -607,7 +610,20 @@ def gen_smoothcvr_cache(frm, to):
 
 
     for add_feature in config_scheme_to_use.add_features_list:
+
         feature_name_added = '_'.join(add_feature['group']) + add_feature['op']
+        if not hasattr(add_statistic_feature, 'train_cvr_cache'):
+            add_statistic_feature.train_cvr_cache = dict()
+
+        if config_scheme_to_use.use_scvr_cache_file:
+            ft_cache_file_name = "scvr_" + str(checksum) + '_' + feature_name_added
+            ft_cache_file_name = ft_cache_file_name + '_sample' if use_sample else ft_cache_file_name
+            ft_cache_file_name = ft_cache_file_name + '.pickle'
+            if os.path.exists((ft_cache_path + ft_cache_file_name)):
+                with timer('loading scvr cache file '+ ft_cache_path + ft_cache_file_name):
+                    add_statistic_feature.train_cvr_cache[feature_name_added] = \
+                        pd.read_pickle(ft_cache_path + ft_cache_file_name)
+                continue
 
         counting_col = add_feature['group'][len(add_feature['group']) - 1]
         group_by_cols = add_feature['group'][0:len(add_feature['group']) - 1]
@@ -616,8 +632,6 @@ def gen_smoothcvr_cache(frm, to):
             continue
         print('processing:',add_feature)
         with timer('gen cvr grouping cache:'):
-            if not hasattr(add_statistic_feature, 'train_cvr_cache'):
-                add_statistic_feature.train_cvr_cache = dict()
 
             if not hasattr(add_statistic_feature, 'alpha'):
                 add_statistic_feature.alpha, add_statistic_feature.beta = \
@@ -695,6 +709,9 @@ def gen_smoothcvr_cache(frm, to):
                 add_statistic_feature.train_cvr_cache[feature_name_added] = temp_count.copy(True)
                 del temp_count
                 gc.collect()
+        if config_scheme_to_use.use_scvr_cache_file:
+            with timer('saving scvr cache file:' + ft_cache_path + ft_cache_file_name):
+                add_statistic_feature.train_cvr_cache[feature_name_added].to_pickle(ft_cache_path + ft_cache_file_name)
 
     print('setting global cvr for fillna...')
     if not hasattr(add_statistic_feature, 'global_cvr'):
@@ -1218,7 +1235,10 @@ def get_checksum_from_df(df):
     #df.apply(lambda x: m.update(x.to_string().encode('utf8')), axis = 1)
     #m.update(df.to_string().encode('utf8'))
     #ret = mmh3.hash_from_buffer(df['click_time'].astype(str).get_values().copy(order='C'), signed = False)
-    ret = mmh3.hash_from_buffer(df['click_time'].sample(frac=0.1, random_state=88).to_string(), signed = False)
+    if use_sample:
+        ret = mmh3.hash_from_buffer(df['click_time'].to_string(), signed = False)
+    else:
+        ret = mmh3.hash_from_buffer(df['click_time'].sample(frac=0.1, random_state=88).to_string(), signed = False)
     gc.collect()
     return str(ret)
 
