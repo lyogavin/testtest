@@ -9,7 +9,6 @@ import sys
 import copy
 from scipy import special as sp
 from multiprocessing import Process
-
 import numpy as np  # linear algebra
 import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
 import time
@@ -369,13 +368,13 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
                 click_buffers.append(np.full(D, 3000000000, dtype=np.uint32))
             training['epochtime'] = training['click_time'].astype(np.int64) // 10 ** 9
             next_clicks = []
-            for category, time in zip(reversed(training['category'].values),
+            for category, echtime in zip(reversed(training['category'].values),
                                       reversed(training['epochtime'].values)):
                 # shift values in buffers queue and append new value from the tail
                 for i in range(n - 1):
                     click_buffers[i][category] = click_buffers[i+1][category]
-                next_clicks.append(click_buffers[0][category] - time)
-                click_buffers[n-1][category] = time
+                next_clicks.append(click_buffers[0][category] - echtime)
+                click_buffers[n-1][category] = echtime
             del (click_buffers)
             training[feature_name_added] = list(reversed(next_clicks))
 
@@ -416,10 +415,10 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
             click_buffer = np.full(D, 3000000000, dtype=np.uint32)
             training['epochtime'] = training['click_time'].astype(np.int64) // 10 ** 9
             next_clicks = []
-            for category, time in zip(reversed(training['category'].values),
+            for category, echtime in zip(reversed(training['category'].values),
                                       reversed(training['epochtime'].values)):
-                next_clicks.append(click_buffer[category] - time)
-                click_buffer[category] = time
+                next_clicks.append(click_buffer[category] - echtime)
+                click_buffer[category] = echtime
             del (click_buffer)
             training[feature_name_added] = list(reversed(next_clicks))
 
@@ -835,7 +834,8 @@ def generate_counting_history_features(data,
                                     sample_indice,
                                     preload_df= preload_dfs[str(add_feature)] if str(add_feature) in preload_dfs else None
                                 )
-            del preload_dfs[str(add_feature)]
+            if str(add_feature) in preload_dfs:
+                del preload_dfs[str(add_feature)]
             gc.collect()
             #print('returned from pool: data-{} features_added-{} discretization_bins_used_current_feature-{}'.format(
             #    res[0], features_added, discretization_bins_used
@@ -888,9 +888,9 @@ def generate_counting_history_features(data,
             click_buffer = np.full(D, 3000000000, dtype=np.uint32)
             data['epochtime'] = data['click_time'].astype(np.int64) // 10 ** 9
             next_clicks = []
-            for category, time in zip(reversed(data['category'].values), reversed(data['epochtime'].values)):
-                next_clicks.append(click_buffer[category] - time)
-                click_buffer[category] = time
+            for category, echtime in zip(reversed(data['category'].values), reversed(data['epochtime'].values)):
+                next_clicks.append(click_buffer[category] - echtime)
+                click_buffer[category] = echtime
             del (click_buffer)
             data['next_click'] = list(reversed(next_clicks))
 
