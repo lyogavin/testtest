@@ -273,10 +273,11 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
         print('[PID {}] cache file exist, loading: {}'.format(os.getpid(), ft_cache_path + ft_cache_file_name))
 
         try:
-            ft_cache_data = pd.read_pickle(ft_cache_path + ft_cache_file_name,
-                                    #dtype='float32',
-                                    #header=0, engine='c',
-                                    compression='bz2')
+            with timer('read pickle ft cache file:' + ft_cache_path + ft_cache_file_name):
+                ft_cache_data = pd.read_pickle(ft_cache_path + ft_cache_file_name,
+                                        #dtype='float32',
+                                        #header=0, engine='c',
+                                        compression='bz2')
             if sample_indice is not None:
                 #print(ft_cache_data)
                 #print(sample_indice)
