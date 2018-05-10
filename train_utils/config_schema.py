@@ -1436,6 +1436,13 @@ train_config_133_10_4.use_neg_sample = True
 train_config_133_10_4.neg_sample_seed = 666
 
 
+train_config_133_11_2 = copy.deepcopy(train_config_133_11)
+train_config_133_11_2.neg_sample_seed = 666
+
+
+train_config_133_12_2 = copy.deepcopy(train_config_133_12)
+train_config_133_12_2.neg_sample_seed = 666
+
 
 debug = False
 
@@ -1457,4 +1464,4 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_10_4')
+config_scheme_to_use = use_config_scheme('train_config_133_11_2')
