@@ -39,7 +39,7 @@ import train_utils.model_params
 import train_utils.features_def
 import random
 from train_utils.config_schema import *
-
+from train_utils.utils import *
 
 matplotlib.use('Agg')
 
@@ -807,6 +807,7 @@ def generate_counting_history_features(data,
                     dict(list(discretization_bins_used.items()) + list(discretization_bins_used_current_feature.items()))
             gc.collect()
 
+
     print('\n\n\n-------------\n{} DEBUG CVR:\n-------------\n\n\n'.format(ft_cache_prefix))
     if 'hour_is_attributedsmoothcvr' in data.columns and \
             'hour_is_attributedmean' in data.columns and \
@@ -1208,6 +1209,7 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
         combined_df = combined_df[neg_sample_indice]
         #print('len after sampel:',len(combined_df_before_sample))
         #print('len after sampel:',len(combined_df))
+        train_len = len(combined_df) - test_len - val_len
 
     with timer('gen statistical hist features'):
         combined_df, new_features, discretization_bins_used = \
