@@ -1397,6 +1397,8 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
 
     12. based on 3, down sample:
         azzure: [149]	train's auc: 0.985228	valid's auc: 0.97947
+        12_2: use 666 as seed
+         TODO:
 
 
 to do test:
