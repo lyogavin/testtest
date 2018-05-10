@@ -1444,6 +1444,8 @@ train_config_133_12_2 = copy.deepcopy(train_config_133_12)
 train_config_133_12_2.neg_sample_seed = 666
 
 train_config_133_13 = copy.deepcopy(train_config_133_4)
+train_config_133_13.train_from = [id_7_4am,id_8_4am]
+train_config_133_13.train_to = [id_7_3pm,id_8_3pm]
 train_config_133_13.use_neg_sample = True
 
 train_config_133_13_2 = copy.deepcopy(train_config_133_13)
