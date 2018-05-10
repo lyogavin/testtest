@@ -1467,6 +1467,9 @@ train_config_133_16.add_features_list = add_features_list_fts_search_reduced_spl
 train_config_133_17 = copy.deepcopy(train_config_133_15)
 train_config_133_17.add_features_list = add_features_list_fts_search_reduced_split_scvr_only_1
 
+train_config_133_18 = copy.deepcopy(train_config_133_12)
+train_config_133_18.add_features_list = add_features_list_fts_search_reduced_split_add_counting_1
+
 debug = False
 
 def use_config_scheme(str):
@@ -1487,4 +1490,4 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_17')
+config_scheme_to_use = use_config_scheme('train_config_133_18')
