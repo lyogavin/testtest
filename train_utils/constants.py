@@ -175,6 +175,10 @@ dtypes = {
 
 process_poll_size = 10
 
+import socket
+if socket.gethostname() == 'test':
+    process_poll_size = 3
+
 neg_sample_rate = 200
 #neg_sample_seed = 888
 #neg_sample_seed = 666
