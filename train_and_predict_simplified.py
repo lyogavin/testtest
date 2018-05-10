@@ -820,6 +820,7 @@ def generate_counting_history_features(data,
 
             for add_feature in pdict:
                 preload_dfs[str(add_feature)] = pdict[str(add_feature)].join()
+                assert (preload_dfs[str(add_feature)] is not None), 'cache len loaded should be the same as original df'
                 assert (len(preload_dfs[str(add_feature)]) == len(df_before_sample)), 'cache len loaded should be the same as original df'
 
         for add_feature in to_run_in_pool:
