@@ -825,6 +825,8 @@ def generate_counting_history_features(data,
                                     sample_indice,
                                     preload_df= preload_dfs[str(add_feature)] if str(add_feature) in preload_dfs else None
                                 )
+            del preload_dfs[str(add_feature)]
+            gc.collect()
             #print('returned from pool: data-{} features_added-{} discretization_bins_used_current_feature-{}'.format(
             #    res[0], features_added, discretization_bins_used
             #))
