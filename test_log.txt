@@ -1398,8 +1398,10 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     12. based on 3, down sample:
         azzure: [149]	train's auc: 0.985228	valid's auc: 0.97947
         12_2: use 666 as seed
-         gyun: running
+         gyun: [132]	train's auc: 0.985093	valid's auc: 0.979496
     13. based on 4, down sample 888:
+        1.   gyun: running
+
         13_2: seed 666:
 
 
