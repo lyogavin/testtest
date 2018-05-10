@@ -245,6 +245,19 @@ def get_recursive_alpha_beta(sumi, count, global_alpha = 20.0, global_beta = 100
         else:
             return alpha, beta
 
+def load_ft_cache_file(group_by_cols, op, ft_cache_prefix):
+    feature_name_added = '_'.join(group_by_cols) + op
+
+    with timer('preloading ft file for:' + feature_name_added):
+
+        ft_cache_file_name = config_scheme_to_use.use_ft_cache_from + "_" + ft_cache_prefix + '_' + feature_name_added
+        ft_cache_file_name = ft_cache_file_name + '_sample' if use_sample else ft_cache_file_name
+        ft_cache_file_name = ft_cache_file_name + '.pickle.bz2'
+        ft_cache_data = pd.read_pickle(ft_cache_path + ft_cache_file_name,
+                                            #dtype='float32',
+                                            #header=0, engine='c',
+                                            compression='bz2')
+    return ft_cache_data
 
 def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_use.qcut, #0, #0.98,
                           discretization=0, discretization_bins=None,
@@ -255,7 +268,8 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
                           only_ft_cache = False,
                           astype=None,
                           sample_indice = None,
-                          df_before_sample = None):
+                          df_before_sample = None,
+                          preload_df = None):
     #print('\n\n------running add_statistic_feature in pid [{}]-------\nonly_ft_cache:{}\n'.format(
     #    os.getpid(), only_ft_cache))
     print('[PID {}] adding: {}, {}'.format(os.getpid(), str(group_by_cols), op))
@@ -279,7 +293,10 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
 
         try:
             with timer('read pickle ft cache file:' + ft_cache_path + ft_cache_file_name):
-                ft_cache_data = pd.read_pickle(ft_cache_path + ft_cache_file_name,
+                if preload_df is not None:
+                    ft_cache_data = preload_df
+                else:
+                    ft_cache_data = pd.read_pickle(ft_cache_path + ft_cache_file_name,
                                         #dtype='float32',
                                         #header=0, engine='c',
                                         compression='bz2')
@@ -779,6 +796,18 @@ def generate_counting_history_features(data,
         #data.sort_index(inplace=True)
 
         print('second round load cache files:')
+        multithread_load_ft = False
+        preload_dfs = {}
+        pdict = {}
+        if multithread_load_ft:
+            for add_feature in to_run_in_pool:
+                p = ThreadWithReturnValue(target = load_ft_cache_file,
+                                          args=(list(add_feature['group']), add_feature['op'],checksum))
+                pdict[str(add_feature)] = p
+                p.start()
+            for add_feature in pdict:
+                preload_dfs[str(add_feature)] = pdict[str(add_feature)].join()
+
         for add_feature in to_run_in_pool:
             data, features_added,discretization_bins_used_current_feature = \
                 add_statistic_feature(
@@ -793,7 +822,8 @@ def generate_counting_history_features(data,
                                     checksum,#ft_cache_prefix
                                     only_ft_cache,
                                     add_feature['astype'] if 'astype' in add_feature else None, #astype,
-                                    sample_indice
+                                    sample_indice,
+                                    preload_df= preload_dfs[str(add_feature)] if str(add_feature) in preload_dfs else None
                                 )
             #print('returned from pool: data-{} features_added-{} discretization_bins_used_current_feature-{}'.format(
             #    res[0], features_added, discretization_bins_used
