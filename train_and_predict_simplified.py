@@ -1614,11 +1614,22 @@ def train_and_predict_ft_search(op = 'smoothcvr'):
     raw_cols = ['app', 'device', 'os', 'channel', 'hour', 'ip']
     com_fts_list_to_use = config_scheme_to_use.add_features_list
 
-    for cols_count in range(1, 4):  # max 4 to avoid over-fitting, tried 7, overfitting too badly
+    search_range = []
+
+    if op == 'smoothcvr':
+        search_range = range(1, 4)
+    elif op == 'count':
+        search_range = range(1, 7)
+    else:
+        search_range = range(2, 7)
+
+
+    for cols_count in search_range:  # max 4 to avoid over-fitting, tried 7, overfitting too badly
         for cols_coms in itertools.combinations(raw_cols, cols_count):
             temp = []
             temp.extend(cols_coms)
-            temp.append('is_attributed')
+            if op in ['smoothcvr', 'count']:
+                temp.append('is_attributed')
             # add both mean and var:
             com_fts_list_to_use.append({'group': list(temp), 'op': op})
             print('======================================================')
@@ -1647,7 +1658,7 @@ def run_model():
     elif config_scheme_to_use.run_theme == 'train_and_predict_ft_search':
         print('add features list: ')
         pprint(config_scheme_to_use.add_features_list)
-        train_and_predict_ft_search()
+        train_and_predict_ft_search(config_scheme_to_use.ft_search_op)
     else:
         print("nothing to run... exit")
 

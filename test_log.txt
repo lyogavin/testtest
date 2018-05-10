@@ -1415,6 +1415,8 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     18. 12 + ip_hour count, best from 11:
         azzure: running
     19. 15 + use scvr cachefile:
+    20. smoothcvr search
+    21. cumcount search
 
 
 to do test:

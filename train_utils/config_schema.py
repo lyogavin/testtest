@@ -70,7 +70,8 @@ class ConfigScheme:
                  dump_train_data=False,
                  use_neg_sample = False,
                  neg_sample_seed=888,
-                 use_scvr_cache_file = False
+                 use_scvr_cache_file = False,
+                 ft_search_op = 'smoothcvr'
                  ):
         self.predict = predict
         self.train = train
@@ -136,6 +137,8 @@ class ConfigScheme:
         self.use_neg_sample = use_neg_sample
         self.neg_sample_seed = neg_sample_seed
         self.use_scvr_cache_file = use_scvr_cache_file
+        self.ft_search_op = ft_search_op
+
 
 
 
@@ -1482,6 +1485,12 @@ train_config_133_20.use_scvr_cache_file = True
 train_config_133_20.add_features_list = add_features_list_fts_search_reduced_split
 train_config_133_20.run_theme = 'train_and_predict_ft_search'
 
+train_config_133_21 = copy.deepcopy(train_config_133_12)
+train_config_133_21.add_features_list = add_features_list_fts_search_reduced_split
+train_config_133_21.run_theme = 'train_and_predict_ft_search'
+train_config_133_21.ft_search_op = 'cumcount'
+
+
 debug = False
 
 def use_config_scheme(str):
@@ -1507,4 +1516,4 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_20')
+config_scheme_to_use = use_config_scheme('train_config_133_21')
