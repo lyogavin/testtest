@@ -1407,7 +1407,11 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     14. based on 12, add var features: (bug of 3 found ,didn't specify smooth_cvr_from/to, only other fts)
         azzure: [210]   train's auc: 0.985658   valid's auc: 0.979428
     15. 12 + scvr fts:
-        gyun:running
+        gyun:[90]	train's auc: 0.984447	valid's auc: 0.978796
+    16. 14 + 1 best var ft:
+        azzure: [151]	train's auc: 0.985225	valid's auc: 0.97937
+    17. 15 + keep only 1 best scvr:
+        gyun: running
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE

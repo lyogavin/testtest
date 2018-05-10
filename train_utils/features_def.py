@@ -55,6 +55,21 @@ add_features_list_fts_search_reduced_split_scvr = [
 
 ]
 
+add_features_list_fts_search_reduced_split_scvr_only_1 = [
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+
+    {'group': ['ip', 'device', 'os', 'app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'device', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'is_attributed'], 'op': 'count'},
+
+    {'group': ['app', 'channel', 'ip'], 'op': 'nunique'},
+    {'group': ['ip', 'app'], 'op': 'nunique'},
+
+    {'group': ['app', 'ip', 'is_attributed'], 'op': 'smoothcvr'},
+
+]
+
 add_features_list_fts_search_reduced_split_scvr_add_var = add_features_list_fts_search_reduced_split_scvr + [
     {'group': ['ip', 'day', 'channel','hour'], 'op': 'var'},
     {'group': ['ip', 'app', 'os','hour'], 'op': 'var'},

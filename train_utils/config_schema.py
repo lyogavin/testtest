@@ -1464,6 +1464,9 @@ train_config_133_15.val_smoothcvr_cache_to = id_9_0am
 train_config_133_16 = copy.deepcopy(train_config_133_14)
 train_config_133_16.add_features_list = add_features_list_fts_search_reduced_split_scvr_add_var_only_1
 
+train_config_133_17 = copy.deepcopy(train_config_133_15)
+train_config_133_17.add_features_list = add_features_list_fts_search_reduced_split_scvr_only_1
+
 debug = False
 
 def use_config_scheme(str):
