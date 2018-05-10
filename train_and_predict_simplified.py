@@ -803,7 +803,7 @@ def generate_counting_history_features(data,
         multithread_load_ft = True
         preload_dfs = {}
         pdict = {}
-        if multithread_load_ft:
+        if multithread_load_ft and use_ft_cache:
             for add_feature in to_run_in_pool:
                 p = ThreadWithReturnValue(target = load_ft_cache_file,
                                           args=(list(add_feature['group']), add_feature['op'],checksum))
@@ -1338,7 +1338,7 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
         train, new_features_cvr, _ = \
             generate_counting_history_features(train,
                                            discretization=config_scheme_to_use.discretization,
-                                           use_ft_cache=use_ft_cache,
+                                           use_ft_cache=False, #use_ft_cache,
                                            ft_cache_prefix='joint',
                                            add_features_list=com_fts_list,
                                            only_scvr_ft=1)
@@ -1349,7 +1349,7 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
         val, _, _ = \
             generate_counting_history_features(val,
                                            discretization=config_scheme_to_use.discretization,
-                                           use_ft_cache=use_ft_cache,
+                                           use_ft_cache=False, #use_ft_cache,
                                            ft_cache_prefix='joint',
                                            add_features_list=com_fts_list,
                                            only_scvr_ft=1)
@@ -1377,7 +1377,7 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
                 test, _, _ = \
                     generate_counting_history_features(test,
                                                        discretization=config_scheme_to_use.discretization,
-                                                       use_ft_cache=use_ft_cache,
+                                                       use_ft_cache=False, #use_ft_cache,
                                                        ft_cache_prefix='joint',
                                                        add_features_list=com_fts_list,
                                                        only_scvr_ft=1)
