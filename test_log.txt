@@ -1382,9 +1382,12 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         azzureyun: [180]	train's auc: 0.986856	valid's auc: 0.980411
     8. based on 1, add cvr fts, use day 7 and 8 hour:4-15:
 
-    9. based on 133, down sample neg 1/200
+    9. based on 133, no down sample neg 1/200
+        gyun: Done gen cache
+    10. based on 133,  down sample neg 1/200
+        azzyun: running
+    11. based on 1, down sampling 1/200:
         gyun: running
-
 
 
 to do test:
