@@ -1396,16 +1396,18 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         11_2: azzure yun: use different seed 666:
         [138]	train's auc: 0.984794	valid's auc: 0.978717
 
-    12. based on 3, down sample:
+    12. based on 3, down sample: (bug of 3 found ,didn't specify smooth_cvr_from/to, only other fts)
         azzure: [149]	train's auc: 0.985228	valid's auc: 0.97947
         12_2: use 666 as seed
          gyun: [132]	train's auc: 0.985093	valid's auc: 0.979496
     13. based on 4, down sample 888:
-        1.   gyun: running
+        1.   gyun: [138]   train's auc: 0.984884   valid's auc: 0.979464
 
         13_2: seed 666:
-    14. based on 12, add var features:
-        azzure: running
+    14. based on 12, add var features: (bug of 3 found ,didn't specify smooth_cvr_from/to, only other fts)
+        azzure: [210]   train's auc: 0.985658   valid's auc: 0.979428
+    15. 12 + scvr fts:
+        gyun:running
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE

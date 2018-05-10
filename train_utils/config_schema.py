@@ -1455,6 +1455,13 @@ train_config_133_13_2.neg_sample_seed = 666
 train_config_133_14 = copy.deepcopy(train_config_133_12)
 train_config_133_14.add_features_list = add_features_list_fts_search_reduced_split_scvr_add_var
 
+train_config_133_15 = copy.deepcopy(train_config_133_12)
+train_config_133_15.train_smoothcvr_cache_from = 0
+train_config_133_15.train_smoothcvr_cache_to = id_7_0am
+train_config_133_15.val_smoothcvr_cache_from = id_7_0am
+train_config_133_15.val_smoothcvr_cache_to = id_9_0am
+
+
 debug = False
 
 def use_config_scheme(str):
@@ -1475,4 +1482,4 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_13')
+config_scheme_to_use = use_config_scheme('train_config_133_15')
