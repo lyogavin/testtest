@@ -796,7 +796,7 @@ def generate_counting_history_features(data,
         #data.sort_index(inplace=True)
 
         print('second round load cache files:')
-        multithread_load_ft = False
+        multithread_load_ft = True
         preload_dfs = {}
         pdict = {}
         if multithread_load_ft:
