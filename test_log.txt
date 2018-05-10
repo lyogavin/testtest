@@ -1385,14 +1385,17 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     9. based on 133 6, no down sample neg 1/200
         gyun: Done gen cache
         [265]	train's auc: 0.986412	valid's auc: 0.981291
-    10. based on 133 6,  down sample neg 1/200
+    10. based on 133 6,  down sample neg 1/200 seed 888
         azzyun1: [143]   train's auc: 0.98534    valid's auc: 0.97911
         azzyun2:[143]	train's auc: 0.98534	valid's auc: 0.97911
         gyun3:SAME
+        10.4:use different neg sample seed 666
+            gyun: running
     11. based on 1, down sampling 1/200:
-        gyun: running
+        gyun: [135]	train's auc: 0.984818	valid's auc: 0.978801
+
     12. based on 3, down sample:
-        azzure: running
+        azzure: [149]	train's auc: 0.985228	valid's auc: 0.97947
 
 
 to do test:

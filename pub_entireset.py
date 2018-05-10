@@ -133,6 +133,7 @@ def do_var( df, group_cols, counted, agg_name, agg_type='float32', show_max=Fals
     if show_agg:
         print( "Calculating variance of ", counted, " by ", group_cols , '...' )
     gp = df[group_cols+[counted]].groupby(group_cols)[counted].var().reset_index().rename(columns={counted:agg_name})
+
     df = df.merge(gp, on=group_cols, how='left', copy=False)
     del gp
     if show_max:

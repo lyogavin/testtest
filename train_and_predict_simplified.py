@@ -472,12 +472,15 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
             temp1 = eval(tempstr + '.' + op + '()')
 
         n_chans = temp1.reset_index().rename(columns={counting_col: feature_name_added})
+
+        if feature_name_added == 'ip_app_os_hourvar':
+            print('dump inter var {}: {}'.format(feature_name_added,n_chans.query('ip_app_os_hourvar != 0').tail(500).to_string()))
         #training.sort_index(inplace=True)
 
         #print('nan count: ', n_chans[n_chans[feature_name_added].isnull()])
         print('[PID {}] nan count: {}'.format(os.getpid(), n_chans[feature_name_added].isnull().sum()))
         training = training.merge(n_chans, on=group_by_cols,# if len(group_by_cols) >1 else group_by_cols[0],
-                                  how='left')
+                                  how='left', copy=False)
         del n_chans
         #training.sort_index(inplace=True)
 
@@ -498,13 +501,13 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
     auto_type_cast_ops_list = ['count', 'nunique', 'cumcount']
     if config_scheme_to_use.auto_type_cast and op in auto_type_cast_ops_list:
         if training[feature_name_added].max() <= 65535:
-            training[feature_name_added] = training[feature_name_added].astype('uint16')
+            training[feature_name_added] = training[feature_name_added].astype('uint16', copy=False)
         elif  training[feature_name_added].max() <= 2 ** 32 -1:
-            training[feature_name_added] = training[feature_name_added].astype('uint32')
+            training[feature_name_added] = training[feature_name_added].astype('uint32', copy=False)
         elif  training[feature_name_added].max() <= 255:
-            training[feature_name_added] = training[feature_name_added].astype('uint8')
+            training[feature_name_added] = training[feature_name_added].astype('uint8', copy=False)
 
-    no_type_cast = False
+    no_type_cast = True
     if not no_type_cast and not log_discretization and discretization == 0:
         if training[feature_name_added].max() <= 65535 and \
             op in ['count', 'nunique','cumcount']:
@@ -1216,10 +1219,51 @@ def get_checksum_from_df(df):
     gc.collect()
     return str(ret)
 
-def do_data_validation(df):
-    df = do_countuniq( df, ['ip', 'device', 'os'], 'channel', 'A0', show_max=False ); gc.collect()
+def do_data_validation(df, df0, sample_indice):
+    df = df.copy(True)
+    df.reset_index(drop=True, inplace=True)
+    df0 = df0.copy(True)
+    df0.reset_index(drop=True, inplace=True)
 
-    print()
+
+
+    df_for_val = do_countuniq( df0, ['ip', 'device', 'os'], 'app', 'A0', show_max=False )[sample_indice]; gc.collect()
+    df_for_val.reset_index(drop=True, inplace=True)
+
+    print('var gap:',(df_for_val['A0'] - df['ip_device_os_appnunique']).sum())
+    print('var diff:',df['ip_device_os_appnunique'][(df_for_val['A0'] - df['ip_device_os_appnunique']) != 0].head().to_string())
+    print('var diff:',df_for_val['A0'][(df_for_val['A0'] - df['ip_device_os_appnunique']) != 0].head().to_string())
+
+
+    assert (df_for_val['A0'] - df['ip_device_os_appnunique']).sum() == 0
+
+    df_for_val = do_var( df0, ['ip', 'app', 'os'], 'hour', 'A0', show_max=False ,agg_type='float64')[sample_indice]; gc.collect()
+    df_for_val.reset_index(drop=True, inplace=True)
+
+
+    print('var gap:',(df_for_val['A0'] - df['ip_app_os_hourvar']).sum())
+    print('var diff:',df['ip_app_os_hourvar'][(df_for_val['A0'] - df['ip_app_os_hourvar']) != 0].head().to_string())
+    print('var diff:',df_for_val['A0'][(df_for_val['A0'] - df['ip_app_os_hourvar']) != 0].head().to_string())
+
+
+    assert (df_for_val['A0'] - df['ip_app_os_hourvar']).sum() == 0
+
+    df_for_val = do_mean( df0, ['ip', 'app', 'channel'], 'hour', 'A0', show_max=False ,agg_type='float64' )[sample_indice]; gc.collect()
+    df_for_val.reset_index(drop=True, inplace=True)
+
+
+    print('var gap:',(df_for_val['A0'] - df['ip_app_channel_hourmean']).sum())
+    print('var diff:',df['ip_app_channel_hourmean'][(df_for_val['A0'] - df['ip_app_channel_hourmean']) != 0].head().to_string())
+    print('var diff:',df_for_val['A0'][(df_for_val['A0'] - df['ip_app_channel_hourmean']) != 0].head().to_string())
+
+    assert (df_for_val['A0'] - df['ip_app_channel_hourmean']).sum() == 0
+
+    df_for_val = do_cumcount( df0, ['ip', 'device', 'os'], 'channel', 'A0', show_max=False )[sample_indice]; gc.collect()
+    df_for_val.reset_index(drop=True, inplace=True)
+
+    assert (df_for_val['A0'] - df['ip_device_os_channelcumcount']).sum() == 0
+
+    #print()
 
 def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
                                          use_base_data_cache=False, gen_fts = False, load_test_supplement = False):
@@ -1240,8 +1284,8 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
 
     neg_sample_indice = None
     if config_scheme_to_use.use_neg_sample:
-        print('neg sample 1/200(1:2 pos:neg) after checksum...')
-        np.random.seed(888)
+        print('neg sample 1/200(1:2 pos:neg) after checksum... with seed {}'.format(config_scheme_to_use.neg_sample_seed))
+        np.random.seed(config_scheme_to_use.neg_sample_seed)
         #neg_sample_indice = random.sample(range(len(combined_df)),len(combined_df) // 200)
         neg_sample_indice = (np.random.randint(0, neg_sample_rate, len(combined_df), np.uint8) == 0) \
                             | (combined_df['is_attributed'] == 1) \
@@ -1272,9 +1316,9 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
                                            sample_indice = neg_sample_indice,
                                            df_before_sample = combined_df_before_sample)
 
-    data_validation = True
-    if data_validation:
-        do_data_validation(combined_df)
+    data_validation = False
+    if data_validation and use_sample:
+        do_data_validation(combined_df, combined_df_before_sample, neg_sample_indice)
     #test
     #print('sample:',combined_df.sample(10,random_state=888).to_string())
     #print('poslen: {}, neglen:{}'.format(len(combined_df.query('is_attributed == 1')),
