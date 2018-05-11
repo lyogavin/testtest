@@ -232,7 +232,7 @@ def get_recursive_alpha_beta(sumi, count, global_alpha = 20.0, global_beta = 100
 def load_ft_cache_file(group_by_cols, op, ft_cache_prefix):
     feature_name_added = '_'.join(group_by_cols) + op
 
-    with timer('preloading ft file for:' + feature_name_added):
+    with timer('preloading ft file for:' + feature_name_added, logging.DEBUG):
 
         ft_cache_file_name = config_scheme_to_use.use_ft_cache_from + "_" + ft_cache_prefix + '_' + feature_name_added
         ft_cache_file_name = ft_cache_file_name + '_sample' if use_sample else ft_cache_file_name
@@ -241,6 +241,7 @@ def load_ft_cache_file(group_by_cols, op, ft_cache_prefix):
                                             #dtype='float32',
                                             #header=0, engine='c',
                                             compression='bz2')
+        logger.debug('tail of preload cache file(%s): %s', ft_cache_path + ft_cache_file_name, ft_cache_data.tail().to_string())
     return ft_cache_data
 
 def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_use.qcut, #0, #0.98,
@@ -297,8 +298,9 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
 
         #logger.debug('before merge', training.columns)
         #training = training.join(ft_cache_data)#training.merge(ft_cache_data, how='left', left_index=True, right_index=True)
-        #logger.debug(training.head())
         training[feature_name_added] = ft_cache_data
+        logger.debug('ft loaded: ' + training[feature_name_added].tail().to_string())
+
         logger.debug('[PID {}] loaded {} from file {}, count:({})'.format(
             os.getpid(), feature_name_added, ft_cache_path + ft_cache_file_name, training[feature_name_added].count()))
         loaded_from_cache=True
@@ -776,9 +778,10 @@ def generate_counting_history_features(data,
 
         to_run_in_pool.append(add_feature)
 
-    logger.debug('TORUN:',to_run_in_pool)
+    logger.debug('TORUN: %s',pformat(to_run_in_pool))
 
-    with timer('adding feature caches first round: {}/{}, {}'.format(i, len(add_features_list), str(add_feature))):
+    with timer('adding feature caches first round: {}/{}, {}'.format(i, len(add_features_list), str(add_feature)),
+               logging.DEBUG):
         p_list = []
         #data.sort_index(inplace=True)
         if use_ft_cache:
@@ -834,6 +837,7 @@ def generate_counting_history_features(data,
 
             for add_feature in pdict:
                 preload_dfs[str(add_feature)] = pdict[str(add_feature)].join()
+                #logger.info('preload_dfs keys: %s', pformat(preload_dfs.keys()))
                 assert (preload_dfs[str(add_feature)] is not None), 'cache len loaded should be the same as original df'
                 assert (len(preload_dfs[str(add_feature)]) == len(df_before_sample)), 'cache len loaded should be the same as original df'
 
@@ -1341,7 +1345,7 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
             neg_sample_indice, combined_df, combined_df_before_sample, train_len, val_len, test_len, checksum = \
                 get_input_data(load_test_supplement)
     else:
-        with timer('load input data from preload var', logging.INFO):
+        with timer('load input data from preload var', logging.DEBUG):
             neg_sample_indice= preloaded_input['neg_sample_indice']
             combined_df= preloaded_input['combined_df']
             combined_df_before_sample= preloaded_input['combined_df_before_sample']
@@ -1659,7 +1663,7 @@ def train_and_predict_ft_search(op = 'smoothcvr'):
 
     if op == 'smoothcvr':
         search_range = range(1, 4)
-    elif op == 'count':
+    elif op in ['count', 'cumcount']:
         search_range = range(1, 7)
     else:
         search_range = range(2, 7)
@@ -1678,7 +1682,7 @@ def train_and_predict_ft_search(op = 'smoothcvr'):
         for cols_coms in itertools.combinations(raw_cols, cols_count):
             temp = []
             temp.extend(cols_coms)
-            if op in ['smoothcvr', 'count']:
+            if op in ['smoothcvr', 'count', 'cumcount']:
                 temp.append('is_attributed')
             # add both mean and var:
             com_fts_list_to_use = config_scheme_to_use.add_features_list.copy()
