@@ -1,10 +1,14 @@
 import copy
-from pprint import pprint
+import pprint
 import json
 from train_utils.constants import *
 from train_utils.model_params import *
 from train_utils.features_def import *
 import collections
+from train_utils.utils import *
+
+logger = getLogger()
+
 
 
 
@@ -1501,16 +1505,15 @@ def use_config_scheme(str):
         ret.val_from=debug_val_from
         ret.val_to=debug_val_to
 
-    print('deduping the add_feature_list:')
+    logger.debug('deduping the add_feature_list:')
     ret.add_features_list = [json.loads(e) for e in collections.OrderedDict(\
         {json.dumps(r):None for r in ret.add_features_list})]
 
-    print('using config var name and test log: ', str)
+    logger.info('using config var name and test log: %s', str)
     ret.config_name = str
     if ret.use_ft_cache_from is None:
         ret.use_ft_cache_from = 'cache' #ret.config_name
-    print('config values: ')
-    pprint(vars(ret))
+    logger.info('config values: %s', pprint.pformat(vars(ret)))
 
 
     return ret

@@ -15,6 +15,7 @@ import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
 import time
 import matplotlib
 from pprint import pprint
+from pprint import pformat
 from pathlib import Path
 from skopt import BayesSearchCV
 from sklearn.model_selection import StratifiedKFold
@@ -22,7 +23,6 @@ import threading
 from sklearn.metrics import roc_auc_score
 import mmh3
 import pickle
-from contextlib import contextmanager
 import os, psutil
 from sklearn.model_selection import train_test_split
 import lightgbm as lgb
@@ -41,41 +41,24 @@ import random
 import itertools
 from train_utils.config_schema import *
 from train_utils.utils import *
+import logging
+
+logger = getLogger()
+
 
 matplotlib.use('Agg')
 
 
 def get_dated_filename(filename):
-    #print('got file name: {}_{}.csv'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S")))
+    #logger.debug('got file name: {}_{}.csv'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S")))
     #return '{}_{}.csv'.format(filename, time.strftime("%d-%m-%Y_%H-%M-%S"))
     if filename.rfind('.') != -1:
         id = filename.rfind('.')
         filename = filename[:id] + '_' + config_scheme_to_use.config_name + filename[id:]
     else:
         filename = filename + '_' + config_scheme_to_use.config_name
-    print('got file name: {}'.format(filename))
+    logger.debug('got file name: {}'.format(filename))
     return filename
-
-
-
-def cpuStats(pp = False):
-    pid = os.getpid()
-    py = psutil.Process(pid)
-    memoryUse = py.memory_info()[0] / 2. ** 30
-    gc.collect()
-    # all_objects = muppy.get_objects()
-    # sum1 = summary.summarize(all_objects)
-    # summary.print_(sum1)(Pdb) import objgraph
-
-    return memoryUse
-
-@contextmanager
-def timer(name):
-    t0 = time.time()
-    print('start ',name)
-    yield
-    print('[{}] done in {} s'.format(name, time.time() - t0))
-    print('mem after {}: {}'.format(name, cpuStats()))
 
 
 
@@ -128,7 +111,7 @@ if config_scheme_to_use.add_hist_statis_fts and not config_scheme_to_use.seperat
 def gen_categorical_features(data):
     most_freq_hours_in_test_data = [4, 5, 9, 10, 13, 14]
     least_freq_hours_in_test_data = [6, 11, 15]
-    print("Creating new time features in train: 'hour' and 'day'...")
+    logger.debug("Creating new time features in train: 'hour' and 'day'...")
     data['hour'] = data["click_time"].dt.hour.astype('uint8')
     data['day'] = data["click_time"].dt.day.astype('uint8')
     if config_scheme_to_use.add_second_ft:
@@ -181,15 +164,15 @@ def gen_iteractive_categorical_features(data):
             data[interactive_features_name] = (data[interactive_features_name].apply(mmh3.hash) % 1000000).astype('uint32')
             if not interactive_features_name in categorical:
                 categorical.append(interactive_features_name)
-                print('added iterative fts:',interactive_features_name )
+                logger.debug('added iterative fts:',interactive_features_name )
     return data
 
 
 def post_statistics_features(data):
-    print('ip_in_test_frequent_channel_is_attributed_count describe:')
+    logger.debug('ip_in_test_frequent_channel_is_attributed_count describe:')
     if config_scheme_to_use.add_in_test_frequent_dimensions is not None and \
         'channel' in config_scheme_to_use.add_in_test_frequent_dimensions:
-        print(data['ip_in_test_frequent_channel_is_attributedcount'].describe())
+        logger.debug(data['ip_in_test_frequent_channel_is_attributedcount'].describe())
     return data
 
 
@@ -206,7 +189,7 @@ def get_recursive_alpha_beta(sumi, count, global_alpha = 20.0, global_beta = 100
         warnings.simplefilter("error", RuntimeWarning)
 
         if global_alpha == 0:
-            print("!!!! zero global alpha")
+            logger.warn("!!!! zero global alpha")
             exit(-1)
 
         def getalpha(sumi, count, alpha0, beta0):
@@ -214,7 +197,7 @@ def get_recursive_alpha_beta(sumi, count, global_alpha = 20.0, global_beta = 100
                 return alpha0 * (sp.psi(sumi + alpha0) - sp.psi(alpha0)) / \
                     (sp.psi(count + alpha0 + beta0) - sp.psi(alpha0 + beta0))
             except:
-                print('warining: {} {} {} {}'.format(sumi, count, alpha0, beta0))
+                logger.debug('warining: {} {} {} {}'.format(sumi, count, alpha0, beta0))
                 return global_alpha
 
         def getbeta(sumi, count, alpha0, beta0):
@@ -222,7 +205,7 @@ def get_recursive_alpha_beta(sumi, count, global_alpha = 20.0, global_beta = 100
                 return beta0 * (sp.psi(count - sumi + beta0) - sp.psi(beta0)) / \
                     (sp.psi(count + alpha0 + beta0) - sp.psi(alpha0 + beta0))
             except:
-                print('warining: {} {} {} {}'.format(sumi, count, alpha0, beta0))
+                logger.debug('warining: {} {} {} {}'.format(sumi, count, alpha0, beta0))
                 return global_beta
 
         alpha = global_alpha
@@ -236,11 +219,11 @@ def get_recursive_alpha_beta(sumi, count, global_alpha = 20.0, global_beta = 100
 
             if alpha == 0:
                 break
-            #print('alpha:', alpha)
+            #logger.debug('alpha:', alpha)
 
 
         if (alpha is None) or (beta is None):
-            print("!!!!!!!!!!!Alpha = 0, NAN in calculating alpha!!!!!!!!!!!!!!!!!: alpha:{}, beta:{}".format(alpha, beta))
+            logger.warn("!!!!!!!!!!!Alpha = 0, NAN in calculating alpha!!!!!!!!!!!!!!!!!: alpha:{}, beta:{}".format(alpha, beta))
             exit(-1)
             return global_alpha, global_beta
         else:
@@ -271,9 +254,9 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
                           sample_indice = None,
                           df_before_sample = None,
                           preload_df = None):
-    #print('\n\n------running add_statistic_feature in pid [{}]-------\nonly_ft_cache:{}\n'.format(
+    #logger.debug('\n\n------running add_statistic_feature in pid [{}]-------\nonly_ft_cache:{}\n'.format(
     #    os.getpid(), only_ft_cache))
-    print('[PID {}] adding: {}, {}'.format(os.getpid(), str(group_by_cols), op))
+    logger.debug('[PID {}] adding: {}, {}'.format(os.getpid(), str(group_by_cols), op))
 
 
     input_len = len(training)
@@ -285,12 +268,12 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
 
     loaded_from_cache = False
 
-    print('checking {}, exist:{}'.format(ft_cache_path + ft_cache_file_name, os.path.exists((ft_cache_path + ft_cache_file_name))))
+    logger.debug('checking {}, exist:{}'.format(ft_cache_path + ft_cache_file_name, os.path.exists((ft_cache_path + ft_cache_file_name))))
     if use_ft_cache and os.path.exists ((ft_cache_path + ft_cache_file_name)):
         if only_ft_cache:
-            print('cache only, cache exists, return.')
+            logger.debug('cache only, cache exists, return.')
             return
-        print('[PID {}] cache file exist, loading: {}'.format(os.getpid(), ft_cache_path + ft_cache_file_name))
+        logger.debug('[PID {}] cache file exist, loading: {}'.format(os.getpid(), ft_cache_path + ft_cache_file_name))
 
         try:
             with timer('read pickle ft cache file:' + ft_cache_path + ft_cache_file_name):
@@ -302,28 +285,28 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
                                         #header=0, engine='c',
                                         compression='bz2')
             if sample_indice is not None:
-                #print(ft_cache_data)
-                #print(sample_indice)
+                #logger.debug(ft_cache_data)
+                #logger.debug(sample_indice)
                 ft_cache_data = ft_cache_data.loc[sample_indice]
-                print('sample indice applied, len after sample of ft cache:',len(ft_cache_data))
-            #print('SAMPLE:{}-{}'.format(feature_name_added, ft_cache_data.sample(5, random_state=88)))
+                logger.debug('sample indice applied, len after sample of ft cache:',len(ft_cache_data))
+            #logger.debug('SAMPLE:{}-{}'.format(feature_name_added, ft_cache_data.sample(5, random_state=88)))
 
         except:
-            print('[PID {}] err loading: {}'.format(os.getpid(), ft_cache_path + ft_cache_file_name))
+            logger.debug('[PID {}] err loading: {}'.format(os.getpid(), ft_cache_path + ft_cache_file_name))
             raise ValueError('[PID {}] err loading: {}'.format(os.getpid(), ft_cache_path + ft_cache_file_name))
 
-        #print('before merge', training.columns)
+        #logger.debug('before merge', training.columns)
         #training = training.join(ft_cache_data)#training.merge(ft_cache_data, how='left', left_index=True, right_index=True)
-        #print(training.head())
+        #logger.debug(training.head())
         training[feature_name_added] = ft_cache_data
-        print('[PID {}] loaded {} from file {}, count:({})'.format(
+        logger.debug('[PID {}] loaded {} from file {}, count:({})'.format(
             os.getpid(), feature_name_added, ft_cache_path + ft_cache_file_name, training[feature_name_added].count()))
         loaded_from_cache=True
         del ft_cache_data
         gc.collect()
         return training, [feature_name_added], None
     if use_ft_cache and only_ft_cache:
-        #print('only gen cache, use df_before_sample..., use ',df_before_sample)
+        #logger.debug('only gen cache, use df_before_sample..., use ',df_before_sample)
         training = df_before_sample
 
 
@@ -331,7 +314,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
     group_by_cols = group_by_cols[0:len(group_by_cols) - 1]
     features_added = []
     discretization_bins_used = {}
-    #print('[PID {}] count with group by: {}'.format(os.getpid(), str(group_by_cols)))
+    #logger.debug('[PID {}] count with group by: {}'.format(os.getpid(), str(group_by_cols)))
 
     if op == 'cumcount':
         gp = training[group_by_cols + [counting_col]].\
@@ -352,14 +335,14 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
                 else:
                     joint_col = joint_col + "_" + training[col].astype(str)
             if debug:
-                print('data:',training[0:10])
-                print('debug str',joint_col[0:10])
-                print('debug str', (training['ip'].astype(str) + "_" + training['app'].astype(str) + "_" + training['device'].astype(str) \
+                logger.debug('data:',training[0:10])
+                logger.debug('debug str',joint_col[0:10])
+                logger.debug('debug str', (training['ip'].astype(str) + "_" + training['app'].astype(str) + "_" + training['device'].astype(str) \
             + "_" + training['os'].astype(str)+ "_" + training['channel'].astype(str))[0:10])
 
             training['category'] = joint_col.apply(mmh3.hash) % D
             if debug:
-                print('debug category',training['category'][0:10])
+                logger.debug('debug category',training['category'][0:10])
 
             del joint_col
             gc.collect()
@@ -387,7 +370,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
             training.drop('category', inplace=True, axis=1)
 
             #if print_verbose:
-            #print('next click added:', training[feature_name_added].describe())
+            #logger.debug('next click added:', training[feature_name_added].describe())
     elif op=='nextclick':
         with timer("Adding next click times"):
             D = 2 ** 26
@@ -403,14 +386,14 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
                 else:
                     joint_col = joint_col + "_" + training[col].astype(str)
             if debug:
-                print('data:',training[0:10])
-                print('debug str',joint_col[0:10])
-                print('debug str', (training['ip'].astype(str) + "_" + training['app'].astype(str) + "_" + training['device'].astype(str) \
+                logger.debug('data:',training[0:10])
+                logger.debug('debug str',joint_col[0:10])
+                logger.debug('debug str', (training['ip'].astype(str) + "_" + training['app'].astype(str) + "_" + training['device'].astype(str) \
             + "_" + training['os'].astype(str)+ "_" + training['channel'].astype(str))[0:10])
 
             training['category'] = joint_col.apply(mmh3.hash) % D
             if debug:
-                print('debug category',training['category'][0:10])
+                logger.debug('debug category',training['category'][0:10])
 
             del joint_col
             gc.collect()
@@ -431,7 +414,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
             training.drop('category', inplace=True, axis=1)
 
             #if print_verbose:
-            #print('next click added:', training[feature_name_added].describe())
+            #logger.debug('next click added:', training[feature_name_added].describe())
     elif op=='smoothcvr':
         with timer('gen cvr grouping cache:'):
             if not hasattr(add_statistic_feature, 'train_cvr_cache'):
@@ -440,14 +423,14 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
             if not hasattr(add_statistic_feature, 'alpha'):
                 add_statistic_feature.alpha, add_statistic_feature.beta = \
                     get_recursive_alpha_beta(training['is_attributed'].sum(), training['is_attributed'].count())
-                print('total alpha/beta: {}/{}'.format(add_statistic_feature.alpha, add_statistic_feature.beta))
-                print('total cvr:{}, alpha/(alpha+beta):{}'.format(training['is_attributed'].mean(),
+                logger.debug('total alpha/beta: {}/{}'.format(add_statistic_feature.alpha, add_statistic_feature.beta))
+                logger.debug('total cvr:{}, alpha/(alpha+beta):{}'.format(training['is_attributed'].mean(),
                     add_statistic_feature.alpha/ (add_statistic_feature.alpha + add_statistic_feature.beta)))
 
             if feature_name_added in add_statistic_feature.train_cvr_cache:
                 temp_sum = add_statistic_feature.train_cvr_cache[feature_name_added]
             else:
-                print("!!!!!!non-train should only use cache, which should be there!!!!!!!")
+                logger.warn("!!!!!!non-train should only use cache, which should be there!!!!!!!")
                 exit(-1)
                 temp_count = training[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[['is_attributed']].count()
                 temp_sum = training[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[['is_attributed']].sum()
@@ -463,8 +446,8 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
         if not hasattr(add_statistic_feature, 'global_cvr'):
             add_statistic_feature.global_cvr = training['is_attributed'].mean()
         training[feature_name_added] = training[feature_name_added].fillna(add_statistic_feature.global_cvr)
-        print('smooth cvr: {} gened'.format(feature_name_added))
-        #print(training[feature_name_added].describe())
+        logger.debug('smooth cvr: {} gened'.format(feature_name_added))
+        #logger.debug(training[feature_name_added].describe())
     else:
         tempstr = 'training[group_by_cols + [counting_col]].groupby(by=group_by_cols)[[counting_col]]'
         if len(op) > 2 and op[0:2] == 'qt':
@@ -476,11 +459,11 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
         n_chans = temp1.reset_index().rename(columns={counting_col: feature_name_added})
 
         if feature_name_added == 'ip_app_os_hourvar':
-            print('dump inter var {}: {}'.format(feature_name_added,n_chans.query('ip_app_os_hourvar != 0').tail(500).to_string()))
+            logger.debug('dump inter var {}: {}'.format(feature_name_added,n_chans.query('ip_app_os_hourvar != 0').tail(500).to_string()))
         #training.sort_index(inplace=True)
 
-        #print('nan count: ', n_chans[n_chans[feature_name_added].isnull()])
-        print('[PID {}] nan count: {}'.format(os.getpid(), n_chans[feature_name_added].isnull().sum()))
+        #logger.debug('nan count: ', n_chans[n_chans[feature_name_added].isnull()])
+        logger.debug('[PID {}] nan count: {}'.format(os.getpid(), n_chans[feature_name_added].isnull().sum()))
         training = training.merge(n_chans, on=group_by_cols,# if len(group_by_cols) >1 else group_by_cols[0],
                                   how='left', copy=False)
         del n_chans
@@ -527,13 +510,13 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
 
     if log_discretization:
         if training[feature_name_added].min() < 0:
-            print('!!!! invalid time in {}, fix it.....'.format(feature_name_added))
+            logger.debug('!!!! invalid time in {}, fix it.....'.format(feature_name_added))
             training[feature_name_added] = training[feature_name_added].apply(lambda x: np.max([0, x]))
         training[feature_name_added] = np.log2(1 + training[feature_name_added].values).astype(int)
-        print('log dicretizing feature:', feature_name_added)
+        logger.debug('log dicretizing feature:', feature_name_added)
     elif discretization != 0:
         if print_verbose:
-            print('before qcut', feature_name_added, training[feature_name_added].describe())
+            logger.debug('before qcut', feature_name_added, training[feature_name_added].describe())
         if discretization_bins is None:
             ret, discretization_bins_used[feature_name_added] = pd.qcut(training[feature_name_added], discretization,
                                                                         labels=False, duplicates='drop', retbins=True)
@@ -543,39 +526,39 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
                                                   discretization_bins[feature_name_added],
                                                   labels=False).fillna(0).astype('uint16')
         if print_verbose:
-            print('after qcut', feature_name_added, training[feature_name_added].describe())
+            logger.debug('after qcut', feature_name_added, training[feature_name_added].describe())
 
     features_added.append(feature_name_added)
     for ft in features_added:
         if astype is not None:
             training[ft] = training[ft].astype(astype)
 
-    print('[PID {}] added features:'.format(os.getpid(), features_added))
+    logger.debug('[PID {}] added features:'.format(os.getpid(), features_added))
     if print_verbose:
-        print(training[feature_name_added].describe())
-    #print('nan count: ', training[training[feature_name_added].isnull()])
+        logger.debug(training[feature_name_added].describe())
+    #logger.debug('nan count: ', training[training[feature_name_added].isnull()])
 
-    print('[PID {}] columns after added: {}'.format(os.getpid(), training.columns.values))
+    logger.debug('[PID {}] columns after added: {}'.format(os.getpid(), training.columns.values))
 
     #for test:
     if op == 'smoothcvr':
-        print('SAMPLE:{}-{}'.format(feature_name_added, training[feature_name_added].sample(5, random_state=88)))
+        logger.debug('SAMPLE:{}-{}'.format(feature_name_added, training[feature_name_added].sample(5, random_state=88)))
 
     if use_ft_cache and not loaded_from_cache:
 
         try:
             os.mkdir(ft_cache_path)
-            print('created dir', ft_cache_path)
+            logger.debug('created dir', ft_cache_path)
         except:
-            #print(ft_cache_path + ' already exist.')
+            #logger.debug(ft_cache_path + ' already exist.')
             None
 
 
         pd.DataFrame(training[feature_name_added]).to_pickle(
             ft_cache_path + ft_cache_file_name,compression='bz2')
-        #print('[PID {}] saved {} to file {} sum:({})'.format(
+        #logger.debug('[PID {}] saved {} to file {} sum:({})'.format(
         #    os.getpid(), feature_name_added, ft_cache_path + ft_cache_file_name, training[feature_name_added].sample(6, random_state=98)))
-        print('[PID {}] saved {} to file {} count:({})'.format(
+        logger.debug('[PID {}] saved {} to file {} count:({})'.format(
             os.getpid(), feature_name_added, ft_cache_path + ft_cache_file_name, training[feature_name_added].count()))
 
         if only_ft_cache:
@@ -591,7 +574,7 @@ def clear_smoothcvr_cache():
         del add_statistic_feature.global_cvr
         gc.collect()
 
-def gen_smoothcvr_cache(frm, to):
+def gen_smoothcvr_cache(add_features_list, frm, to):
     with timer('loading train df:'):
         train = pd.read_csv(path_train_sample if use_sample else path_train,
                             dtype=dtypes,
@@ -605,13 +588,15 @@ def gen_smoothcvr_cache(frm, to):
         if config_scheme_to_use.use_scvr_cache_file:
             checksum = get_checksum_from_df(train)
 
-    print('mem after loaded train data:', cpuStats())
+    logger.debug('mem after loaded train data:', cpuStats())
 
     with timer('gen categorical features for train'):
         train = gen_categorical_features(train)
 
 
-    for add_feature in config_scheme_to_use.add_features_list:
+    for add_feature in add_features_list:
+        if add_feature['op'] != 'smoothcvr':
+            continue
 
         feature_name_added = '_'.join(add_feature['group']) + add_feature['op']
         if not hasattr(add_statistic_feature, 'train_cvr_cache'):
@@ -621,25 +606,26 @@ def gen_smoothcvr_cache(frm, to):
             ft_cache_file_name = "scvr_" + str(checksum) + '_' + feature_name_added
             ft_cache_file_name = ft_cache_file_name + '_sample' if use_sample else ft_cache_file_name
             ft_cache_file_name = ft_cache_file_name + '.pickle'
+            logger.debug('checking %s', ft_cache_path + ft_cache_file_name)
             if os.path.exists((ft_cache_path + ft_cache_file_name)):
                 with timer('loading scvr cache file '+ ft_cache_path + ft_cache_file_name):
                     add_statistic_feature.train_cvr_cache[feature_name_added] = \
                         pd.read_pickle(ft_cache_path + ft_cache_file_name)
                 continue
+            else:
+                logger.info('no cache file found, loading...')
 
         counting_col = add_feature['group'][len(add_feature['group']) - 1]
         group_by_cols = add_feature['group'][0:len(add_feature['group']) - 1]
 
-        if add_feature['op'] != 'smoothcvr':
-            continue
-        print('processing:',add_feature)
+        logger.debug('processing:',add_feature)
         with timer('gen cvr grouping cache:'):
 
             if not hasattr(add_statistic_feature, 'alpha'):
                 add_statistic_feature.alpha, add_statistic_feature.beta = \
                     get_recursive_alpha_beta(train['is_attributed'].sum(), train['is_attributed'].count())
-                print('total alpha/beta: {}/{}'.format(add_statistic_feature.alpha, add_statistic_feature.beta))
-                print('total cvr:{}, alpha/(alpha+beta):{}'.format(train['is_attributed'].mean(),
+                logger.debug('total alpha/beta: {}/{}'.format(add_statistic_feature.alpha, add_statistic_feature.beta))
+                logger.debug('total cvr:{}, alpha/(alpha+beta):{}'.format(train['is_attributed'].mean(),
                                                                    add_statistic_feature.alpha / (
                                                                    add_statistic_feature.alpha + add_statistic_feature.beta)))
 
@@ -678,18 +664,18 @@ def gen_smoothcvr_cache(frm, to):
                     del add_statistic_feature.hourly_alpha_beta['is_attributed']
                     del add_statistic_feature.hourly_alpha_beta['count']
                     add_statistic_feature.hourly_alpha_beta = add_statistic_feature.hourly_alpha_beta.reset_index()
-                    print('debug: hourly alapha beta:')
-                    print(add_statistic_feature.hourly_alpha_beta.to_string())
-                    print(add_statistic_feature.hourly_alpha_beta.\
+                    logger.debug('debug: hourly alapha beta:')
+                    logger.debug(add_statistic_feature.hourly_alpha_beta.to_string())
+                    logger.debug(add_statistic_feature.hourly_alpha_beta.\
                           apply(lambda x: x['alpha']/(x['alpha']+x['beta']), axis=1).to_string())
-                    print('hourly mean:')
-                    print(train[['hour', 'is_attributed']].\
+                    logger.debug('hourly mean:')
+                    logger.debug(train[['hour', 'is_attributed']].\
                         groupby(by=['hour'])[['is_attributed']].mean().to_string())
-                    print('hourly sum:')
-                    print(train[['hour', 'is_attributed']].\
+                    logger.debug('hourly sum:')
+                    logger.debug(train[['hour', 'is_attributed']].\
                         groupby(by=['hour'])[['is_attributed']].sum().to_string())
-                    print('hourly count:')
-                    print(train[['hour', 'is_attributed']].\
+                    logger.debug('hourly count:')
+                    logger.debug(train[['hour', 'is_attributed']].\
                         groupby(by=['hour'])[['is_attributed']].count().to_string())
 
                 temp_count = train[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[
@@ -711,11 +697,12 @@ def gen_smoothcvr_cache(frm, to):
                 add_statistic_feature.train_cvr_cache[feature_name_added] = temp_count.copy(True)
                 del temp_count
                 gc.collect()
+        logger.info('scvr cache %s loaded.', feature_name_added)
         if config_scheme_to_use.use_scvr_cache_file:
             with timer('saving scvr cache file:' + ft_cache_path + ft_cache_file_name):
                 add_statistic_feature.train_cvr_cache[feature_name_added].to_pickle(ft_cache_path + ft_cache_file_name)
 
-    print('setting global cvr for fillna...')
+    logger.debug('setting global cvr for fillna...')
     if not hasattr(add_statistic_feature, 'global_cvr'):
         add_statistic_feature.global_cvr = train['is_attributed'].mean()
 
@@ -735,21 +722,21 @@ def generate_counting_history_features(data,
                                        checksum = 'checksum',
                                        sample_indice = None,
                                        df_before_sample = None):
-    #print('tail all before:',data.tail())
-    #print('DEBUG:', data.query('ip == 123517 & day==7 &channel ==328'))
-    #print('DEBUG:', data.loc[6,:])
+    #logger.debug('tail all before:',data.tail())
+    #logger.debug('DEBUG:', data.query('ip == 123517 & day==7 &channel ==328'))
+    #logger.debug('DEBUG:', data.loc[6,:])
 
     if val_start is not None:
-        print('clear val(data[{}:{}]) is_attributed before gen sta fts and restore after'.format(val_start, val_end))
-        print('sum of val target col before clear:',
+        logger.debug('clear val(data[{}:{}]) is_attributed before gen sta fts and restore after'.format(val_start, val_end))
+        logger.debug('sum of val target col before clear:',
               data.iloc[val_start:val_end, data.columns.values.tolist().index('is_attributed')].sum())
 
-        #print(data.iloc[val_start:val_end,data.columns.values.tolist().index('is_attributed')].head())
+        #logger.debug(data.iloc[val_start:val_end,data.columns.values.tolist().index('is_attributed')].head())
         data['is_attributed_backup'] = data['is_attributed']
 
         data.iloc[val_start:val_end, data.columns.values.tolist().index('is_attributed')] = 0
-        print('sum of val target col:', data.iloc[val_start:val_end, data.columns.values.tolist().index('is_attributed')].sum())
-    print('discretization bins to use:', discretization_bins)
+        logger.debug('sum of val target col:', data.iloc[val_start:val_end, data.columns.values.tolist().index('is_attributed')].sum())
+    logger.debug('discretization bins to use:', discretization_bins)
 
     new_features = []
 
@@ -763,7 +750,7 @@ def generate_counting_history_features(data,
             ad_val_bst = lgb.Booster(model_file='ad_val_model.txt')
             ad_val_predictors = ['app', 'device', 'os', 'channel', 'ip', 'hour']
             data['ad_val'] = ad_val_bst.predict(data[ad_val_predictors])
-            #print('add ad_val fts:', data['ad_val'].describe())
+            #logger.debug('add ad_val fts:', data['ad_val'].describe())
             new_features.append('ad_val')
 
             del ad_val_bst
@@ -776,7 +763,9 @@ def generate_counting_history_features(data,
         feature_name_added = '_'.join(add_feature['group']) + add_feature['op']
 
         if feature_name_added in data.columns:
-            print('{} already in data, skip...'.format(add_feature))
+            logger.debug('{} already in data, skip...'.format(add_feature))
+            new_features = new_features + [feature_name_added]
+
             continue
 
         i += 1
@@ -787,7 +776,7 @@ def generate_counting_history_features(data,
 
         to_run_in_pool.append(add_feature)
 
-    print('TORUN:',to_run_in_pool)
+    logger.debug('TORUN:',to_run_in_pool)
 
     with timer('adding feature caches first round: {}/{}, {}'.format(i, len(add_features_list), str(add_feature))):
         p_list = []
@@ -824,7 +813,7 @@ def generate_counting_history_features(data,
                 p.join()
         #data.sort_index(inplace=True)
 
-        print('second round load cache files:')
+        logger.debug('second round load cache files:')
         multithread_load_ft = True
         preload_dfs = {}
         pdict = {}
@@ -868,7 +857,7 @@ def generate_counting_history_features(data,
             if str(add_feature) in preload_dfs:
                 del preload_dfs[str(add_feature)]
             gc.collect()
-            #print('returned from pool: data-{} features_added-{} discretization_bins_used_current_feature-{}'.format(
+            #logger.debug('returned from pool: data-{} features_added-{} discretization_bins_used_current_feature-{}'.format(
             #    res[0], features_added, discretization_bins_used
             #))
 
@@ -881,30 +870,30 @@ def generate_counting_history_features(data,
             gc.collect()
 
 
-    print('\n\n\n-------------\n{} DEBUG CVR:\n-------------\n\n\n'.format(ft_cache_prefix))
+    logger.debug('\n\n\n-------------\n{} DEBUG CVR:\n-------------\n\n\n'.format(ft_cache_prefix))
     if 'hour_is_attributedsmoothcvr' in data.columns and \
             'hour_is_attributedmean' in data.columns and \
             'hour_is_attributedcount' in data.columns:
-        print('gened hour_is_attributedsmoothcvr:')
-        print(data[['hour_is_attributedsmoothcvr', 'hour_is_attributedmean',
+        logger.debug('gened hour_is_attributedsmoothcvr:')
+        logger.debug(data[['hour_is_attributedsmoothcvr', 'hour_is_attributedmean',
                     'hour_is_attributedcount','hour']].sample(20).to_string())
 
 
     if 'ip_app_device_os_is_attributedsmoothcvr' in data.columns and \
         'ip_app_device_os_is_attributedmean' in data.columns and \
         'ip_app_device_os_is_attributedcount' in  data.columns:
-        print('gened ip_app_device_os_is_attributedsmoothcvr:')
-        print(data[['ip_app_device_os_is_attributedsmoothcvr',
+        logger.debug('gened ip_app_device_os_is_attributedsmoothcvr:')
+        logger.debug(data[['ip_app_device_os_is_attributedsmoothcvr',
               'ip_app_device_os_is_attributedmean','ip_app_device_os_is_attributedcount']].sample(20).to_string())
 
 
-    print('\n\n\n-------------\nDEBUG CVR DONE\n-------------\n\n\n')
+    logger.debug('\n\n\n-------------\nDEBUG CVR DONE\n-------------\n\n\n')
 
 
     if discretization_bins is None:
-        print('discretization bins used:', discretization_bins_used)
+        logger.debug('discretization bins used:', discretization_bins_used)
     else:
-        print('discretizatoin bins passed in params, so no discretization_bins_used returned')
+        logger.debug('discretizatoin bins passed in params, so no discretization_bins_used returned')
 
     data = post_statistics_features(data)
 
@@ -926,17 +915,17 @@ def generate_counting_history_features(data,
             data['next_click'] = list(reversed(next_clicks))
 
             if discretization != 0:
-                print('min of next click: {}, max: {}'.format(data['next_click'].min(), data['next_click'].max()))
+                logger.debug('min of next click: {}, max: {}'.format(data['next_click'].min(), data['next_click'].max()))
                 if data['next_click'].min() < 0:
-                    print('!!!! invalid time in next click, fix it.....')
+                    logger.debug('!!!! invalid time in next click, fix it.....')
                     data['next_click'] = data['next_click'].apply(lambda x: np.max([0, x]))
                 data['next_click'] = np.log2(1 + data['next_click'].values).astype(int)
             data.drop('epochtime', inplace=True, axis=1)
             data.drop('category', inplace=True, axis=1)
 
-            #print('next click ', data['next_click'])
+            #logger.debug('next click ', data['next_click'])
             if print_verbose:
-                print(data['next_click'].describe())
+                logger.debug(data['next_click'].describe())
 
             new_features = new_features + ['next_click']
 
@@ -960,13 +949,13 @@ def generate_counting_history_features(data,
         gc.collect()
         new_features = new_features + ['click_count_later']
 
-    print('data dtypes:',data.dtypes)
+    logger.debug('data dtypes:',data.dtypes)
 
     if val_start is not None:
-        print('restore val is_attributed')
+        logger.debug('restore val is_attributed')
         data['is_attributed']= data['is_attributed_backup']
         del data['is_attributed_backup']
-        print('sum of val target col:',
+        logger.debug('sum of val target col:',
               data.iloc[val_start:val_end, data.columns.values.tolist().index('is_attributed')].sum())
 
 
@@ -986,7 +975,7 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
 
     gc.collect()
 
-    print("Preparing the datasets for training...")
+    logger.debug("Preparing the datasets for training...")
 
     predictors_to_train = [predictors1]
 
@@ -994,9 +983,9 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
         if dump_train_data:
             train[predictors].to_csv("train_ft_dump.csv.bz2", compression='bz2',index=False)
             val[predictors].to_csv("val_ft_dump.csv.bz2", compression='bz2',index=False)
-            print('dumping done')
+            logger.info('dumping done')
             exit(0)
-        print('training with :', predictors)
+        logger.debug('training with :', predictors)
         # based on pub discussion, convert to float32 reduce half of mem spike of lgbm
         # https://www.kaggle.com/c/talkingdata-adtracking-fraud-detection/discussion/55325
 
@@ -1019,8 +1008,8 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                     train_weights = (train_weights / np.min(train_weights) - 1.0 ) * train['is_attributed'] + 1.0
                     val_weights = (val_weights / np.min(val_weights) - 1.0) * val['is_attributed'] + 1.0
 
-                    print('train weights:', pd.DataFrame({'weights':train_weights}).describe())
-                    print('val weights:', pd.DataFrame({'weights:':val_weights}).describe())
+                    logger.debug('train weights:', pd.DataFrame({'weights':train_weights}).describe())
+                    logger.debug('val weights:', pd.DataFrame({'weights:':val_weights}).describe())
 
 
 
@@ -1036,7 +1025,7 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                              )
 
         evals_results = {}
-        print("Training the model...")
+        logger.debug("Training the model...")
 
         lgb_model = lgb.train(config_scheme_to_use.lgbm_params,
                               dtrain,
@@ -1056,20 +1045,26 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
         # plt.savefig('feature_import.png')
 
         # Feature names:
-        print('Feature names:', lgb_model.feature_name())
+        logger.debug('Feature names:', lgb_model.feature_name())
         # Feature importances:
-        print('Feature importances:', list(lgb_model.feature_importance()))
-        try:
-            print('split importance:')
-            pprint(sorted(zip(lgb_model.feature_name(),list(lgb_model.feature_importance())),
-                          key=lambda x: x[1]))
+        logger.debug('Feature importances:', list(lgb_model.feature_importance()))
 
-            print('gain importance:')
-            pprint(sorted(zip(lgb_model.feature_name(),list(lgb_model.feature_importance(importance_type='gain'))),
-                          key=lambda x: x[1]))
+        logger.info('trainning done, best iter num: %d, best train auc: %f, val auc: %f',
+                    lgb_model.best_iteration,
+                    lgb_model.best_score['train']['auc'],
+                    lgb_model.best_score['valid']['auc']
+                    )
+        try:
+            logger.info('split importance:')
+            logger.info(pformat(sorted(zip(lgb_model.feature_name(),list(lgb_model.feature_importance())),
+                          key=lambda x: x[1])))
+
+            logger.info('gain importance:')
+            logger.info(pformat(sorted(zip(lgb_model.feature_name(),list(lgb_model.feature_importance(importance_type='gain'))),
+                          key=lambda x: x[1])))
 
         except:
-            print('error sorting and zipping fts')
+            logger.debug('error sorting and zipping fts')
 
         importance_dict = dict(zip(lgb_model.feature_name(), list(lgb_model.feature_importance())))
 
@@ -1077,17 +1072,17 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
 
         persist_model = True
         if persist_model:
-            print('dumping model')
+            logger.debug('dumping model')
             lgb_model.save_model(get_dated_filename('model.txt'))
-            print('dumping predictors of this model')
+            logger.debug('dumping predictors of this model')
             pickle.dump(predictors1, open(get_dated_filename('predictors.pickle'), 'wb'))
 
         val_prediction = None
         if do_val_prediction:
-            print("Writing the val_prediction into a csv file...")
+            logger.debug("Writing the val_prediction into a csv file...")
             # if persist_intermediate:
 
-            print('gen val prediction')
+            logger.debug('gen val prediction')
             val_prediction = lgb_model.predict(val[predictors1], num_iteration=lgb_model.best_iteration)
             # pd.Series(val_prediction).to_csv(get_dated_filename("val_prediction.csv"), index=False)
             val_auc = roc_auc_score(val['is_attributed'], val_prediction)
@@ -1131,14 +1126,14 @@ def get_train_df():
                                 if not use_sample and config_scheme_to_use.train_from is not None else None,
                             parse_dates=["click_time"])
 
-    print('mem after loaded train data:', cpuStats())
+    logger.debug('mem after loaded train data:', cpuStats())
 
     if config_scheme_to_use.train_filter and \
                     config_scheme_to_use.train_filter['filter_type'] == 'sample':
         sample_count = config_scheme_to_use.train_filter['sample_count']
         train = train.set_index('ip').loc[lambda x: (x.index + 401) % sample_count == 0].reset_index()
         gc.collect()
-        print('mem after filtered train data:', cpuStats())
+        logger.debug('mem after filtered train data:', cpuStats())
     elif config_scheme_to_use.train_filter and \
                     config_scheme_to_use.train_filter['filter_type'] == 'random_sample':
         train = train.sample(frac = config_scheme_to_use.train_filter['frac'])
@@ -1157,14 +1152,14 @@ def get_val_df():
                             if not use_sample and config_scheme_to_use.val_from is not None else None,
                         parse_dates=["click_time"])
 
-    print('mem after loaded val data:', cpuStats())
+    logger.debug('mem after loaded val data:', cpuStats())
 
     if config_scheme_to_use.val_filter and \
         config_scheme_to_use.val_filter['filter_type'] == 'sample':
         sample_count = config_scheme_to_use.val_filter['sample_count']
         val = val.set_index('ip').loc[lambda x: (x.index + 401) % sample_count == 0].reset_index()
         gc.collect()
-        print('mem after filtered val data:', cpuStats())
+        logger.debug('mem after filtered val data:', cpuStats())
     elif config_scheme_to_use.val_filter and \
                     config_scheme_to_use.val_filter['filter_type'] == 'random_sample':
         val = val.sample(frac = config_scheme_to_use.val_filter['frac'])
@@ -1190,7 +1185,7 @@ def get_stacking_val_df():
                             if not use_sample and config_scheme_to_use.lgbm_stacking_val_from is not None else None,
                         parse_dates=["click_time"])
 
-    print('mem after loaded stacking val data:', cpuStats())
+    logger.debug('mem after loaded stacking val data:', cpuStats())
 
     gc.collect()
     return val
@@ -1209,11 +1204,11 @@ def get_test_supplement_df():
 def get_combined_df(gen_test_data, load_test_supplement=False):
 
     test_len = 0
-    print('loading train data...')
+    logger.debug('loading train data...')
     train = get_train_df()
     train_len = len(train)
 
-    print('loading val data')
+    logger.debug('loading val data')
     val = get_val_df()
     val_len = len(val)
 
@@ -1221,7 +1216,7 @@ def get_combined_df(gen_test_data, load_test_supplement=False):
 
     del val
     gc.collect()
-    print('mem after appended val data:', cpuStats())
+    logger.debug('mem after appended val data:', cpuStats())
 
     if gen_test_data:
         test = get_test_df()
@@ -1261,9 +1256,9 @@ def do_data_validation(df, df0, sample_indice):
     df_for_val = do_countuniq( df0, ['ip', 'device', 'os'], 'app', 'A0', show_max=False )[sample_indice]; gc.collect()
     df_for_val.reset_index(drop=True, inplace=True)
 
-    print('var gap:',(df_for_val['A0'] - df['ip_device_os_appnunique']).sum())
-    print('var diff:',df['ip_device_os_appnunique'][(df_for_val['A0'] - df['ip_device_os_appnunique']) != 0].head().to_string())
-    print('var diff:',df_for_val['A0'][(df_for_val['A0'] - df['ip_device_os_appnunique']) != 0].head().to_string())
+    logger.debug('var gap:',(df_for_val['A0'] - df['ip_device_os_appnunique']).sum())
+    logger.debug('var diff:',df['ip_device_os_appnunique'][(df_for_val['A0'] - df['ip_device_os_appnunique']) != 0].head().to_string())
+    logger.debug('var diff:',df_for_val['A0'][(df_for_val['A0'] - df['ip_device_os_appnunique']) != 0].head().to_string())
 
 
     assert (df_for_val['A0'] - df['ip_device_os_appnunique']).sum() == 0
@@ -1272,9 +1267,9 @@ def do_data_validation(df, df0, sample_indice):
     df_for_val.reset_index(drop=True, inplace=True)
 
 
-    print('var gap:',(df_for_val['A0'] - df['ip_app_os_hourvar']).sum())
-    print('var diff:',df['ip_app_os_hourvar'][(df_for_val['A0'] - df['ip_app_os_hourvar']) != 0].head().to_string())
-    print('var diff:',df_for_val['A0'][(df_for_val['A0'] - df['ip_app_os_hourvar']) != 0].head().to_string())
+    logger.debug('var gap:',(df_for_val['A0'] - df['ip_app_os_hourvar']).sum())
+    logger.debug('var diff:',df['ip_app_os_hourvar'][(df_for_val['A0'] - df['ip_app_os_hourvar']) != 0].head().to_string())
+    logger.debug('var diff:',df_for_val['A0'][(df_for_val['A0'] - df['ip_app_os_hourvar']) != 0].head().to_string())
 
 
     assert (df_for_val['A0'] - df['ip_app_os_hourvar']).sum() == 0
@@ -1283,9 +1278,9 @@ def do_data_validation(df, df0, sample_indice):
     df_for_val.reset_index(drop=True, inplace=True)
 
 
-    print('var gap:',(df_for_val['A0'] - df['ip_app_channel_hourmean']).sum())
-    print('var diff:',df['ip_app_channel_hourmean'][(df_for_val['A0'] - df['ip_app_channel_hourmean']) != 0].head().to_string())
-    print('var diff:',df_for_val['A0'][(df_for_val['A0'] - df['ip_app_channel_hourmean']) != 0].head().to_string())
+    logger.debug('var gap:',(df_for_val['A0'] - df['ip_app_channel_hourmean']).sum())
+    logger.debug('var diff:',df['ip_app_channel_hourmean'][(df_for_val['A0'] - df['ip_app_channel_hourmean']) != 0].head().to_string())
+    logger.debug('var diff:',df_for_val['A0'][(df_for_val['A0'] - df['ip_app_channel_hourmean']) != 0].head().to_string())
 
     assert (df_for_val['A0'] - df['ip_app_channel_hourmean']).sum() == 0
 
@@ -1294,26 +1289,26 @@ def do_data_validation(df, df0, sample_indice):
 
     assert (df_for_val['A0'] - df['ip_device_os_channelcumcount']).sum() == 0
 
-    #print()
+    #logger.debug()
 def neg_sample_df(combined_df, train_len, val_len, test_len):
     neg_sample_indice = None
     if config_scheme_to_use.use_neg_sample:
-        print('neg sample 1/200(1:2 pos:neg) after checksum... with seed {}'.format(config_scheme_to_use.neg_sample_seed))
+        logger.debug('neg sample 1/200(1:2 pos:neg) after checksum... with seed {}'.format(config_scheme_to_use.neg_sample_seed))
         np.random.seed(config_scheme_to_use.neg_sample_seed)
         #neg_sample_indice = random.sample(range(len(combined_df)),len(combined_df) // 200)
         neg_sample_indice = (np.random.randint(0, neg_sample_rate, len(combined_df), np.uint8) == 0) \
                             | (combined_df['is_attributed'] == 1) \
                             | np.concatenate((np.zeros(train_len, np.bool_) ,np.ones(val_len + test_len,np.bool_)))
-        #print('neg sample indice: len:{}, tail:{}'.format(len(neg_sample_indice), neg_sample_indice[-10:]))
-        #print('neg sample indice: len:{}, head:{}'.format(len(neg_sample_indice), neg_sample_indice[:10]))
+        #logger.debug('neg sample indice: len:{}, tail:{}'.format(len(neg_sample_indice), neg_sample_indice[-10:]))
+        #logger.debug('neg sample indice: len:{}, head:{}'.format(len(neg_sample_indice), neg_sample_indice[:10]))
 
         combined_df_before_sample = combined_df.copy(True)
-        #print('len before sampel:',len(combined_df_before_sample))
-        #print('len before sampel:',len(combined_df))
+        #logger.debug('len before sampel:',len(combined_df_before_sample))
+        #logger.debug('len before sampel:',len(combined_df))
 
         combined_df = combined_df[neg_sample_indice]
-        #print('len after sampel:',len(combined_df_before_sample))
-        #print('len after sampel:',len(combined_df))
+        #logger.debug('len after sampel:',len(combined_df_before_sample))
+        #logger.debug('len after sampel:',len(combined_df))
         train_len = len(combined_df) - test_len - val_len
     return neg_sample_indice, combined_df, combined_df_before_sample, train_len, val_len, test_len
 
@@ -1321,12 +1316,12 @@ def get_input_data(load_test_supplement):
     with timer('load combined data df'):
         combined_df, train_len, val_len, test_len = get_combined_df(config_scheme_to_use.new_predict,
                                                                     load_test_supplement = load_test_supplement)
-        print('total len: {}, train len: {}, val len: {}.'.format(len(combined_df), train_len, val_len))
+        logger.debug('total len: {}, train len: {}, val len: {}.'.format(len(combined_df), train_len, val_len))
         combined_df.reset_index(drop=True,inplace=True)
 
     with timer('checksum data'):
         checksum = get_checksum_from_df(combined_df)
-        print('md5 checksum of whole data set:', checksum)
+        logger.debug('md5 checksum of whole data set:', checksum)
 
 
 
@@ -1342,19 +1337,21 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
                       return_dict = None, preloaded_input = None, preload = False):
 
     if preloaded_input is None:
-        neg_sample_indice, combined_df, combined_df_before_sample, train_len, val_len, test_len, checksum = \
-            get_input_data(load_test_supplement)
+        with timer('load input data from files', logging.INFO):
+            neg_sample_indice, combined_df, combined_df_before_sample, train_len, val_len, test_len, checksum = \
+                get_input_data(load_test_supplement)
     else:
-        neg_sample_indice= preloaded_input['neg_sample_indice']
-        combined_df= preloaded_input['combined_df']
-        combined_df_before_sample= preloaded_input['combined_df_before_sample']
-        train_len= preloaded_input['train_len']
-        val_len= preloaded_input['val_len']
-        test_len= preloaded_input['test_len']
-        checksum= preloaded_input['checksum']
+        with timer('load input data from preload var', logging.INFO):
+            neg_sample_indice= preloaded_input['neg_sample_indice']
+            combined_df= preloaded_input['combined_df']
+            combined_df_before_sample= preloaded_input['combined_df_before_sample']
+            train_len= preloaded_input['train_len']
+            val_len= preloaded_input['val_len']
+            test_len= preloaded_input['test_len']
+            checksum= preloaded_input['checksum']
 
 
-    with timer('gen statistical hist features'):
+    with timer('gen statistical hist features for non-scvr fts', logging.INFO):
         combined_df, new_features, discretization_bins_used = \
         generate_counting_history_features(combined_df,
                                            discretization=config_scheme_to_use.discretization,
@@ -1372,10 +1369,11 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
     if data_validation and use_sample:
         do_data_validation(combined_df, combined_df_before_sample, neg_sample_indice)
     #test
-    #print('sample:',combined_df.sample(10,random_state=888).to_string())
-    #print('poslen: {}, neglen:{}'.format(len(combined_df.query('is_attributed == 1')),
+    #logger.debug('sample:',combined_df.sample(10,random_state=888).to_string())
+    #logger.debug('poslen: {}, neglen:{}'.format(len(combined_df.query('is_attributed == 1')),
     #                                     len(combined_df.query('is_attributed == 0'))))
     if preload:
+        logger.info('return preload var')
         return {
                     "neg_sample_indice": neg_sample_indice,
                     "combined_df": combined_df,
@@ -1391,26 +1389,28 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
 
 
     if config_scheme_to_use.train_smoothcvr_cache_from is not None:
-        gen_smoothcvr_cache(config_scheme_to_use.train_smoothcvr_cache_from, config_scheme_to_use.train_smoothcvr_cache_to)
+        with timer('gen scvr fts for train', logging.INFO):
+            gen_smoothcvr_cache(com_fts_list, config_scheme_to_use.train_smoothcvr_cache_from, config_scheme_to_use.train_smoothcvr_cache_to)
 
-        train, new_features_cvr, _ = \
-            generate_counting_history_features(train,
-                                           discretization=config_scheme_to_use.discretization,
-                                           use_ft_cache=False, #use_ft_cache,
-                                           ft_cache_prefix='joint',
-                                           add_features_list=com_fts_list,
-                                           only_scvr_ft=1)
-        new_features += new_features_cvr
+            train, new_features_cvr, _ = \
+                generate_counting_history_features(train,
+                                               discretization=config_scheme_to_use.discretization,
+                                               use_ft_cache=False, #use_ft_cache,
+                                               ft_cache_prefix='joint',
+                                               add_features_list=com_fts_list,
+                                               only_scvr_ft=1)
+            new_features += new_features_cvr
 
-        clear_smoothcvr_cache()
-        gen_smoothcvr_cache(config_scheme_to_use.val_smoothcvr_cache_from, config_scheme_to_use.val_smoothcvr_cache_to)
-        val, _, _ = \
-            generate_counting_history_features(val,
-                                           discretization=config_scheme_to_use.discretization,
-                                           use_ft_cache=False, #use_ft_cache,
-                                           ft_cache_prefix='joint',
-                                           add_features_list=com_fts_list,
-                                           only_scvr_ft=1)
+        with timer('gen scvr fts for val', logging.INFO):
+            clear_smoothcvr_cache()
+            gen_smoothcvr_cache(com_fts_list, config_scheme_to_use.val_smoothcvr_cache_from, config_scheme_to_use.val_smoothcvr_cache_to)
+            val, _, _ = \
+                generate_counting_history_features(val,
+                                               discretization=config_scheme_to_use.discretization,
+                                               use_ft_cache=False, #use_ft_cache,
+                                               ft_cache_prefix='joint',
+                                               add_features_list=com_fts_list,
+                                               only_scvr_ft=1)
 
     if config_scheme_to_use.dump_train_data:
         train.to_csv("train_ft_dump.csv.bz2", compression='bz2',index=False)
@@ -1420,7 +1420,7 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
         test = combined_df[train_len + val_len:]
         test[categorical + new_features].to_csv("test_ft_dump.csv.bz2", compression='bz2',index=False)
 
-    with timer('train lgbm model...'):
+    with timer('train lgbm model...', logging.INFO):
         lgb_model, val_prediction, predictors, importances, val_auc = train_lgbm(train, val, new_features, False)
 
     if config_scheme_to_use.new_predict:
@@ -1440,17 +1440,17 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
                                                        add_features_list=com_fts_list,
                                                        only_scvr_ft=1)
 
-            print('NAN next click count in test:', len(test.query('ip_app_device_os_is_attributednextclick > 1489000000')))
+            logger.debug('NAN next click count in test:', len(test.query('ip_app_device_os_is_attributednextclick > 1489000000')))
 
             predict_result = lgb_model.predict(test[predictors], num_iteration=lgb_model.best_iteration)
             submission = pd.DataFrame({'is_attributed':predict_result,
                                        'click_id':test['click_id'].astype('uint32').values})
 
-            print("Writing the submission data into a csv file...")
+            logger.debug("Writing the submission data into a csv file...")
 
             submission.to_csv(get_dated_filename("submission_notebook"), index=False)
 
-            print("All done...")
+            logger.debug("All done...")
 
     if gen_fts:
         #train
@@ -1466,7 +1466,7 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
             inter_dump_path = './lgbmft_dump/'
             try:
                 os.mkdir(inter_dump_path)
-                print('created dir', inter_dump_path)
+                logger.debug('created dir', inter_dump_path)
             except:
                 None
 
@@ -1476,7 +1476,7 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
         del ft_df
         gc.collect(
         )
-        print('mem after train lgbm fts gen', cpuStats())
+        logger.debug('mem after train lgbm fts gen', cpuStats())
 
         with timer('predict val LGBM features:'):
             predict_result = lgb_model.predict(val[predictors], num_iteration=lgb_model.best_iteration, pred_leaf=True)
@@ -1495,7 +1495,7 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
         del ft_df
         gc.collect(
         )
-        print('mem after val lgbm fts gen', cpuStats())
+        logger.debug('mem after val lgbm fts gen', cpuStats())
 
         with timer('predict test LGBM features:'):
             test = combined_df[train_len + val_len: train_len + val_len + test_len]
@@ -1511,7 +1511,7 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
 
             ft_df.to_csv(inter_dump_path + "test_lgbm_ft_dump.csv.bz2", compression='bz2',index=False)
 
-        print('done gen test lgbm fts')
+        logger.debug('done gen test lgbm fts')
 
     if return_dict is not None:
         return_dict['val_auc'] = val_auc
@@ -1610,7 +1610,7 @@ def lgbm_params_search(com_fts_list):
 
     with timer('load combined data df'):
         combined_df, train_len, val_len, test_len = get_combined_df(config_scheme_to_use.new_predict)
-        print('total len: {}, train len: {}, val len: {}.'.format(len(combined_df), train_len, val_len))
+        logger.debug('total len: {}, train len: {}, val len: {}.'.format(len(combined_df), train_len, val_len))
     with timer('gen categorical features'):
         combined_df = gen_categorical_features(combined_df)
     with timer('gen statistical hist features'):
@@ -1639,7 +1639,7 @@ def lgbm_params_search(com_fts_list):
 
         # Get current parameters and the best parameters
         best_params = pd.Series(bayes_cv_tuner.best_params_)
-        print('Model #{}\nBest ROC-AUC: {}\nBest params: {}\n'.format(
+        logger.debug('Model #{}\nBest ROC-AUC: {}\nBest params: {}\n'.format(
             len(all_models),
             np.round(bayes_cv_tuner.best_score_, 4),
             bayes_cv_tuner.best_params_
@@ -1654,7 +1654,6 @@ def lgbm_params_search(com_fts_list):
 
 def train_and_predict_ft_search(op = 'smoothcvr'):
     raw_cols = ['app', 'device', 'os', 'channel', 'hour', 'ip']
-    com_fts_list_to_use = config_scheme_to_use.add_features_list
 
     search_range = []
 
@@ -1673,7 +1672,7 @@ def train_and_predict_ft_search(op = 'smoothcvr'):
         preloaded_input = train_and_predict(config_scheme_to_use.add_features_list,
                                             config_scheme_to_use.use_ft_cache,
                                             preload=True)
-        #print('preloaded input returned: {}'.format(preloaded_input))
+        #logger.debug('preloaded input returned: {}'.format(preloaded_input))
 
     for cols_count in search_range:  # max 4 to avoid over-fitting, tried 7, overfitting too badly
         for cols_coms in itertools.combinations(raw_cols, cols_count):
@@ -1682,10 +1681,11 @@ def train_and_predict_ft_search(op = 'smoothcvr'):
             if op in ['smoothcvr', 'count']:
                 temp.append('is_attributed')
             # add both mean and var:
+            com_fts_list_to_use = config_scheme_to_use.add_features_list.copy()
             com_fts_list_to_use.append({'group': list(temp), 'op': op})
-            print('======================================================')
-            print('testing ', str({'group': list(temp), 'op': op}))
-            print('======================================================')
+            logger.info('======================================================')
+            logger.info('testing %s', str({'group': list(temp), 'op': op}))
+            logger.info('======================================================')
 
             manager = mp.Manager()
             return_dict = manager.dict()
@@ -1703,38 +1703,38 @@ def train_and_predict_ft_search(op = 'smoothcvr'):
             p.join()
             results[return_dict['val_auc']] =  dict(return_dict)
 
-            print('======================================================')
-            print('testing {} done.'.format( str({'group': list(temp), 'op': op})))
-            pprint(results)
-            print('======================================================')
+            logger.info('======================================================')
+            logger.info('testing {} done.'.format( str({'group': list(temp), 'op': op})))
+            logger.debug(results)
+            logger.info('======================================================')
 
 
 def run_model():
-    print('run theme: ', config_scheme_to_use.run_theme)
+    logger.debug('run theme: ', config_scheme_to_use.run_theme)
 
     if config_scheme_to_use.run_theme == 'train_and_predict':
-        print('add features list: ')
-        pprint(config_scheme_to_use.add_features_list)
+        logger.debug('add features list: ')
+        logger.debug(config_scheme_to_use.add_features_list)
         train_and_predict(config_scheme_to_use.add_features_list, use_ft_cache=config_scheme_to_use.use_ft_cache)
     elif config_scheme_to_use.run_theme == 'train_and_predict_with_test_supplement':
-        print('add features list: ')
-        pprint(config_scheme_to_use.add_features_list)
+        logger.debug('add features list: ')
+        logger.debug(config_scheme_to_use.add_features_list)
         train_and_predict(config_scheme_to_use.add_features_list,
                           use_ft_cache=config_scheme_to_use.use_ft_cache,
                           load_test_supplement=True)
     elif config_scheme_to_use.run_theme == 'lgbm_params_search':
-        print('add features list: ')
-        pprint(config_scheme_to_use.add_features_list)
+        logger.debug('add features list: ')
+        logger.debug(config_scheme_to_use.add_features_list)
         lgbm_params_search(config_scheme_to_use.add_features_list)
     elif config_scheme_to_use.run_theme == 'train_and_predict_ft_search':
-        print('add features list: ')
-        pprint(config_scheme_to_use.add_features_list)
+        logger.debug('add features list: ')
+        logger.debug(config_scheme_to_use.add_features_list)
         train_and_predict_ft_search(config_scheme_to_use.ft_search_op)
     else:
-        print("nothing to run... exit")
+        logger.info("nothing to run... exit")
 
 
 with timer('run_model...'):
     run_model()
 
-print('run_model done')
+logger.debug('run_model done')
