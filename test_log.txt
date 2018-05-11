@@ -1416,7 +1416,9 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         azzure: [151]	train's auc: 0.985282	valid's auc: 0.979675 <---------------------BETTER
     19. 15 + use scvr cachefile:
     20. smoothcvr search
+        gyun: running
     21. cumcount search
+        azzure: running
 
 
 to do test:

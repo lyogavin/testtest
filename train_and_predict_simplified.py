@@ -773,6 +773,12 @@ def generate_counting_history_features(data,
     i = -1
     to_run_in_pool = []
     for add_feature in add_features_list:
+        feature_name_added = '_'.join(add_feature['group']) + add_feature['op']
+
+        if feature_name_added in data.columns:
+            print('{} already in data, skip...'.format(add_feature))
+            continue
+
         i += 1
         if only_scvr_ft == 1 and add_feature['op'] != 'smoothcvr':
             continue
@@ -1289,25 +1295,7 @@ def do_data_validation(df, df0, sample_indice):
     assert (df_for_val['A0'] - df['ip_device_os_channelcumcount']).sum() == 0
 
     #print()
-
-def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
-                      use_base_data_cache=False, gen_fts = False, load_test_supplement = False,
-                      return_dict = None):
-    with timer('load combined data df'):
-        combined_df, train_len, val_len, test_len = get_combined_df(config_scheme_to_use.new_predict or gen_fts,
-                                                                    load_test_supplement = load_test_supplement)
-        print('total len: {}, train len: {}, val len: {}.'.format(len(combined_df), train_len, val_len))
-        combined_df.reset_index(drop=True,inplace=True)
-
-    with timer('checksum data'):
-        checksum = get_checksum_from_df(combined_df)
-        print('md5 checksum of whole data set:', checksum)
-
-
-
-    with timer('gen categorical features'):
-        combined_df = gen_categorical_features(combined_df)
-
+def neg_sample_df(combined_df, train_len, val_len, test_len):
     neg_sample_indice = None
     if config_scheme_to_use.use_neg_sample:
         print('neg sample 1/200(1:2 pos:neg) after checksum... with seed {}'.format(config_scheme_to_use.neg_sample_seed))
@@ -1327,6 +1315,44 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
         #print('len after sampel:',len(combined_df_before_sample))
         #print('len after sampel:',len(combined_df))
         train_len = len(combined_df) - test_len - val_len
+    return neg_sample_indice, combined_df, combined_df_before_sample, train_len, val_len, test_len
+
+def get_input_data(load_test_supplement):
+    with timer('load combined data df'):
+        combined_df, train_len, val_len, test_len = get_combined_df(config_scheme_to_use.new_predict,
+                                                                    load_test_supplement = load_test_supplement)
+        print('total len: {}, train len: {}, val len: {}.'.format(len(combined_df), train_len, val_len))
+        combined_df.reset_index(drop=True,inplace=True)
+
+    with timer('checksum data'):
+        checksum = get_checksum_from_df(combined_df)
+        print('md5 checksum of whole data set:', checksum)
+
+
+
+    with timer('gen categorical features'):
+        combined_df = gen_categorical_features(combined_df)
+
+    neg_sample_indice, combined_df, combined_df_before_sample, train_len, val_len, test_len = \
+        neg_sample_df(combined_df, train_len, val_len, test_len)
+    return neg_sample_indice, combined_df, combined_df_before_sample, train_len, val_len, test_len, checksum
+
+def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
+                      use_base_data_cache=False, gen_fts = False, load_test_supplement = False,
+                      return_dict = None, preloaded_input = None, preload = False):
+
+    if preloaded_input is None:
+        neg_sample_indice, combined_df, combined_df_before_sample, train_len, val_len, test_len, checksum = \
+            get_input_data(load_test_supplement)
+    else:
+        neg_sample_indice= preloaded_input['neg_sample_indice']
+        combined_df= preloaded_input['combined_df']
+        combined_df_before_sample= preloaded_input['combined_df_before_sample']
+        train_len= preloaded_input['train_len']
+        val_len= preloaded_input['val_len']
+        test_len= preloaded_input['test_len']
+        checksum= preloaded_input['checksum']
+
 
     with timer('gen statistical hist features'):
         combined_df, new_features, discretization_bins_used = \
@@ -1349,7 +1375,16 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
     #print('sample:',combined_df.sample(10,random_state=888).to_string())
     #print('poslen: {}, neglen:{}'.format(len(combined_df.query('is_attributed == 1')),
     #                                     len(combined_df.query('is_attributed == 0'))))
-
+    if preload:
+        return {
+                    "neg_sample_indice": neg_sample_indice,
+                    "combined_df": combined_df,
+                    'combined_df_before_sample': combined_df_before_sample,
+                    'train_len': train_len,
+                    'val_len': val_len,
+                    'test_len': test_len,
+                    'checksum': checksum
+                }
 
     train = combined_df[:train_len]
     val = combined_df[train_len:train_len + val_len]
@@ -1632,6 +1667,14 @@ def train_and_predict_ft_search(op = 'smoothcvr'):
 
     results = collections.OrderedDict()
 
+    use_preload = True
+    preloaded_input = None
+    if use_preload:
+        preloaded_input = train_and_predict(config_scheme_to_use.add_features_list,
+                                            config_scheme_to_use.use_ft_cache,
+                                            preload=True)
+        #print('preloaded input returned: {}'.format(preloaded_input))
+
     for cols_count in search_range:  # max 4 to avoid over-fitting, tried 7, overfitting too badly
         for cols_coms in itertools.combinations(raw_cols, cols_count):
             temp = []
@@ -1654,7 +1697,8 @@ def train_and_predict_ft_search(op = 'smoothcvr'):
                                  False,
                                  False,
                                  False,
-                                 return_dict))
+                                 return_dict,
+                                 preloaded_input))
             p.start()
             p.join()
             results[return_dict['val_auc']] =  dict(return_dict)
