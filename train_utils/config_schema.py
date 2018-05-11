@@ -1494,6 +1494,8 @@ train_config_133_21.add_features_list = add_features_list_fts_search_reduced_spl
 train_config_133_21.run_theme = 'train_and_predict_ft_search'
 train_config_133_21.ft_search_op = 'cumcount'
 
+train_config_133_22 = copy.deepcopy(train_config_133_21)
+train_config_133_22.ft_search_op = 'var'
 
 debug = False
 
@@ -1519,4 +1521,4 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_21')
+config_scheme_to_use = use_config_scheme('train_config_133_22')
