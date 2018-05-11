@@ -1413,7 +1413,7 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     17. 15 + keep only 1 best scvr:
         gyun: [151]	train's auc: 0.985222	valid's auc: 0.979273
     18. 12 + ip_hour count, best from 11:
-        azzure: running
+        azzure: [151]	train's auc: 0.985282	valid's auc: 0.979675 <---------------------BETTER
     19. 15 + use scvr cachefile:
     20. smoothcvr search
     21. cumcount search

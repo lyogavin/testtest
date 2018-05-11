@@ -9,6 +9,7 @@ import sys
 import copy
 from scipy import special as sp
 from multiprocessing import Process
+import multiprocessing as mp
 import numpy as np  # linear algebra
 import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
 import time
@@ -1091,7 +1092,7 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
     if do_val_prediction:
         return lgb_model, val_prediction, predictors1, importance_dict, val_auc
     else:
-        return lgb_model, val_prediction, predictors1, importance_dict, 0
+        return lgb_model, val_prediction, predictors1, importance_dict, lgb_model.best_score['valid']['auc']
 
 
 def get_train_df():
@@ -1290,7 +1291,8 @@ def do_data_validation(df, df0, sample_indice):
     #print()
 
 def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
-                                         use_base_data_cache=False, gen_fts = False, load_test_supplement = False):
+                      use_base_data_cache=False, gen_fts = False, load_test_supplement = False,
+                      return_dict = None):
     with timer('load combined data df'):
         combined_df, train_len, val_len, test_len = get_combined_df(config_scheme_to_use.new_predict or gen_fts,
                                                                     load_test_supplement = load_test_supplement)
@@ -1476,6 +1478,11 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
 
         print('done gen test lgbm fts')
 
+    if return_dict is not None:
+        return_dict['val_auc'] = val_auc
+        return_dict['importances'] = importances
+        return_dict['best_iter'] = lgb_model.best_iteration
+        return_dict['train_auc'] = lgb_model.best_score['train']['auc']
     return importances, val_auc
 
 
@@ -1623,6 +1630,7 @@ def train_and_predict_ft_search(op = 'smoothcvr'):
     else:
         search_range = range(2, 7)
 
+    results = collections.OrderedDict()
 
     for cols_count in search_range:  # max 4 to avoid over-fitting, tried 7, overfitting too badly
         for cols_coms in itertools.combinations(raw_cols, cols_count):
@@ -1636,7 +1644,26 @@ def train_and_predict_ft_search(op = 'smoothcvr'):
             print('testing ', str({'group': list(temp), 'op': op}))
             print('======================================================')
 
-            train_and_predict(com_fts_list_to_use, config_scheme_to_use.use_ft_cache)
+            manager = mp.Manager()
+            return_dict = manager.dict()
+
+            p = mp.Process(target=train_and_predict,
+                           args=(com_fts_list_to_use,
+                                 config_scheme_to_use.use_ft_cache,
+                                 False,
+                                 False,
+                                 False,
+                                 False,
+                                 return_dict))
+            p.start()
+            p.join()
+            results[return_dict['val_auc']] =  dict(return_dict)
+
+            print('======================================================')
+            print('testing {} done.'.format( str({'group': list(temp), 'op': op})))
+            pprint(results)
+            print('======================================================')
+
 
 def run_model():
     print('run theme: ', config_scheme_to_use.run_theme)
