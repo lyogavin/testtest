@@ -1416,10 +1416,64 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         azzure: [151]	train's auc: 0.985282	valid's auc: 0.979675 <---------------------BETTER
     19. 15 + use scvr cachefile:
     20. smoothcvr search
-        gyun: running
+        gyun: DONE
+        197, best train auc: 0.985538, val auc: 0.979545
+         [('ip_app_hour_os_is_attributedcount', 1),
+ ('app_channel_ipnunique', 2),
+ ('ip_is_attributedcount', 2),
+ ('ip_appnunique', 2),
+ ('ip_device_os_app_is_attributedcount', 2),
+ ('ip_device_is_attributedcount', 4),
+ ('app_channel_ipnunique', 11),
+ ('os_ip_is_attributedsmoothcvr', 13),
+ ('ip_app_device_os_is_attributednextclick', 14),
+ ('ip_device_os_app_is_attributedcount', 17),
+ ('device', 21),
+ ('ip_app_hour_os_is_attributedcount', 23),
+ ('ip_is_attributedcount', 34),
+ ('ip_device_is_attributedcount', 46),
+ ('ip_appnunique', 47),
+ ('hour', 53),
+ ('ip_app_device_os_is_attributednextclick', 136),
+ ('app', 138),
+ ('os', 267),
+ ('channel', 349)]
     21. cumcount search
-        azzure: running
+        azzure: DONE:
+        150, best train auc: 0.985177, val auc: 0.979559
+        [('device_os_channel_hour_is_attributedcumcount', 7),
+         ('ip_device_os_app_is_attributedcount', 8),
+ ('app_channel_ipnunique', 15),
+ ('device', 23),
+ ('ip_app_hour_os_is_attributedcount', 24),
+ ('ip_is_attributedcount', 25),
+ ('ip_appnunique', 39),
+ ('hour', 46),
+ ('ip_device_is_attributedcount', 48),
+ ('ip_app_device_os_is_attributednextclick', 126),
+ ('app', 130),
+ ('os', 178),
+ ('channel', 231)]
 
+    22. var search
+        gyun: DONE:
+            208, best train auc: 0.985589, val auc: 0.979571
+            [('device_os_channel_hour_ipvar', 4),
+ ('app_channel_ipnunique', 14),
+ ('ip_device_os_app_is_attributedcount', 24),
+ ('device', 25),
+ ('ip_app_hour_os_is_attributedcount', 29),
+ ('ip_is_attributedcount', 37),
+ ('ip_appnunique', 47),
+ ('ip_device_is_attributedcount', 55),
+ ('hour', 65),
+ ('ip_app_device_os_is_attributednextclick', 147),
+ ('app', 155),
+ ('os', 284),
+ ('channel', 362)]
+
+    23. mean search
+        azzure: running
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE

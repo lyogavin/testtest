@@ -1497,6 +1497,8 @@ train_config_133_21.ft_search_op = 'cumcount'
 train_config_133_22 = copy.deepcopy(train_config_133_21)
 train_config_133_22.ft_search_op = 'var'
 
+train_config_133_23 = copy.deepcopy(train_config_133_21)
+train_config_133_23.ft_search_op = 'mean'
 debug = False
 
 def use_config_scheme(str):
@@ -1521,4 +1523,4 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_22')
+config_scheme_to_use = use_config_scheme('train_config_133_23')
