@@ -1499,6 +1499,18 @@ train_config_133_22.ft_search_op = 'var'
 
 train_config_133_23 = copy.deepcopy(train_config_133_21)
 train_config_133_23.ft_search_op = 'mean'
+
+
+train_config_133_24 = copy.deepcopy(train_config_133_18)
+train_config_133_24.add_features_list = add_features_list_fts_search_reduced_split_add_counting_1_var_best
+
+
+train_config_133_25 = copy.deepcopy(train_config_133_18)
+train_config_133_25.add_features_list = add_features_list_fts_search_reduced_split_add_counting_1_scvr_best
+
+
+
+
 debug = False
 
 def use_config_scheme(str):
@@ -1523,4 +1535,4 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_23')
+config_scheme_to_use = use_config_scheme('train_config_133_25')

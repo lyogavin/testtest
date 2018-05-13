@@ -1414,6 +1414,20 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         gyun: [151]	train's auc: 0.985222	valid's auc: 0.979273
     18. 12 + ip_hour count, best from 11:
         azzure: [151]	train's auc: 0.985282	valid's auc: 0.979675 <---------------------BETTER
+        [151]   train's auc: 0.985282   valid's auc: 0.979675
+        [('ip_is_attributedcount', 14),
+ ('app_channel_ipnunique', 15),
+ ('ip_device_os_app_is_attributedcount', 15),
+ ('ip_app_hour_os_is_attributedcount', 18),
+ ('device', 26),
+ ('ip_hour_is_attributedcount', 27),
+ ('hour', 36),
+ ('ip_device_is_attributedcount', 36),
+ ('ip_appnunique', 40),
+ ('app', 126),
+ ('ip_app_device_os_is_attributednextclick', 138),
+ ('os', 181),
+ ('channel', 234)]
     19. 15 + use scvr cachefile:
     20. smoothcvr search
         gyun: DONE
@@ -1474,6 +1488,8 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
 
     23. mean search
         azzure: running
+    24. 18+22 best: gyun: [149]	train's auc: 0.985232	valid's auc: 0.979477
+    25. 18+20 best: gyun:
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE

@@ -84,6 +84,15 @@ add_features_list_fts_search_reduced_split_add_counting_1 = [
     {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
 
 ]
+add_features_list_fts_search_reduced_split_add_counting_1_var_best = \
+    add_features_list_fts_search_reduced_split_add_counting_1 + [
+    {'group': ['device', 'os','channel','hour', 'ip'], 'op': 'var'},
+    ]
+
+add_features_list_fts_search_reduced_split_add_counting_1_scvr_best = \
+    add_features_list_fts_search_reduced_split_add_counting_1 + [
+        {'group': ['os', 'ip', 'is_attributed'], 'op': 'smoothcvr'},
+    ]
 
 add_features_list_fts_search_reduced_split_scvr_add_var = add_features_list_fts_search_reduced_split_scvr + [
     {'group': ['ip', 'day', 'channel','hour'], 'op': 'var'},
