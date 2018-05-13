@@ -1487,10 +1487,11 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
  ('channel', 362)]
 
     23. mean search
-        azzure: running
+        azzure: killed
     24. 18+22 best: gyun: [149]	train's auc: 0.985232	valid's auc: 0.979477
     25. 18+20 best: gyun:
-
+    26. 18 + scvr search: gyun: running
+    27. 18+cumcount search: azzure: runngin
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
 2. break down auc by dimensions and filter data and train separately and ensemble DONE
