@@ -1547,7 +1547,18 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
  ('channel', 347)]
 
     28. 26 + remove low importantce fts:
-    gyun: running
+    gyun: [143]	train's auc: 0.984577	valid's auc: 0.977792
+[('ip_device_os_app_is_attributedcount', 13),
+ ('app_ip_is_attributedsmoothcvr', 15),
+ ('ip_app_hour_os_is_attributedcount', 15),
+ ('device', 22),
+ ('hour', 32),
+ ('ip_hour_is_attributedcount', 85),
+ ('app', 106),
+ ('ip_app_device_os_is_attributednextclick', 116),
+ ('os', 193),
+ ('channel', 261)]
+
 
     29. 27(.979649) + remove low importance fts:
     azzureyun: running
