@@ -1548,6 +1548,7 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
 
     28. 26 + remove low importantce fts:
     gyun: running
+
     29. 27(.979649) + remove low importance fts:
     azzureyun: running
 
