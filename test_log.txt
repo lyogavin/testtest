@@ -1490,8 +1490,32 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         azzure: killed
     24. 18+22 best: gyun: [149]	train's auc: 0.985232	valid's auc: 0.979477
     25. 18+20 best: gyun:
-    26. 18 + scvr search: gyun: running
+    26. 18 + scvr search: gyun: 178, best train auc: 0.985514, val auc: 0.979625
+    best set:
+    [('ip_is_attributedcount', 0),
+ ('ip_device_is_attributedcount', 1),
+ ('ip_app_hour_os_is_attributedcount', 2),
+ ('app_channel_ipnunique', 2),
+ ('ip_hour_is_attributedcount', 2),
+ ('ip_device_os_app_is_attributedcount', 3),
+ ('ip_appnunique', 6),
+ ('ip_device_os_app_is_attributedcount', 11),
+ ('ip_is_attributedcount', 12),
+ ('app_channel_ipnunique', 14),
+ ('app_ip_is_attributedsmoothcvr', 17),
+ ('device', 22),
+ ('ip_hour_is_attributedcount', 25),
+ ('ip_app_hour_os_is_attributedcount', 28),
+ ('ip_app_device_os_is_attributednextclick', 29),
+ ('ip_appnunique', 32),
+ ('ip_device_is_attributedcount', 39),
+ ('hour', 43),
+ ('ip_app_device_os_is_attributednextclick', 113),
+ ('app', 137),
+ ('os', 231),
+ ('channel', 299)]
     27. 18+cumcount search: azzure: runngin
+    28. 26 + remove low importantce fts:
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
 2. break down auc by dimensions and filter data and train separately and ensemble DONE

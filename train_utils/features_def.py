@@ -84,6 +84,24 @@ add_features_list_fts_search_reduced_split_add_counting_1 = [
     {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
 
 ]
+
+add_features_list_search_28 = [
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+
+    {'group': ['ip', 'device', 'os', 'app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+    #{'group': ['ip', 'device', 'is_attributed'], 'op': 'count'},
+    #{'group': ['ip', 'is_attributed'], 'op': 'count'},
+
+    {'group': ['app', 'channel', 'ip'], 'op': 'nunique'},
+    {'group': ['ip', 'app'], 'op': 'nunique'},
+
+    {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+    {'group': ['app', 'ip', 'is_attributed'], 'op': 'smoothcvr'},
+
+]
+
+
 add_features_list_fts_search_reduced_split_add_counting_1_var_best = \
     add_features_list_fts_search_reduced_split_add_counting_1 + [
     {'group': ['device', 'os','channel','hour', 'ip'], 'op': 'var'},

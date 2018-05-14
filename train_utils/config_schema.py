@@ -1519,6 +1519,9 @@ train_config_133_27.add_features_list = add_features_list_fts_search_reduced_spl
 train_config_133_27.run_theme = 'train_and_predict_ft_search'
 train_config_133_27.ft_search_op = 'cumcount'
 
+train_config_133_28 = copy.deepcopy(train_config_133_15)
+train_config_133_28.use_scvr_cache_file = True
+train_config_133_28.add_features_list = add_features_list_search_28
 
 debug = False
 
