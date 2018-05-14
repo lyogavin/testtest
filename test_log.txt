@@ -1515,7 +1515,42 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
  ('os', 231),
  ('channel', 299)]
     27. 18+cumcount search: azzure: runngin
+    azzureyun: 205, best train auc: 0.985642, val auc: 0.979669
+    [('app_hour_ip_is_attributedcumcount', 4),
+ ('app_channel_ipnunique', 15),
+ ('ip_is_attributedcount', 17),
+ ('device', 21),
+ ('ip_device_os_app_is_attributedcount', 23),
+ ('ip_app_hour_os_is_attributedcount', 25),
+ ('ip_hour_is_attributedcount', 36),
+ ('ip_appnunique', 39),
+ ('ip_device_is_attributedcount', 42),
+ ('hour', 65),
+ ('app', 145),
+ ('ip_app_device_os_is_attributednextclick', 162),
+ ('os', 290),
+ ('channel', 346)]
+ 210, best train auc: 0.985712, val auc: 0.979649
+ [('app_channel_ipnunique', 16),
+ ('ip_device_os_app_is_attributedcount', 22),
+ ('app_device_channel_is_attributedcumcount', 23),
+ ('ip_is_attributedcount', 24),
+ ('device', 25),
+ ('ip_app_hour_os_is_attributedcount', 25),
+ ('ip_appnunique', 34),
+ ('ip_hour_is_attributedcount', 34),
+ ('ip_device_is_attributedcount', 43),
+ ('hour', 64),
+ ('app', 150),
+ ('ip_app_device_os_is_attributednextclick', 158),
+ ('os', 295),
+ ('channel', 347)]
+
     28. 26 + remove low importantce fts:
+    gyun: running
+    29. 27(.979649) + remove low importance fts:
+    azzureyun: running
+
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
 2. break down auc by dimensions and filter data and train separately and ensemble DONE

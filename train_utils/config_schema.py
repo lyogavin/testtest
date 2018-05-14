@@ -1523,6 +1523,10 @@ train_config_133_28 = copy.deepcopy(train_config_133_15)
 train_config_133_28.use_scvr_cache_file = True
 train_config_133_28.add_features_list = add_features_list_search_28
 
+train_config_133_29 = copy.deepcopy(train_config_133_12)
+train_config_133_29.add_features_list = add_features_list_search_29
+
+
 debug = False
 
 def use_config_scheme(str):
