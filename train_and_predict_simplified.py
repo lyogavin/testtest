@@ -740,7 +740,7 @@ def generate_counting_history_features(data,
         logger.debug('sum of val target col:', data.iloc[val_start:val_end, data.columns.values.tolist().index('is_attributed')].sum())
     logger.debug('discretization bins to use:', discretization_bins)
 
-    new_features = []
+    new_features = set()
 
     if config_scheme_to_use.add_10min_ft:
         with timer('adding 10min feature:'):
@@ -766,7 +766,7 @@ def generate_counting_history_features(data,
 
         if feature_name_added in data.columns:
             logger.debug('{} already in data, skip...'.format(add_feature))
-            new_features = new_features + [feature_name_added]
+            new_features = new_features.union([feature_name_added])
 
             continue
 
@@ -865,7 +865,7 @@ def generate_counting_history_features(data,
             #    res[0], features_added, discretization_bins_used
             #))
 
-            new_features = new_features + features_added
+            new_features = new_features.union(features_added)
             if discretization_bins_used_current_feature is not None:
                 if discretization_bins_used is None:
                     discretization_bins_used = {}
@@ -972,7 +972,7 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
 
     target = 'is_attributed'
 
-    predictors1 = categorical + new_features
+    predictors1 =  list(new_features.union(categorical))
 
     if config_scheme_to_use.add_hist_statis_fts:
         predictors1 = predictors1 + hist_st
@@ -1403,7 +1403,7 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
                                                ft_cache_prefix='joint',
                                                add_features_list=com_fts_list,
                                                only_scvr_ft=1)
-            new_features += new_features_cvr
+            new_features = new_features.union(new_features_cvr)
 
         with timer('gen scvr fts for val', logging.INFO):
             clear_smoothcvr_cache()

@@ -93,8 +93,8 @@ add_features_list_search_28 = [
     #{'group': ['ip', 'device', 'is_attributed'], 'op': 'count'},
     #{'group': ['ip', 'is_attributed'], 'op': 'count'},
 
-    {'group': ['app', 'channel', 'ip'], 'op': 'nunique'},
-    {'group': ['ip', 'app'], 'op': 'nunique'},
+    #{'group': ['app', 'channel', 'ip'], 'op': 'nunique'},
+    #{'group': ['ip', 'app'], 'op': 'nunique'},
 
     {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
     {'group': ['app', 'ip', 'is_attributed'], 'op': 'smoothcvr'},
