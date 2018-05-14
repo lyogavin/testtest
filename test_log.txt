@@ -1561,7 +1561,10 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
 
 
     29. 27(.979649) + remove low importance fts:
-    azzureyun: running
+    azzureyun: 124, best train auc: 0.985016, val auc: 0.979236
+
+    30. 18 + mean fts search:
+    running
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
