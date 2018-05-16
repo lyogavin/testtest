@@ -89,6 +89,13 @@ lgbm_params_pub_entire_set.update({
         'nthread': 24, # should be equal to REAL cores:http://xgboost.readthedocs.io/en/latest/how_to/external_memory.html
         'verbose': 0
 })
+
+lgbm_params_pub_entire_set_no_early_iter_153 = dict(lgbm_params_pub_entire_set)
+lgbm_params_pub_entire_set_no_early_iter_153.update({
+        'early_stopping_round': 153,
+        'num_boost_round': 153,
+    })
+
 lgbm_params_pub_asraful_kernel = dict(new_lgbm_params)
 lgbm_params_pub_asraful_kernel.update({
         'learning_rate': 0.10,

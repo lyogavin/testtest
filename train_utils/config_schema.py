@@ -1538,7 +1538,11 @@ train_config_133_31.neg_sample_seed = 666
 train_config_133_32 = copy.deepcopy(train_config_133_18)
 train_config_133_32.new_predict = True
 train_config_133_32.run_theme = 'train_and_predict'
-
+train_config_133_32.train_from = [id_8_4am,id_9_4am]
+train_config_133_32.train_to = [id_8_3pm,id_9_3pm]
+train_config_133_32.val_from = id_9_3pm
+train_config_133_32.val_to = id_9_3pm + 10000
+train_config_133_32.lgbm_params = lgbm_params_pub_entire_set_no_early_iter_153
 
 debug = False
 
