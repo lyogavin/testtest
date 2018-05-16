@@ -1601,8 +1601,24 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     34. 26+predict
         pub LB: 0.9782771, private LB: 0.9784233
     35. 30+predict
-        running
+        pub LB: 0.9779853, private LB: 0.9781960
     36. 18 + val test hours filter
+        171, best train auc: 0.985517, val auc: 0.978959
+        [('ip_is_attributedcount', 16),
+ ('ip_device_os_app_is_attributedcount', 16),
+ ('app_channel_ipnunique', 18),
+ ('device', 21),
+ ('ip_app_hour_os_is_attributedcount', 23),
+ ('ip_hour_is_attributedcount', 29),
+ ('ip_appnunique', 39),
+ ('ip_device_is_attributedcount', 42),
+ ('hour', 52),
+ ('app', 126),
+ ('ip_app_device_os_is_attributednextclick', 149),
+ ('os', 206),
+ ('channel', 289)]
+    37. 26+ val test hour filters
+        running
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
