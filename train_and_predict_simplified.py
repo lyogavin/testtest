@@ -1428,7 +1428,7 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
         lgb_model, val_prediction, predictors, importances, val_auc = train_lgbm(train, val, new_features, False)
 
     if config_scheme_to_use.new_predict:
-        with timer('predict test data:'):
+        with timer('predict test data:', logging.INFO):
             if not dump_train_data: # because for dump case, it'll be set above
                 test = combined_df[train_len + val_len: train_len+val_len+test_len]
 
@@ -1452,7 +1452,10 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
 
             logger.debug("Writing the submission data into a csv file...")
 
-            submission.to_csv(get_dated_filename("submission_notebook"), index=False)
+            predict_filename = get_dated_filename("submission_notebook")
+
+            with timer('generating predict file ' + predict_filename, logging.INFO):
+                submission.to_csv(predict_filename, index=False)
 
             logger.debug("All done...")
 

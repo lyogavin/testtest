@@ -1581,7 +1581,20 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
  ('channel', 248)]
 
     31. app hour mean + 66 seed:
-        running
+        174, best train auc: 0.985556, val auc: 0.980047
+        [('app_hourmean', 6),
+ ('ip_is_attributedcount', 19),
+ ('ip_app_hour_os_is_attributedcount', 23),
+ ('device', 27),
+ ('ip_hour_is_attributedcount', 37),
+ ('ip_device_is_attributedcount', 40),
+ ('hour', 46),
+ ('ip_appnunique', 52),
+ ('ip_app_device_os_is_attributednextclick', 134),
+ ('app', 139),
+ ('os', 236),
+ ('channel', 285)]
+    32. 18+predict
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
