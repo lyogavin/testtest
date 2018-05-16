@@ -108,6 +108,12 @@ lgbm_params_pub_entire_set_no_early_iter_178.update({
         'num_boost_round': 178,
     })
 
+lgbm_params_pub_entire_set_no_early_iter_154 = dict(lgbm_params_pub_entire_set)
+lgbm_params_pub_entire_set_no_early_iter_154.update({
+        'early_stopping_round': 154,
+        'num_boost_round': 154,
+    })
+
 lgbm_params_pub_asraful_kernel = dict(new_lgbm_params)
 lgbm_params_pub_asraful_kernel.update({
         'learning_rate': 0.10,

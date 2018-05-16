@@ -94,6 +94,12 @@ add_features_list_34 = \
     add_features_list_fts_search_reduced_split_add_counting_1 + [
     {'group': ['app','ip','is_attributed'], 'op': 'smoothcvr'}, #app_ip_is_attributedsmoothcvr
     ]
+
+add_features_list_35 = \
+    add_features_list_fts_search_reduced_split_add_counting_1 + [
+    {'group': ['app','hour'], 'op': 'mean'}, #app_hourmean
+    ]
+
 add_features_list_search_28 = [
     {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
 
