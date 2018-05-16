@@ -85,6 +85,11 @@ add_features_list_fts_search_reduced_split_add_counting_1 = [
 
 ]
 
+add_features_list_33 = \
+    add_features_list_fts_search_reduced_split_add_counting_1 + [
+    {'group': ['app', 'hour','ip','is_attributed'], 'op': 'cumcount'}, #app_hour_ip_is_attributedcumcount
+    ]
+
 add_features_list_search_28 = [
     {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
 

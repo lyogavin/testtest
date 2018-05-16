@@ -1544,6 +1544,10 @@ train_config_133_32.val_from = id_9_3pm
 train_config_133_32.val_to = id_9_3pm + 10000
 train_config_133_32.lgbm_params = lgbm_params_pub_entire_set_no_early_iter_153
 
+train_config_133_33 = copy.deepcopy(train_config_133_32)
+train_config_133_33.add_features_list = add_features_list_33
+
+
 debug = False
 
 def use_config_scheme(str):
@@ -1568,4 +1572,4 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_32')
+config_scheme_to_use = use_config_scheme('train_config_133_33')
