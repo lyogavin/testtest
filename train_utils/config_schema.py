@@ -1600,4 +1600,4 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_38')
+config_scheme_to_use = use_config_scheme('train_config_133_37')
