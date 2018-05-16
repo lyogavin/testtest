@@ -1437,6 +1437,11 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
         test = combined_df[train_len + val_len:]
         test[categorical + new_features].to_csv("test_ft_dump.csv.bz2", compression='bz2',index=False)
 
+    dump_data_for_validation = True
+    if dump_data_for_validation:
+        logger.info('train dump_data_for_validation:\n %s', train.sample(100, random_state=888).to_string())
+        logger.info('val dump_data_for_validation:\n %s', val.sample(100, random_state=888).to_string())
+
     with timer('train lgbm model...', logging.INFO):
         lgb_model, val_prediction, predictors, importances, val_auc = train_lgbm(train, val, new_features, False)
 

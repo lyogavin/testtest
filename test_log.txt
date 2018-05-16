@@ -1600,6 +1600,7 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         pub LB: 0.9784981, private LB: 0.9784750
     34. 26+predict
         pub LB: 0.9782771, private LB: 0.9784233
+        BUG~!!, NEED RERUN, THIS IS ACTUALLY 18 + 174 iters. JUST MORE ITERS, NO SCVR FTS.
     35. 30+predict
         pub LB: 0.9779853, private LB: 0.9781960
     36. 18 + val test hours filter
@@ -1618,6 +1619,7 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
  ('os', 206),
  ('channel', 289)]
     37. 26+ val test hour filters
+    SIMILAR BUGS AS 34. JUST NEED RERUN.
         115, best train auc: 0.984899, val auc: 0.978694
          [('ip_device_os_app_is_attributedcount', 9),
  ('ip_is_attributedcount', 10),
@@ -1633,7 +1635,21 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
  ('os', 129),
  ('channel', 166)]
     38. 27 + val test hours filter:
-        running
+         141, best train auc: 0.985238, val auc: 0.978794
+         [('app_hour_ip_is_attributedcumcount', 5),
+ ('ip_device_os_app_is_attributedcount', 13),
+ ('ip_app_hour_os_is_attributedcount', 16),
+ ('ip_is_attributedcount', 17),
+ ('app_channel_ipnunique', 18),
+ ('ip_hour_is_attributedcount', 22),
+ ('device', 25),
+ ('ip_device_is_attributedcount', 33),
+ ('ip_appnunique', 36),
+ ('hour', 36),
+ ('app', 116),
+ ('ip_app_device_os_is_attributednextclick', 123),
+ ('os', 153),
+ ('channel', 233)]
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
