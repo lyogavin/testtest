@@ -1531,6 +1531,10 @@ train_config_133_30.add_features_list = add_features_list_fts_search_reduced_spl
 train_config_133_30.run_theme = 'train_and_predict_ft_search'
 train_config_133_30.ft_search_op = 'mean'
 
+train_config_133_31 = copy.deepcopy(train_config_133_12)
+train_config_133_31.add_features_list = add_features_list_search_31
+train_config_133_31.neg_sample_seed = 666
+
 debug = False
 
 def use_config_scheme(str):
@@ -1555,4 +1559,4 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_30')
+config_scheme_to_use = use_config_scheme('train_config_133_31')

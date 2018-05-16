@@ -1564,7 +1564,24 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     azzureyun: 124, best train auc: 0.985016, val auc: 0.979236
 
     30. 18 + mean fts search:
-    running
+    154, best train auc: 0.985332, val auc: 0.979819
+    [('app_hourmean', 4),
+ ('ip_is_attributedcount', 12),
+ ('app_channel_ipnunique', 15),
+ ('ip_device_os_app_is_attributedcount', 16),
+ ('ip_app_hour_os_is_attributedcount', 22),
+ ('ip_hour_is_attributedcount', 24),
+ ('device', 27),
+ ('ip_device_is_attributedcount', 34),
+ ('ip_appnunique', 34),
+ ('hour', 42),
+ ('app', 126),
+ ('ip_app_device_os_is_attributednextclick', 131),
+ ('os', 189),
+ ('channel', 248)]
+
+    31. app hour mean + 66 seed:
+        running
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
