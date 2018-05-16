@@ -1618,6 +1618,21 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
  ('os', 206),
  ('channel', 289)]
     37. 26+ val test hour filters
+        115, best train auc: 0.984899, val auc: 0.978694
+         [('ip_device_os_app_is_attributedcount', 9),
+ ('ip_is_attributedcount', 10),
+ ('ip_hour_is_attributedcount', 16),
+ ('app_channel_ipnunique', 16),
+ ('ip_app_hour_os_is_attributedcount', 17),
+ ('device', 26),
+ ('hour', 29),
+ ('ip_appnunique', 34),
+ ('ip_device_is_attributedcount', 37),
+ ('app', 95),
+ ('ip_app_device_os_is_attributednextclick', 106),
+ ('os', 129),
+ ('channel', 166)]
+    38. 27 + val test hours filter:
         running
 
 to do test:

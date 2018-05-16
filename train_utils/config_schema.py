@@ -1570,6 +1570,12 @@ train_config_133_37 = copy.deepcopy(train_config_133_18)
 train_config_133_37.add_features_list = add_features_list_34
 train_config_133_37.val_filter_test_hours = True
 
+
+train_config_133_38 = copy.deepcopy(train_config_133_18)
+train_config_133_38.add_features_list = add_features_list_33
+train_config_133_38.val_filter_test_hours = True
+
+
 debug = False
 
 def use_config_scheme(str):
@@ -1594,4 +1600,4 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_37')
+config_scheme_to_use = use_config_scheme('train_config_133_38')
