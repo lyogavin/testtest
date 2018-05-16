@@ -76,7 +76,8 @@ class ConfigScheme:
                  neg_sample_seed=888,
                  use_scvr_cache_file = False,
                  ft_search_op = 'smoothcvr',
-                 submit_prediction = False
+                 submit_prediction = False,
+                 val_filter_test_hours = False
                  ):
         self.predict = predict
         self.train = train
@@ -144,6 +145,7 @@ class ConfigScheme:
         self.use_scvr_cache_file = use_scvr_cache_file
         self.ft_search_op = ft_search_op
         self.submit_prediction = submit_prediction
+        self.val_filter_test_hours = val_filter_test_hours
 
 
 
@@ -1561,6 +1563,8 @@ train_config_133_35.add_features_list = add_features_list_35
 train_config_133_35.lgbm_params = lgbm_params_pub_entire_set_no_early_iter_154
 train_config_133_35.submit_prediction = True
 
+train_config_133_36 = copy.deepcopy(train_config_133_18)
+train_config_133_36.val_filter_test_hours = True
 
 debug = False
 
@@ -1586,4 +1590,4 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_35')
+config_scheme_to_use = use_config_scheme('train_config_133_36')

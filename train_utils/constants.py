@@ -23,6 +23,10 @@ categorical = ['app', 'device', 'os', 'channel', 'hour']
 # categorical = ['app', 'device', 'os', 'channel', 'hour', 'ip']
 
 pick_hours={4, 5, 10, 13, 14}
+
+most_freq_hours_in_test_data = [4, 5, 9, 10, 13, 14]
+least_freq_hours_in_test_data = [6, 11, 15]
+
 cvr_columns_lists = [
     ['ip', 'app', 'device', 'os', 'channel'],
     # ['app', 'os'],

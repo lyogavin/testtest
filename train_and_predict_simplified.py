@@ -73,6 +73,8 @@ if len(sys.argv) > 1 and sys.argv[1] == 'use_sample':
 
 if use_sample:
     neg_sample_rate = 2
+    logger.setLevel(logging.DEBUG)
+
 persist_intermediate = False
 print_verbose = False
 
@@ -109,8 +111,6 @@ if config_scheme_to_use.add_hist_statis_fts and not config_scheme_to_use.seperat
 
 
 def gen_categorical_features(data):
-    most_freq_hours_in_test_data = [4, 5, 9, 10, 13, 14]
-    least_freq_hours_in_test_data = [6, 11, 15]
     logger.debug("Creating new time features in train: 'hour' and 'day'...")
     data['hour'] = data["click_time"].dt.hour.astype('uint8')
     data['day'] = data["click_time"].dt.day.astype('uint8')
@@ -136,6 +136,7 @@ def gen_categorical_features(data):
 
     if not config_scheme_to_use.add_n_min_as_hour is None:
         data['hour'] = data.click_time.astype(int) // (10 ** 9 * 60* config_scheme_to_use.add_n_min_as_hour)
+
 
     return data
 
@@ -1167,6 +1168,17 @@ def get_val_df():
     elif config_scheme_to_use.val_filter and \
                     config_scheme_to_use.val_filter['filter_type'] == 'random_sample':
         val = val.sample(frac = config_scheme_to_use.val_filter['frac'])
+
+    if config_scheme_to_use.val_filter_test_hours:
+        with timer('filter val according to test hours', logging.INFO):
+            logger.debug('len before val test hour filer: %d', len(val))
+            logger.debug('hours before val test hour filer: %s', val.groupby(by=val["click_time"].dt.hour)['app'].count().to_string())
+
+            val = val[val["click_time"].dt.hour.isin(most_freq_hours_in_test_data)]
+            logger.debug('len after val test hour filer: %d', len(val))
+            logger.debug('hours after val test hour filer: %s', val.groupby(by=val["click_time"].dt.hour)['app'].count().to_string())
+
+
     gc.collect()
     return val
 
@@ -1331,6 +1343,7 @@ def get_input_data(load_test_supplement):
 
     with timer('gen categorical features'):
         combined_df = gen_categorical_features(combined_df)
+
 
     neg_sample_indice, combined_df, combined_df_before_sample, train_len, val_len, test_len = \
         neg_sample_df(combined_df, train_len, val_len, test_len)

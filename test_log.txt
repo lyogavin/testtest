@@ -1595,10 +1595,14 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
  ('os', 236),
  ('channel', 285)]
     32. 18+predict
-        submitting
+        pub LB: 0.9782801, private LB: 0.9782049
     33. 27+predict
+        pub LB: 0.9784981, private LB: 0.9784750
     34. 26+predict
+        pub LB: 0.9782771, private LB: 0.9784233
     35. 30+predict
+        running
+    36. 18 + val test hours filter
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
