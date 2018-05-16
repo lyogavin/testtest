@@ -1551,6 +1551,12 @@ train_config_133_33.add_features_list = add_features_list_33
 train_config_133_33.lgbm_params = lgbm_params_pub_entire_set_no_early_iter_205
 train_config_133_33.submit_prediction = True
 
+train_config_133_34 = copy.deepcopy(train_config_133_32)
+train_config_133_34.add_features_list = add_features_list_34
+train_config_133_34.lgbm_params = lgbm_params_pub_entire_set_no_early_iter_178
+train_config_133_34.submit_prediction = True
+
+
 debug = False
 
 def use_config_scheme(str):
@@ -1575,4 +1581,4 @@ def use_config_scheme(str):
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_33')
+config_scheme_to_use = use_config_scheme('train_config_133_34')

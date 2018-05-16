@@ -1459,8 +1459,10 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
 
             if config_scheme_to_use.submit_prediction:
                 with timer('submitting '+ predict_filename, logging.INFO):
-                    submit_ret = os.system('kaggle competitions submit -c ./%s %s' % \
-                                           (predict_filename, config_scheme_to_use.config_name))
+                    cmd = 'kaggle competitions submit -c ./%s -m \"%s\"' % \
+                                           (predict_filename, config_scheme_to_use.config_name)
+                    logger.info('running %s', cmd)
+                    submit_ret = os.system(cmd)
                     if submit_ret != 0:
                         logger.info('submitting error, return value: %d', submit_ret)
                     else:

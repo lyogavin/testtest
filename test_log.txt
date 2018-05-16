@@ -1597,6 +1597,7 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     32. 18+predict
         submitting
     33. 27+predict
+    34. 26+predict
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
