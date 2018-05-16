@@ -1441,6 +1441,7 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
     if dump_data_for_validation:
         logger.info('train dump_data_for_validation:\n %s', train.sample(100, random_state=888).to_string())
         logger.info('val dump_data_for_validation:\n %s', val.sample(100, random_state=888).to_string())
+        exit(0)
 
     with timer('train lgbm model...', logging.INFO):
         lgb_model, val_prediction, predictors, importances, val_auc = train_lgbm(train, val, new_features, False)
