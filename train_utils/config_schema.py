@@ -75,7 +75,8 @@ class ConfigScheme:
                  use_neg_sample = False,
                  neg_sample_seed=888,
                  use_scvr_cache_file = False,
-                 ft_search_op = 'smoothcvr'
+                 ft_search_op = 'smoothcvr',
+                 submit_prediction = False
                  ):
         self.predict = predict
         self.train = train
@@ -142,6 +143,7 @@ class ConfigScheme:
         self.neg_sample_seed = neg_sample_seed
         self.use_scvr_cache_file = use_scvr_cache_file
         self.ft_search_op = ft_search_op
+        self.submit_prediction = submit_prediction
 
 
 
@@ -1546,7 +1548,8 @@ train_config_133_32.lgbm_params = lgbm_params_pub_entire_set_no_early_iter_153
 
 train_config_133_33 = copy.deepcopy(train_config_133_32)
 train_config_133_33.add_features_list = add_features_list_33
-
+train_config_133_33.lgbm_params = lgbm_params_pub_entire_set_no_early_iter_205
+train_config_133_33.submit_prediction = True
 
 debug = False
 

@@ -1457,6 +1457,14 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
             with timer('generating predict file ' + predict_filename, logging.INFO):
                 submission.to_csv(predict_filename, index=False)
 
+            if config_scheme_to_use.submit_prediction:
+                with timer('submitting '+ predict_filename, logging.INFO):
+                    submit_ret = os.system('kaggle competitions submit -c ./%s %s' % \
+                                           (predict_filename, config_scheme_to_use.config_name))
+                    if submit_ret != 0:
+                        logger.info('submitting error, return value: %d', submit_ret)
+                    else:
+                        logger.info('submitting succeeded.')
             logger.debug("All done...")
 
     if gen_fts:
