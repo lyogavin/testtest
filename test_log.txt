@@ -1663,6 +1663,7 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
  ('ip_app_device_os_is_attributednextclick', 123),
  ('os', 153),
  ('channel', 233)]
+    39.~    test randomness of LGBM
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE

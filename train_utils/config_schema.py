@@ -78,7 +78,8 @@ class ConfigScheme:
                  ft_search_op = 'smoothcvr',
                  submit_prediction = False,
                  val_filter_test_hours = False,
-                 lgbm_seed = None
+                 lgbm_seed = None,
+                 lgbm_seed_test_list = None
                  ):
         self.predict = predict
         self.train = train
@@ -148,6 +149,7 @@ class ConfigScheme:
         self.submit_prediction = submit_prediction
         self.val_filter_test_hours = val_filter_test_hours
         self.lgbm_seed = lgbm_seed
+        self.lgbm_seed_test_list = lgbm_seed_test_list
 
 
 
@@ -1585,6 +1587,11 @@ train_config_133_40.lgbm_seed = 555
 
 train_config_133_41 = copy.deepcopy(train_config_133_38)
 train_config_133_41.lgbm_seed = 333
+
+train_config_133_42 = copy.deepcopy(train_config_133_38)
+train_config_133_42.lgbm_seed_test_list = [999, 555, 333]
+train_config_133_42.lgbm_params.update({'subsample': 0.9})
+
 
 debug = False
 
