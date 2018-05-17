@@ -1673,7 +1673,16 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         trainning@seed of 555 done, best iter num: 188, best train auc: , val auc: 0.979393
         trainning@seed of 333 done, best iter num: 156, best train auc: , val auc: 0.979210
     43. test increase sub sample to 0.95
+        trainning@seed of 999 done, best iter num: 163, best train auc: , val auc: 0.979290
+        trainning@seed of 555 done, best iter num: 162, best train auc: , val auc: 0.979409
+        trainning@seed of 333 done, best iter num: 204, best train auc: , val auc: 0.979517
     44. test increase colsample_bytree to 0.95
+        trainning@seed of 999 done, best iter num: 156, best train auc: , val auc: 0.979372
+        trainning@seed of 555 done, best iter num: 151, best train auc: , val auc: 0.979196
+        trainning@seed of 333 done, best iter num: 184, best train auc: , val auc: 0.979359
+    45. sub sample 0.95 + colsample_bytree to 0.95
+
+    46. sub sample 1.0 + colsample_bytree to 1.0
 
 
 to do test:
