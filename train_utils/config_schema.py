@@ -1593,6 +1593,16 @@ train_config_133_42.lgbm_seed_test_list = [999, 555, 333]
 train_config_133_42.lgbm_params.update({'subsample': 0.9})
 
 
+train_config_133_43 = copy.deepcopy(train_config_133_38)
+train_config_133_43.lgbm_seed_test_list = [999, 555, 333]
+train_config_133_43.lgbm_params.update({'subsample': 0.95})
+
+
+train_config_133_44 = copy.deepcopy(train_config_133_38)
+train_config_133_44.lgbm_seed_test_list = [999, 555, 333]
+train_config_133_44.lgbm_params.update({'subsample': 0.9, 'colsample_bytree':0.95})
+
+
 debug = False
 
 def use_config_scheme(str):

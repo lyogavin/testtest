@@ -1630,7 +1630,8 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
  ('os', 206),
  ('channel', 289)]
     rerun1: 187, best train auc: , val auc: 0.978922
-    rerun2: running
+    rerun2: [187]	valid's auc: 0.978922
+
     37. 26+ val test hour filters
     SIMILAR BUGS AS 34. JUST NEED RERUN.
         115, best train auc: 0.984899, val auc: 0.978694
@@ -1663,7 +1664,17 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
  ('ip_app_device_os_is_attributednextclick', 123),
  ('os', 153),
  ('channel', 233)]
-    39.~    test randomness of LGBM
+    39.~41    test randomness of LGBM
+        39 999:[117]	valid's auc: 0.978855
+        40 555:[161]	valid's auc: 0.978944
+        41 333:[146]	valid's auc: 0.978841
+    42. test increase subsample to 0.9
+        trainning@seed of 999 done, best iter num: 179, best train auc: , val auc: 0.979341
+        trainning@seed of 555 done, best iter num: 188, best train auc: , val auc: 0.979393
+        trainning@seed of 333 done, best iter num: 156, best train auc: , val auc: 0.979210
+    43. test increase sub sample to 0.95
+    44. test increase colsample_bytree to 0.95
+
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
