@@ -1596,13 +1596,24 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
  ('channel', 285)]
     32. 18+predict
         pub LB: 0.9782801, private LB: 0.9782049
+        rerun after fix features order:
+        TODO:
     33. 27+predict
         pub LB: 0.9784981, private LB: 0.9784750
+        rerun after fix features order:
+        TODO:
+
     34. 26+predict
         pub LB: 0.9782771, private LB: 0.9784233
         BUG~!!, NEED RERUN, THIS IS ACTUALLY 18 + 174 iters. JUST MORE ITERS, NO SCVR FTS.
+        rerun after fix features order:
+        TODO:
+
     35. 30+predict
         pub LB: 0.9779853, private LB: 0.9781960
+        rerun after fix features order:
+        TODO:
+
     36. 18 + val test hours filter
         171, best train auc: 0.985517, val auc: 0.978959
         [('ip_is_attributedcount', 16),

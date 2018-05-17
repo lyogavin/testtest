@@ -86,8 +86,15 @@ lgbm_params_pub_entire_set.update({
         'min_split_gain': 0,  # lambda_l1, lambda_l2 and min_gain_to_split to regularization
         'reg_alpha': 0,  # L1 regularization term on weights
         'reg_lambda': 0,  # L2 regularization term on weights
-        'nthread': 24, # should be equal to REAL cores:http://xgboost.readthedocs.io/en/latest/how_to/external_memory.html
-        'verbose': 0
+        'nthread': 4, # should be equal to REAL cores:http://xgboost.readthedocs.io/en/latest/how_to/external_memory.html
+        'verbose': 0,
+        #'early_stopping_round': 20,
+
+        #'drop_seed':666,
+        #'random_state':666, #[LightGBM] [Warning] Unknown parameter: random_state
+        #'feature_fraction_seed': 666,
+        #'bagging_seed': 666, # alias=bagging_fraction_seed
+        #'data_random_seed': 666 # random seed for data partition in parallel learning (not include feature parallel)
 })
 
 lgbm_params_pub_entire_set_no_early_iter_153 = dict(lgbm_params_pub_entire_set)

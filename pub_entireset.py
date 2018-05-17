@@ -398,8 +398,8 @@ if __name__ == '__main__':
     val_size=2500000
     frm=0 #nrows-75000000
     
-    debug=False
-    # debug=True
+    #debug=False
+    debug=True
     if debug:
         print('*** Debug: this is a test run for debugging purposes ***')
         frm=0

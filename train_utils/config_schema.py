@@ -1596,8 +1596,16 @@ def use_config_scheme(str):
         ret.use_ft_cache_from = 'cache' #ret.config_name
     logger.info('config values: %s', pprint.pformat(vars(ret)))
 
+    try:
+        os.mkdir('./config_backup')
+    except:
+        None
 
+    fname = './config_backup/%s' % str
+    with open(fname,'w') as f:
+        f.write(pprint.pformat(vars(ret)))
+        logger.info('config dumped to %s', fname)
     return ret
 
 
-config_scheme_to_use = use_config_scheme('train_config_133_36')
+#config_scheme_to_use = use_config_scheme('train_config_133_36')

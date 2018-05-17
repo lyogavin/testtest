@@ -7,6 +7,8 @@
 # For example, here's several helpful packages to load in 
 import sys
 import copy
+import lightgbm as lgb
+
 from scipy import special as sp
 from multiprocessing import Process
 import multiprocessing as mp
@@ -25,7 +27,6 @@ import mmh3
 import pickle
 import os, psutil
 from sklearn.model_selection import train_test_split
-import lightgbm as lgb
 import sys
 import gc
 import csv
@@ -42,11 +43,29 @@ import itertools
 from train_utils.config_schema import *
 from train_utils.utils import *
 import logging
-
+from optparse import OptionParser
 logger = getLogger()
 
 
+parser = OptionParser()
+parser.add_option("-c", "--config", dest="config_theme_name", action="store",
+                  help="config theme name to use", metavar="CONFIGTHEME", default=None)
+parser.add_option("-u", "--unittest",
+                  action="store_true", dest="unittest",
+                  help="enable unit test mode", default=False)
+(options, args) = parser.parse_args()
+
+if options.config_theme_name is None:
+    parser.error("-c/--config required, see -h or --help")
+
+config_scheme_to_use = use_config_scheme(options.config_theme_name)
+
+if options.unittest:
+    logger.info('running unit test mode....')
+
 matplotlib.use('Agg')
+
+
 
 
 def get_dated_filename(filename):
@@ -65,13 +84,7 @@ def get_dated_filename(filename):
 
 dump_train_data = False
 
-use_sample = False
-
-
-if len(sys.argv) > 1 and sys.argv[1] == 'use_sample':
-    use_sample = True
-
-if use_sample:
+if options.unittest:
     neg_sample_rate = 2
     logger.setLevel(logging.DEBUG)
 
@@ -236,7 +249,7 @@ def load_ft_cache_file(group_by_cols, op, ft_cache_prefix):
     with timer('preloading ft file for:' + feature_name_added, logging.DEBUG):
 
         ft_cache_file_name = config_scheme_to_use.use_ft_cache_from + "_" + ft_cache_prefix + '_' + feature_name_added
-        ft_cache_file_name = ft_cache_file_name + '_sample' if use_sample else ft_cache_file_name
+        ft_cache_file_name = ft_cache_file_name + '_sample' if options.unittest else ft_cache_file_name
         ft_cache_file_name = ft_cache_file_name + '.pickle.bz2'
         ft_cache_data = pd.read_pickle(ft_cache_path + ft_cache_file_name,
                                             #dtype='float32',
@@ -265,7 +278,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
     feature_name_added = '_'.join(group_by_cols) + op
 
     ft_cache_file_name = config_scheme_to_use.use_ft_cache_from + "_" + ft_cache_prefix + '_' + feature_name_added
-    ft_cache_file_name = ft_cache_file_name + '_sample' if use_sample else ft_cache_file_name
+    ft_cache_file_name = ft_cache_file_name + '_sample' if options.unittest else ft_cache_file_name
     ft_cache_file_name = ft_cache_file_name + '.pickle.bz2'
 
     loaded_from_cache = False
@@ -579,14 +592,14 @@ def clear_smoothcvr_cache():
 
 def gen_smoothcvr_cache(add_features_list, frm, to):
     with timer('loading train df:'):
-        train = pd.read_csv(path_train_sample if use_sample else path_train,
+        train = pd.read_csv(path_train_sample if options.unittest else path_train,
                             dtype=dtypes,
                             header=0,
                             usecols=train_cols,
                             skiprows=range(1, frm) \
-                                if not use_sample and frm is not None else None,
+                                if not options.unittest and frm is not None else None,
                             nrows=to - frm \
-                                if not use_sample and frm is not None else None,
+                                if not options.unittest and frm is not None else None,
                             parse_dates=["click_time"])
         if config_scheme_to_use.use_scvr_cache_file:
             checksum = get_checksum_from_df(train)
@@ -607,7 +620,7 @@ def gen_smoothcvr_cache(add_features_list, frm, to):
 
         if config_scheme_to_use.use_scvr_cache_file:
             ft_cache_file_name = "scvr_" + str(checksum) + '_' + feature_name_added
-            ft_cache_file_name = ft_cache_file_name + '_sample' if use_sample else ft_cache_file_name
+            ft_cache_file_name = ft_cache_file_name + '_sample' if options.unittest else ft_cache_file_name
             ft_cache_file_name = ft_cache_file_name + '.pickle'
             logger.debug('checking %s', ft_cache_path + ft_cache_file_name)
             if os.path.exists((ft_cache_path + ft_cache_file_name)):
@@ -985,6 +998,11 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
     predictors_to_train = [predictors1]
 
     for predictors in predictors_to_train:
+        # important to make sure the order is the same to ensure same training result
+        # when feature extraction in multi-thread
+        predictors.sort()
+        categorical.sort()
+
         if dump_train_data:
             train[predictors].to_csv("train_ft_dump.csv.bz2", compression='bz2',index=False)
             val[predictors].to_csv("val_ft_dump.csv.bz2", compression='bz2',index=False)
@@ -1018,12 +1036,14 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
 
 
 
-        dtrain = lgb.Dataset(train[predictors].values.astype(np.float32), label=train[target].values,
+        dtrain = lgb.Dataset(train[predictors].values.astype(np.float32),
+                             label=train[target].values,
                              feature_name=predictors,
                              categorical_feature=categorical,
                              weight=train_weights
                              )
-        dvalid = lgb.Dataset(val[predictors].values.astype(np.float32), label=val[target].values,
+        dvalid = lgb.Dataset(val[predictors].values.astype(np.float32),
+                             label=val[target].values,
                              feature_name=predictors,
                              categorical_feature=categorical,
                              weight=val_weights
@@ -1032,10 +1052,19 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
         evals_results = {}
         logger.debug("Training the model...")
 
+
+        #to_dump = train[predictors]
+        #to_dump.append(val[predictors])
+        #to_dump.to_csv('/tmp/jjj', index=False)
+        #exit(0)
+
+
         lgb_model = lgb.train(config_scheme_to_use.lgbm_params,
                               dtrain,
-                              valid_sets=[dtrain, dvalid],
-                              valid_names=['train', 'valid'],
+                              #valid_sets=[dtrain, dvalid],
+                              #valid_names=['train', 'valid'],
+                              valid_sets=[dvalid],
+                              valid_names=['valid'],
                               evals_result=evals_results,
                               num_boost_round=1000,
                               early_stopping_rounds=30,
@@ -1054,9 +1083,11 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
         # Feature importances:
         logger.debug('Feature importances: %s', list(lgb_model.feature_importance()))
 
-        logger.info('trainning done, best iter num: %d, best train auc: %f, val auc: %f',
+        logger.info(
+                    'trainning done, best iter num: %d, best train auc: , val auc: %f',
+                    #'trainning done, best iter num: %d, best train auc: %f, val auc: %f',
                     lgb_model.best_iteration,
-                    lgb_model.best_score['train']['auc'],
+                    #lgb_model.best_score['train']['auc'],
                     lgb_model.best_score['valid']['auc']
                     )
         try:
@@ -1105,9 +1136,9 @@ def get_train_df():
     train = None
     if config_scheme_to_use.train_from is not None and isinstance(config_scheme_to_use.train_from, list):
         for data_from, data_to in \
-                zip(sample_from_list, sample_to_list) if use_sample else \
+                zip(sample_from_list, sample_to_list) if options.unittest else \
                 zip(config_scheme_to_use.train_from, config_scheme_to_use.train_to):
-            train0 = pd.read_csv(path_train_sample if use_sample else path_train,
+            train0 = pd.read_csv(path_train_sample if options.unittest else path_train,
                                 dtype=dtypes,
                                 header=0,
                                 usecols=train_cols,
@@ -1121,14 +1152,14 @@ def get_train_df():
 
             del train0
     else:
-        train = pd.read_csv(path_train_sample if use_sample else path_train,
+        train = pd.read_csv(path_train_sample if options.unittest else path_train,
                             dtype=dtypes,
                             header=0,
                             usecols=train_cols,
                             skiprows=range(1, config_scheme_to_use.train_from) \
-                                if not use_sample and config_scheme_to_use.train_from is not None else None,
+                                if not options.unittest and config_scheme_to_use.train_from is not None else None,
                             nrows=config_scheme_to_use.train_to - config_scheme_to_use.train_from \
-                                if not use_sample and config_scheme_to_use.train_from is not None else None,
+                                if not options.unittest and config_scheme_to_use.train_from is not None else None,
                             parse_dates=["click_time"])
 
     logger.debug('mem after loaded train data: %s', cpuStats())
@@ -1147,14 +1178,14 @@ def get_train_df():
     return train
 
 def get_val_df():
-    val = pd.read_csv(path_train_sample if use_sample else path_train,
+    val = pd.read_csv(path_train_sample if options.unittest else path_train,
                         dtype=dtypes,
                         header=0,
                         usecols=train_cols,
                         skiprows=range(1, config_scheme_to_use.val_from) \
-                            if not use_sample and config_scheme_to_use.val_from is not None else None,
+                            if not options.unittest and config_scheme_to_use.val_from is not None else None,
                         nrows=config_scheme_to_use.val_to - config_scheme_to_use.val_from \
-                            if not use_sample and config_scheme_to_use.val_from is not None else None,
+                            if not options.unittest and config_scheme_to_use.val_from is not None else None,
                         parse_dates=["click_time"])
 
     logger.debug('mem after loaded val data: %s', cpuStats())
@@ -1183,7 +1214,7 @@ def get_val_df():
     return val
 
 def get_test_df():
-    test = pd.read_csv(path_test_sample if use_sample else path_test,
+    test = pd.read_csv(path_test_sample if options.unittest else path_test,
                        dtype=dtypes,
                        header=0,
                        usecols=test_cols,
@@ -1191,14 +1222,14 @@ def get_test_df():
     test['is_attributed'] = 0
     return test
 def get_stacking_val_df():
-    val = pd.read_csv(path_train_sample if use_sample else path_train,
+    val = pd.read_csv(path_train_sample if options.unittest else path_train,
                         dtype=dtypes,
                         header=0,
                         usecols=train_cols,
                         skiprows=range(1, config_scheme_to_use.lgbm_stacking_val_from) \
-                            if not use_sample and config_scheme_to_use.lgbm_stacking_val_from is not None else None,
+                            if not options.unittest and config_scheme_to_use.lgbm_stacking_val_from is not None else None,
                         nrows=config_scheme_to_use.lgbm_stacking_val_to - config_scheme_to_use.lgbm_stacking_val_from \
-                            if not use_sample and config_scheme_to_use.lgbm_stacking_val_from is not None else None,
+                            if not options.unittest and config_scheme_to_use.lgbm_stacking_val_from is not None else None,
                         parse_dates=["click_time"])
 
     logger.debug('mem after loaded stacking val data: %s', cpuStats())
@@ -1212,7 +1243,7 @@ def get_test_supplement_df():
                        header=0,
                        skiprows=range(1,54583762),
                        usecols=test_cols,
-                       nrows=1000 if use_sample else None,
+                       nrows=1000 if options.unittest else None,
                        parse_dates=["click_time"])
     test_supplement['is_attributed'] = 0
     return test_supplement
@@ -1254,7 +1285,7 @@ def get_checksum_from_df(df):
     #df.apply(lambda x: m.update(x.to_string().encode('utf8')), axis = 1)
     #m.update(df.to_string().encode('utf8'))
     #ret = mmh3.hash_from_buffer(df['click_time'].astype(str).get_values().copy(order='C'), signed = False)
-    if use_sample:
+    if options.unittest:
         ret = mmh3.hash_from_buffer(df['click_time'].to_string(), signed = False)
     else:
         ret = mmh3.hash_from_buffer(df['click_time'].sample(frac=0.1, random_state=88).to_string(), signed = False)
@@ -1326,6 +1357,9 @@ def neg_sample_df(combined_df, train_len, val_len, test_len):
         #logger.debug('len after sampel:',len(combined_df_before_sample))
         #logger.debug('len after sampel:',len(combined_df))
         train_len = len(combined_df) - test_len - val_len
+    else:
+        combined_df_before_sample = combined_df.copy(True)
+
     return neg_sample_indice, combined_df, combined_df_before_sample, train_len, val_len, test_len
 
 def get_input_data(load_test_supplement):
@@ -1383,7 +1417,7 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
                                            df_before_sample = combined_df_before_sample)
 
     data_validation = False
-    if data_validation and use_sample:
+    if data_validation and options.unittest:
         do_data_validation(combined_df, combined_df_before_sample, neg_sample_indice)
     #test
     #logger.debug('sample:',combined_df.sample(10,random_state=888).to_string())
@@ -1439,8 +1473,12 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
 
     dump_data_for_validation = False
     if dump_data_for_validation:
-        logger.info('train dump_data_for_validation:\n %s', train.sample(100, random_state=888).to_string())
-        logger.info('val dump_data_for_validation:\n %s', val.sample(100, random_state=888).to_string())
+        to_dump = train.sample(100, random_state=666)
+        to_dump.append(val.sample(100, random_state=666))
+        to_dump.to_csv('/tmp/dump_for_validation.csv', index=False)
+        logger.info('/tmp/dump_for_validation.csv gened')
+        #logger.info('train dump_data_for_validation:\n %s', train.sample(100, random_state=888).to_string())
+        #logger.info('val dump_data_for_validation:\n %s', val.sample(100, random_state=888).to_string())
         exit(0)
 
     with timer('train lgbm model...', logging.INFO):
