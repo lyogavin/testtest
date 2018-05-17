@@ -100,6 +100,7 @@ add_features_list_35 = \
     {'group': ['app','hour'], 'op': 'mean'}, #app_hourmean
     ]
 
+
 add_features_list_search_28 = [
     {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
 

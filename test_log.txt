@@ -1681,9 +1681,16 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         trainning@seed of 555 done, best iter num: 151, best train auc: , val auc: 0.979196
         trainning@seed of 333 done, best iter num: 184, best train auc: , val auc: 0.979359
     45. sub sample 0.95 + colsample_bytree to 0.95
+        trainning@seed of 999 done, best iter num: 158, best train auc: , val auc: 0.979384
+        trainning@seed of 555 done, best iter num: 207, best train auc: , val auc: 0.979523
+        trainning@seed of 333 done, best iter num: 184, best train auc: , val auc: 0.979399
 
     46. sub sample 1.0 + colsample_bytree to 1.0
-
+        trainning@seed of 999/555/333 done, all: best iter num: 185, best train auc: , val auc: 0.979527
+    47. 18 + 1.0,1.0:
+    48. 27 + 1.0,1.0:
+    49. 26 + 1.0,1.0:
+    50. 30 + 1.0,1.0:
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE

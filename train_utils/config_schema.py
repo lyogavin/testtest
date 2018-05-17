@@ -1615,6 +1615,30 @@ train_config_133_46.lgbm_seed_test_list = [999, 555, 333]
 train_config_133_46.lgbm_params.update({'subsample': 1.0, 'colsample_bytree':1.0})
 
 
+train_config_133_47 = copy.deepcopy(train_config_133_18)
+train_config_133_47.val_filter_test_hours = True
+train_config_133_47.lgbm_params.update({'subsample': 1.0, 'colsample_bytree':1.0})
+
+
+train_config_133_48 = copy.deepcopy(train_config_133_18)
+train_config_133_48.val_filter_test_hours = True
+train_config_133_48.lgbm_params.update({'subsample': 1.0, 'colsample_bytree':1.0})
+train_config_133_48.add_features_list = add_features_list_33
+
+
+train_config_133_49 = copy.deepcopy(train_config_133_18)
+train_config_133_49.val_filter_test_hours = True
+train_config_133_49.lgbm_params.update({'subsample': 1.0, 'colsample_bytree':1.0})
+train_config_133_49.add_features_list = add_features_list_34
+train_config_133_49.train_smoothcvr_cache_from = 0
+train_config_133_49.train_smoothcvr_cache_to = id_7_0am
+train_config_133_49.val_smoothcvr_cache_from = id_7_0am
+train_config_133_49.val_smoothcvr_cache_to = id_9_0am
+
+train_config_133_50 = copy.deepcopy(train_config_133_18)
+train_config_133_50.val_filter_test_hours = True
+train_config_133_50.lgbm_params.update({'subsample': 1.0, 'colsample_bytree':1.0})
+train_config_133_50.add_features_list = add_features_list_35
 
 debug = False
 
