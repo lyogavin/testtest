@@ -77,7 +77,8 @@ class ConfigScheme:
                  use_scvr_cache_file = False,
                  ft_search_op = 'smoothcvr',
                  submit_prediction = False,
-                 val_filter_test_hours = False
+                 val_filter_test_hours = False,
+                 lgbm_seed = None
                  ):
         self.predict = predict
         self.train = train
@@ -146,6 +147,7 @@ class ConfigScheme:
         self.ft_search_op = ft_search_op
         self.submit_prediction = submit_prediction
         self.val_filter_test_hours = val_filter_test_hours
+        self.lgbm_seed = lgbm_seed
 
 
 
@@ -1575,6 +1577,14 @@ train_config_133_38 = copy.deepcopy(train_config_133_18)
 train_config_133_38.add_features_list = add_features_list_33
 train_config_133_38.val_filter_test_hours = True
 
+train_config_133_39 = copy.deepcopy(train_config_133_38)
+train_config_133_39.lgbm_seed = 999
+
+train_config_133_40 = copy.deepcopy(train_config_133_38)
+train_config_133_40.lgbm_seed = 555
+
+train_config_133_41 = copy.deepcopy(train_config_133_38)
+train_config_133_41.lgbm_seed = 333
 
 debug = False
 
@@ -1592,8 +1602,20 @@ def use_config_scheme(str):
 
     logger.info('using config var name and test log: %s', str)
     ret.config_name = str
+
+    # detailed config item handling.....
+    if ret.lgbm_seed is not None:
+        ret.lgbm_params.update({
+            'drop_seed':ret.lgbm_seed,
+            'feature_fraction_seed': ret.lgbm_seed,
+            'bagging_seed': ret.lgbm_seed, # alias=bagging_fraction_seed
+            'data_random_seed': ret.lgbm_seed # random seed for data partition in parallel learning (not include feature parallel)
+        })
     if ret.use_ft_cache_from is None:
         ret.use_ft_cache_from = 'cache' #ret.config_name
+
+
+
     logger.info('config values: %s', pprint.pformat(vars(ret)))
 
     try:
@@ -1605,6 +1627,7 @@ def use_config_scheme(str):
     with open(fname,'w') as f:
         f.write(pprint.pformat(vars(ret)))
         logger.info('config dumped to %s', fname)
+
     return ret
 
 

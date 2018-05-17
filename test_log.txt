@@ -1629,6 +1629,8 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
  ('ip_app_device_os_is_attributednextclick', 149),
  ('os', 206),
  ('channel', 289)]
+    rerun1: 187, best train auc: , val auc: 0.978922
+    rerun2: running
     37. 26+ val test hour filters
     SIMILAR BUGS AS 34. JUST NEED RERUN.
         115, best train auc: 0.984899, val auc: 0.978694
