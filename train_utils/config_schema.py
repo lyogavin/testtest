@@ -1732,6 +1732,15 @@ train_config_133_58.lgbm_params = [
     lgbm_params_pub_entire_set_test_early_stop_400
 ]
 
+train_config_133_59 = copy.deepcopy(train_config_133_55)
+train_config_133_59.lgbm_params = [
+    lgbm_params_pub_entire_set_new_test_1,
+    lgbm_params_pub_entire_set_new_test_2,
+    lgbm_params_pub_entire_set_new_test_3,
+    lgbm_params_pub_entire_set_new_test_4,
+    lgbm_params_pub_entire_set_new_test_5,
+]
+
 debug = False
 
 def use_config_scheme(str):

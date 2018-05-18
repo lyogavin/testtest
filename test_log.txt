@@ -1707,7 +1707,20 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     55. ft search with new setup
         74, best train auc: , val auc: 0.977986
     56. 55 + predict
-    58. try different lgbm params to make model don't degrade with more fts
+    58. try different lgbm params to make model don't degrade with more fts:
+        colsample_bytree': 0.7, sub_sample 0.9, depth 5, leaves 9, scale 99, early 50: 275, best train auc: , val auc: 0.979687
+
+        0.9, 0.7, 3, 7, 200, early 200: 158, best train auc: , val auc: 0.977590
+        0.9, 0.7, 5, 9, 99, 20: 275, best train auc: , val auc: 0.979687,
+        0.9, 0.7, 5, 9, 50, 20: 201, best train auc: , val auc: 0.979672,
+        0.9, 0.7, 5, 9, 90, 20: 261, best train auc: , val auc: 0.979606
+        0.9, 0.7, 5, 9, 99, 400: 343, best train auc: , val auc: 0.979703
+    59. try params:
+        1.0, 1.0, 5, 9, 99, 50:
+        0.9, 0.7, 6, 9, 99, 50:
+        0.9, 0.7, 5, 10, 99, 50:
+        0.9, 0.7, 6, 10, 99, 50:
+        0.9, 0.7, 5, 9, 200, 50:
 
 
 to do test:
