@@ -1041,14 +1041,16 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                              feature_name=predictors,
                              categorical_feature=categorical,
                              weight=train_weights,
-                             free_raw_data=config_scheme_to_use.lgbm_seed_test_list is None
+                             free_raw_data=(config_scheme_to_use.lgbm_seed_test_list is None) and \
+                                           (not isinstance(config_scheme_to_use.lgbm_params, list))
                              )
         dvalid = lgb.Dataset(val[predictors].values.astype(np.float32),
                              label=val[target].values,
                              feature_name=predictors,
                              categorical_feature=categorical,
                              weight=val_weights,
-                             free_raw_data=config_scheme_to_use.lgbm_seed_test_list is None
+                             free_raw_data=(config_scheme_to_use.lgbm_seed_test_list is None) and \
+                                           (not isinstance(config_scheme_to_use.lgbm_params, list))
                              )
 
         evals_results = {}
@@ -1084,6 +1086,29 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                 logger.info(
                     'trainning@seed of %d done, best iter num: %d, best train auc: , val auc: %f',
                     lgbm_seed_test,
+                    # 'trainning done, best iter num: %d, best train auc: %f, val auc: %f',
+                    lgb_model.best_iteration,
+                    # lgb_model.best_score['train']['auc'],
+                    lgb_model.best_score['valid']['auc']
+                )
+
+        elif isinstance(config_scheme_to_use.lgbm_params,list):
+
+            for params in config_scheme_to_use.lgbm_params:
+                lgb_model = lgb.train(params,
+                                  dtrain,
+                                  #valid_sets=[dtrain, dvalid],
+                                  #valid_names=['train', 'valid'],
+                                  valid_sets=[dvalid],
+                                  valid_names=['valid'],
+                                  evals_result=evals_results,
+                                  num_boost_round=1000,
+                                  early_stopping_rounds=30,
+                                  verbose_eval=10,
+                                  feval=None)
+                logger.info(
+                    'trainning@params of %s done, best iter num: %d, best train auc: , val auc: %f',
+                    pformat(params),
                     # 'trainning done, best iter num: %d, best train auc: %f, val auc: %f',
                     lgb_model.best_iteration,
                     # lgb_model.best_score['train']['auc'],

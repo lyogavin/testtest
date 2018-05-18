@@ -1721,6 +1721,17 @@ train_config_133_56.submit_prediction = True
 train_config_133_57 = copy.deepcopy(train_config_133_55)
 train_config_133_57.add_features_list = add_features_list_fts_search_reduced_according_55
 
+train_config_133_58 = copy.deepcopy(train_config_133_55)
+train_config_133_58.lgbm_params = [
+    lgbm_params_pub_entire_set_test_early_stop_50,
+    lgbm_params_pub_entire_set_test_early_stop_200,
+    lgbm_params_pub_entire_set_test_depth_5,
+    lgbm_params_pub_entire_set_test_depth_5_leave_9,
+    lgbm_params_pub_entire_set_test_scale_pos_50,
+    lgbm_params_pub_entire_set_test_scale_pos_90,
+    lgbm_params_pub_entire_set_test_early_stop_400
+]
+
 debug = False
 
 def use_config_scheme(str):

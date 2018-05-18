@@ -88,7 +88,7 @@ lgbm_params_pub_entire_set.update({
         'reg_lambda': 0,  # L2 regularization term on weights
         'nthread': 4, # should be equal to REAL cores:http://xgboost.readthedocs.io/en/latest/how_to/external_memory.html
         'verbose': 0,
-        'early_stopping_round': 50,
+        'early_stopping_round': 20,
 
         #'drop_seed':666,
         #'random_state':666, #[LightGBM] [Warning] Unknown parameter: random_state
@@ -270,3 +270,52 @@ new_lgbm_params1 = {
     'scale_pos_weight': 200.0
 }
 
+
+lgbm_params_pub_entire_set_test_early_stop_200 = dict(lgbm_params_pub_entire_set)
+lgbm_params_pub_entire_set_test_early_stop_200.update({
+        'boosting_type': 'gbdt',
+        'objective': 'binary',
+        'metric':'auc',
+        'learning_rate': 0.2, # 【consider using 0.1】
+        #'is_unbalance': 'true',  #because training data is unbalance (replaced with scale_pos_weight)
+        'scale_pos_weight': 200, # because training data is extremely unbalanced
+        'num_leaves': 7,  # we should let it be smaller than 2^(max_depth), default=31
+        'max_depth': 3,  # -1 means no limit, default=-1
+        'min_data_per_leaf': 100,  # alias=min_data_per_leaf , min_data, min_child_samples, default=20
+        'max_bin': 100,  # Number of bucketed bin for feature values,default=255
+        'subsample': 0.7,  # Subsample ratio of the training instance.default=1.0, alias=bagging_fraction
+        'subsample_freq': 1,  # k means will perform bagging at every k iteration, <=0 means no enable,alias=bagging_freq,default=0
+        'colsample_bytree': 0.9,  # Subsample ratio of columns when constructing each tree.alias:feature_fraction
+        'min_child_weight': 0,  # Minimum sum of instance weight(hessian) needed in a child(leaf),default=1e-3,Like min_data_in_leaf, it can be used to deal with over-fitting
+        'subsample_for_bin': 200000,  # Number of samples for constructing bin
+        'min_split_gain': 0,  # lambda_l1, lambda_l2 and min_gain_to_split to regularization
+        'reg_alpha': 0,  # L1 regularization term on weights
+        'reg_lambda': 0,  # L2 regularization term on weights
+        'nthread': 4, # should be equal to REAL cores:http://xgboost.readthedocs.io/en/latest/how_to/external_memory.html
+        'verbose': 0,
+        'early_stopping_round': 200,
+
+        #'drop_seed':666,
+        #'random_state':666, #[LightGBM] [Warning] Unknown parameter: random_state
+        #'feature_fraction_seed': 666,
+        #'bagging_seed': 666, # alias=bagging_fraction_seed
+        #'data_random_seed': 666 # random seed for data partition in parallel learning (not include feature parallel)
+})
+
+lgbm_params_pub_entire_set_test_early_stop_50 = dict(new_lgbm_params)
+lgbm_params_pub_entire_set_test_early_stop_50.update({'early_stopping_round': 50})
+
+lgbm_params_pub_entire_set_test_depth_5 = dict(new_lgbm_params)
+lgbm_params_pub_entire_set_test_depth_5.update({'max_depth': 5})
+
+lgbm_params_pub_entire_set_test_depth_5_leave_9 = dict(new_lgbm_params)
+lgbm_params_pub_entire_set_test_depth_5_leave_9.update({'max_depth': 5, 'num_leaves': 9})
+
+lgbm_params_pub_entire_set_test_scale_pos_50 = dict(new_lgbm_params)
+lgbm_params_pub_entire_set_test_scale_pos_50.update({'scale_pos_weight': 50})
+
+lgbm_params_pub_entire_set_test_scale_pos_90 = dict(new_lgbm_params)
+lgbm_params_pub_entire_set_test_scale_pos_90.update({'scale_pos_weight': 90})
+
+lgbm_params_pub_entire_set_test_early_stop_400 = dict(new_lgbm_params)
+lgbm_params_pub_entire_set_test_early_stop_400.update({'early_stopping_round': 400})
