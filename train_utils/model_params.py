@@ -71,7 +71,7 @@ lgbm_params_pub_entire_set.update({
         'boosting_type': 'gbdt',
         'objective': 'binary',
         'metric':'auc',
-        'learning_rate': 0.2, # 【consider using 0.1】
+        'learning_rate': 0.1, # 【consider using 0.1】
         #'is_unbalance': 'true',  #because training data is unbalance (replaced with scale_pos_weight)
         'scale_pos_weight': 200, # because training data is extremely unbalanced
         'num_leaves': 7,  # we should let it be smaller than 2^(max_depth), default=31
