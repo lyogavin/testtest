@@ -73,7 +73,7 @@ lgbm_params_pub_entire_set.update({
         'metric':'auc',
         'learning_rate': 0.2, # 【consider using 0.1】
         #'is_unbalance': 'true',  #because training data is unbalance (replaced with scale_pos_weight)
-        #'scale_pos_weight': 200, # because training data is extremely unbalanced
+        'scale_pos_weight': 200, # because training data is extremely unbalanced
         'num_leaves': 7,  # we should let it be smaller than 2^(max_depth), default=31
         'max_depth': 3,  # -1 means no limit, default=-1
         'min_data_per_leaf': 100,  # alias=min_data_per_leaf , min_data, min_child_samples, default=20
@@ -88,7 +88,7 @@ lgbm_params_pub_entire_set.update({
         'reg_lambda': 0,  # L2 regularization term on weights
         'nthread': 4, # should be equal to REAL cores:http://xgboost.readthedocs.io/en/latest/how_to/external_memory.html
         'verbose': 0,
-        #'early_stopping_round': 20,
+        'early_stopping_round': 50,
 
         #'drop_seed':666,
         #'random_state':666, #[LightGBM] [Warning] Unknown parameter: random_state
