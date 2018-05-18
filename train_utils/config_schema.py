@@ -1700,6 +1700,27 @@ train_config_133_55.lgbm_params = ({**train_config_133_55.lgbm_params,
                                     **{'subsample': 1.0, 'colsample_bytree':1.0}})
 train_config_133_55.add_features_list = add_features_list_fts_search
 
+
+train_config_133_56 = copy.deepcopy(train_config_133_18)
+train_config_133_56.val_filter_test_hours = True
+train_config_133_56.lgbm_params = ({**train_config_133_56.lgbm_params,
+                                    **{'subsample': 1.0,
+                                       'colsample_bytree':1.0,
+                                        'early_stopping_round': 74,
+                                        'num_boost_round': 74,
+                                    }})
+train_config_133_56.new_predict = True
+train_config_133_56.run_theme = 'train_and_predict'
+train_config_133_56.train_from = [id_8_4am,id_9_4am]
+train_config_133_56.train_to = [id_8_3pm,id_9_3pm]
+train_config_133_56.val_from = id_9_3pm
+train_config_133_56.val_to = id_9_3pm + 10000
+train_config_133_56.add_features_list = add_features_list_fts_search
+train_config_133_56.submit_prediction = True
+
+train_config_133_57 = copy.deepcopy(train_config_133_55)
+train_config_133_57.add_features_list = add_features_list_fts_search_reduced_according_55
+
 debug = False
 
 def use_config_scheme(str):

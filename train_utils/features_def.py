@@ -270,6 +270,32 @@ add_features_list_fts_search = [
 
 ]
 
+add_features_list_fts_search_reduced_according_55 = [
+
+    {'group': ['ip', 'app', 'device', 'os', 'is_attributed'], 'op': 'nextclick'},
+
+    {'group': ['app', 'channel', 'ip'], 'op': 'nunique'},
+    {'group': ['app', 'channel', 'hour', 'ip'], 'op': 'nunique'},
+
+    {'group': ['ip', 'channel'], 'op': 'nunique'},
+    {'group': ['ip', 'day','hour'], 'op': 'nunique'},
+    {'group': ['ip', 'app'], 'op': 'nunique'},
+    {'group': ['ip', 'device'], 'op': 'nunique'},
+    {'group': ['ip', 'device','os','app'], 'op': 'nunique'},
+    {'group': ['ip', 'device','os','app'], 'op': 'cumcount'},
+
+    {'group': ['ip','os'], 'op': 'cumcount'},
+
+    {'group': ['ip', 'app','channel','is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'device', 'os','app', 'is_attributed'], 'op': 'count'},
+    {'group': ['ip', 'day', 'hour', 'is_attributed'], 'op': 'count'},
+
+    {'group': ['ip', 'day', 'channel','hour'], 'op': 'var'},
+    {'group': ['ip', 'app', 'channel','hour'], 'op': 'mean'},
+
+]
+
+
 
 add_features_list_fts_search_reduced_gain = [
 
