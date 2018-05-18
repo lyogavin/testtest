@@ -1741,6 +1741,17 @@ train_config_133_59.lgbm_params = [
     lgbm_params_pub_entire_set_new_test_5,
 ]
 
+
+train_config_133_60 = copy.deepcopy(train_config_133_55)
+train_config_133_60.lgbm_params = [
+    lgbm_params_pub_entire_set_new_test_6,
+    lgbm_params_pub_entire_set_new_test_7,
+    lgbm_params_pub_entire_set_new_test_8,
+]
+train_config_133_61 = copy.deepcopy(train_config_133_55)
+train_config_133_61.lgbm_params = lgbm_params_pub_entire_set_new_test_3
+train_config_133_61.add_features_list = add_features_list_fts_search_reduced_split_add_counting_1
+
 debug = False
 
 def use_config_scheme(str):

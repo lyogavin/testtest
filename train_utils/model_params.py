@@ -336,3 +336,14 @@ lgbm_params_pub_entire_set_new_test_4.update({'num_leaves': 10, 'max_depth': 6})
 
 lgbm_params_pub_entire_set_new_test_5 = dict(new_lgbm_params)
 lgbm_params_pub_entire_set_new_test_5.update({'early_stopping_round': 200})
+
+lgbm_params_pub_entire_set_new_test_6 = dict(new_lgbm_params)
+lgbm_params_pub_entire_set_new_test_6.update({'scale_pos_weight': 200})
+
+lgbm_params_pub_entire_set_new_test_7 = dict(new_lgbm_params)
+lgbm_params_pub_entire_set_new_test_7.update({'early_stopping_round': 200,
+                                              'subsample': 1.0,
+                                              'colsample_bytree': 1.0})
+
+lgbm_params_pub_entire_set_new_test_8 = dict(new_lgbm_params)
+lgbm_params_pub_entire_set_new_test_8.update({'num_leaves': 20})
