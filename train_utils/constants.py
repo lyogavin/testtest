@@ -181,7 +181,7 @@ process_poll_size = 10
 
 import socket
 if socket.gethostname() == 'test':
-    process_poll_size = 1
+    process_poll_size = 4
 
 neg_sample_rate = 200
 #neg_sample_seed = 888
