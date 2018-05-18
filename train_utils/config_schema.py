@@ -1752,6 +1752,21 @@ train_config_133_61 = copy.deepcopy(train_config_133_55)
 train_config_133_61.lgbm_params = lgbm_params_pub_entire_set_new_test_3
 train_config_133_61.add_features_list = add_features_list_fts_search_reduced_split_add_counting_1
 
+
+train_config_133_62 = copy.deepcopy(train_config_133_61)
+train_config_133_62.new_predict = True
+train_config_133_62.train_from = [id_8_4am,id_9_4am]
+train_config_133_62.train_to = [id_8_3pm,id_9_3pm]
+train_config_133_62.val_from = id_9_3pm
+train_config_133_62.val_to = id_9_3pm + 10000
+train_config_133_62.submit_prediction = True
+
+train_config_133_63 = copy.deepcopy(train_config_133_62)
+train_config_133_63.add_features_list = add_features_list_fts_search
+
+
+
+
 debug = False
 
 def use_config_scheme(str):
