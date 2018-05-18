@@ -1590,45 +1590,54 @@ train_config_133_41.lgbm_seed = 333
 
 train_config_133_42 = copy.deepcopy(train_config_133_38)
 train_config_133_42.lgbm_seed_test_list = [999, 555, 333]
-train_config_133_42.lgbm_params.update({'subsample': 0.9})
+train_config_133_42.lgbm_params = ({**train_config_133_42.lgbm_params,
+                                    **{'subsample': 0.9}})
 
 
 train_config_133_43 = copy.deepcopy(train_config_133_38)
 train_config_133_43.lgbm_seed_test_list = [999, 555, 333]
-train_config_133_43.lgbm_params.update({'subsample': 0.95})
+train_config_133_43.lgbm_params = ({**train_config_133_43.lgbm_params,
+                                    **{'subsample': 0.95}})
+
 
 
 train_config_133_44 = copy.deepcopy(train_config_133_38)
 train_config_133_44.lgbm_seed_test_list = [999, 555, 333]
-train_config_133_44.lgbm_params.update({'subsample': 0.9, 'colsample_bytree':0.95})
+train_config_133_44.lgbm_params = ({**train_config_133_44.lgbm_params,
+                                    **{'subsample': 0.9, 'colsample_bytree':0.95}})
 
 
 train_config_133_45 = copy.deepcopy(train_config_133_38)
 train_config_133_45.lgbm_seed_test_list = [999, 555, 333]
-train_config_133_45.lgbm_params.update({'subsample': 0.95, 'colsample_bytree':0.95})
+train_config_133_45.lgbm_params = ({**train_config_133_45.lgbm_params,
+                                    **{'subsample': 0.95, 'colsample_bytree':0.95}})
 
 
 
 
 train_config_133_46 = copy.deepcopy(train_config_133_38)
 train_config_133_46.lgbm_seed_test_list = [999, 555, 333]
-train_config_133_46.lgbm_params.update({'subsample': 1.0, 'colsample_bytree':1.0})
+train_config_133_46.lgbm_params = ({**train_config_133_46.lgbm_params,
+                                    **{'subsample': 1.0, 'colsample_bytree':1.0}})
 
 
 train_config_133_47 = copy.deepcopy(train_config_133_18)
 train_config_133_47.val_filter_test_hours = True
-train_config_133_47.lgbm_params.update({'subsample': 1.0, 'colsample_bytree':1.0})
+train_config_133_47.lgbm_params = ({**train_config_133_47.lgbm_params,
+                                    **{'subsample': 1.0, 'colsample_bytree':1.0}})
 
 
 train_config_133_48 = copy.deepcopy(train_config_133_18)
 train_config_133_48.val_filter_test_hours = True
-train_config_133_48.lgbm_params.update({'subsample': 1.0, 'colsample_bytree':1.0})
+train_config_133_48.lgbm_params = ({**train_config_133_48.lgbm_params,
+                                    **{'subsample': 1.0, 'colsample_bytree':1.0}})
 train_config_133_48.add_features_list = add_features_list_33
 
 
 train_config_133_49 = copy.deepcopy(train_config_133_18)
 train_config_133_49.val_filter_test_hours = True
-train_config_133_49.lgbm_params.update({'subsample': 1.0, 'colsample_bytree':1.0})
+train_config_133_49.lgbm_params = ({**train_config_133_49.lgbm_params,
+                                    **{'subsample': 1.0, 'colsample_bytree':1.0}})
 train_config_133_49.add_features_list = add_features_list_34
 train_config_133_49.train_smoothcvr_cache_from = 0
 train_config_133_49.train_smoothcvr_cache_to = id_7_0am
@@ -1637,8 +1646,54 @@ train_config_133_49.val_smoothcvr_cache_to = id_9_0am
 
 train_config_133_50 = copy.deepcopy(train_config_133_18)
 train_config_133_50.val_filter_test_hours = True
-train_config_133_50.lgbm_params.update({'subsample': 1.0, 'colsample_bytree':1.0})
+train_config_133_50.lgbm_params = ({**train_config_133_50.lgbm_params,
+                                    **{'subsample': 1.0, 'colsample_bytree':1.0}})
 train_config_133_50.add_features_list = add_features_list_35
+
+
+train_config_133_51 = copy.deepcopy(train_config_133_32)
+train_config_133_51.add_features_list = add_features_list_fts_search_reduced_split_add_counting_1
+train_config_133_51.lgbm_params = ({**train_config_133_51.lgbm_params,
+                                    **{'subsample': 1.0,
+                                       'colsample_bytree':1.0,
+                                        'early_stopping_round': 222,
+                                        'num_boost_round': 222,
+                                       }})
+train_config_133_51.submit_prediction = True
+
+train_config_133_52 = copy.deepcopy(train_config_133_32)
+train_config_133_52.add_features_list = add_features_list_33
+train_config_133_52.lgbm_params = ({**train_config_133_52.lgbm_params,
+                                    **{'subsample': 1.0,
+                                       'colsample_bytree':1.0,
+                                        'early_stopping_round': 169,
+                                        'num_boost_round': 169,
+                                       }})
+train_config_133_52.submit_prediction = True
+
+
+train_config_133_53 = copy.deepcopy(train_config_133_32)
+train_config_133_53.add_features_list = add_features_list_34
+train_config_133_53.lgbm_params = ({**train_config_133_53.lgbm_params,
+                                    **{'subsample': 1.0,
+                                       'colsample_bytree':1.0,
+                                        'early_stopping_round': 157,
+                                        'num_boost_round': 157,
+                                       }})
+train_config_133_53.submit_prediction = True
+
+
+train_config_133_54 = copy.deepcopy(train_config_133_32)
+train_config_133_54.add_features_list = add_features_list_35
+train_config_133_54.lgbm_params = ({**train_config_133_54.lgbm_params,
+                                    **{'subsample': 1.0,
+                                       'colsample_bytree':1.0,
+                                        'early_stopping_round': 204,
+                                        'num_boost_round': 204,
+                                       }})
+train_config_133_54.submit_prediction = True
+
+
 
 debug = False
 
