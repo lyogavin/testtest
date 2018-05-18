@@ -1696,9 +1696,15 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     50. 30 + 1.0,1.0:
         204, best train auc: , val auc: 0.980016
     51. 47 + predict:
+        0.9786806    0.9786293
     52. 48 + predict
+        0.9786756    0.9786528
     53. 49 + predict
+        0.9785538    0.9785804
     54. 50 + predict
+        0.9786573    0.9779050
+
+    55. ft search with new setup
 
 
 to do test:

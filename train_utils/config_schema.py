@@ -1694,6 +1694,11 @@ train_config_133_54.lgbm_params = ({**train_config_133_54.lgbm_params,
 train_config_133_54.submit_prediction = True
 
 
+train_config_133_55 = copy.deepcopy(train_config_133_18)
+train_config_133_55.val_filter_test_hours = True
+train_config_133_55.lgbm_params = ({**train_config_133_55.lgbm_params,
+                                    **{'subsample': 1.0, 'colsample_bytree':1.0}})
+train_config_133_55.add_features_list = add_features_list_fts_search
 
 debug = False
 
