@@ -1725,9 +1725,9 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         1.0, 1.0, 5, 9, 99, 200: 201, best train auc: , val auc: 0.979438
         0.9, 0.7, 5, 20, 99, 20: 161, best train auc: , val auc: 0.979685
     61. test 18 fts with 0.9, 0.7, 5, 10, 99, 20:
-
-    62. 61 + predict
-    63. 60 + 0.9, 0.7, 5, 10, 99, 20 + predict
+        284, best train auc: , val auc: 0.980477
+    62. 61 + predict:
+    63. 60 + 0.9, 0.7, 5, 10, 99, 20 + predict:
 
 
 to do test:
