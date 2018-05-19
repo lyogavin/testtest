@@ -1760,9 +1760,17 @@ train_config_133_62.train_to = [id_8_3pm,id_9_3pm]
 train_config_133_62.val_from = id_9_3pm
 train_config_133_62.val_to = id_9_3pm + 10000
 train_config_133_62.submit_prediction = True
+train_config_133_62.lgbm_params = ({**train_config_133_62.lgbm_params,
+                                    **{ 'early_stopping_round': None,
+                                        'num_boost_round': 284
+                                        }})
 
 train_config_133_63 = copy.deepcopy(train_config_133_62)
 train_config_133_63.add_features_list = add_features_list_fts_search
+train_config_133_63.lgbm_params = ({**train_config_133_63.lgbm_params,
+                                    **{ 'early_stopping_round': None,
+                                        'num_boost_round':255
+                                       }})
 
 
 

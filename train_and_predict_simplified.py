@@ -1076,11 +1076,11 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                                   dtrain,
                                   #valid_sets=[dtrain, dvalid],
                                   #valid_names=['train', 'valid'],
-                                  valid_sets=[dvalid],
-                                  valid_names=['valid'],
+                                  valid_sets=[dvalid] if len(val) > 0 else None,
+                                  valid_names=['valid'] if len(val) > 0 else None,
                                   evals_result=evals_results,
                                   num_boost_round=1000,
-                                  early_stopping_rounds=30,
+                                  early_stopping_rounds=config_scheme_to_use.lgbm_params['early_stopping_round'],
                                   verbose_eval=10,
                                   feval=None)
                 logger.info(
@@ -1099,11 +1099,11 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                                   dtrain,
                                   #valid_sets=[dtrain, dvalid],
                                   #valid_names=['train', 'valid'],
-                                  valid_sets=[dvalid],
-                                  valid_names=['valid'],
+                                  valid_sets=[dvalid] if len(val) > 0 else None,
+                                  valid_names=['valid'] if len(val) > 0 else None,
                                   evals_result=evals_results,
                                   num_boost_round=1000,
-                                  early_stopping_rounds=30,
+                                  early_stopping_rounds=config_scheme_to_use.lgbm_params['early_stopping_round'],
                                   verbose_eval=10,
                                   feval=None)
                 logger.info(
@@ -1119,11 +1119,11 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                               dtrain,
                               #valid_sets=[dtrain, dvalid],
                               #valid_names=['train', 'valid'],
-                              valid_sets=[dvalid],
-                              valid_names=['valid'],
+                              valid_sets=[dvalid] if len(val) > 0 else None,
+                              valid_names=['valid'] if len(val) > 0 else None,
                               evals_result=evals_results,
                               num_boost_round=1000,
-                              early_stopping_rounds=30,
+                              early_stopping_rounds=config_scheme_to_use.lgbm_params['early_stopping_round'],
                               verbose_eval=10,
                               feval=None)
 
@@ -1139,12 +1139,13 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
         # Feature importances:
         logger.debug('Feature importances: %s', list(lgb_model.feature_importance()))
 
+
         logger.info(
                     'trainning done, best iter num: %d, best train auc: , val auc: %f',
                     #'trainning done, best iter num: %d, best train auc: %f, val auc: %f',
                     lgb_model.best_iteration,
                     #lgb_model.best_score['train']['auc'],
-                    lgb_model.best_score['valid']['auc']
+                    lgb_model.best_score['valid']['auc'] if len(val) > 0 else 0
                     )
         try:
             logger.info('split importance:')
@@ -1185,7 +1186,7 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
     if do_val_prediction:
         return lgb_model, val_prediction, predictors1, importance_dict, val_auc
     else:
-        return lgb_model, val_prediction, predictors1, importance_dict, lgb_model.best_score['valid']['auc']
+        return lgb_model, val_prediction, predictors1, importance_dict, lgb_model.best_score['valid']['auc']  if len(val) > 0 else 0
 
 
 def get_train_df():
@@ -1267,6 +1268,12 @@ def get_val_df():
 
 
     gc.collect()
+    test_null_val = False
+    
+    if test_null_val:
+        val = val.query('is_attributed != 0')
+        val = val.query('is_attributed != 1')
+
     return val
 
 def get_test_df():
