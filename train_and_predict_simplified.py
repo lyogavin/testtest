@@ -1269,7 +1269,7 @@ def get_val_df():
 
     gc.collect()
     test_null_val = False
-    
+
     if test_null_val:
         val = val.query('is_attributed != 0')
         val = val.query('is_attributed != 1')
