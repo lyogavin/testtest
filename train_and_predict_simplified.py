@@ -1257,14 +1257,6 @@ def get_val_df():
                     config_scheme_to_use.val_filter['filter_type'] == 'random_sample':
         val = val.sample(frac = config_scheme_to_use.val_filter['frac'])
 
-    if config_scheme_to_use.val_filter_test_hours:
-        with timer('filter val according to test hours', logging.INFO):
-            logger.debug('len before val test hour filer: %d', len(val))
-            logger.debug('hours before val test hour filer: %s', val.groupby(by=val["click_time"].dt.hour)['app'].count().to_string())
-
-            val = val[val["click_time"].dt.hour.isin(most_freq_hours_in_test_data)]
-            logger.debug('len after val test hour filer: %d', len(val))
-            logger.debug('hours after val test hour filer: %s', val.groupby(by=val["click_time"].dt.hour)['app'].count().to_string())
 
 
     gc.collect()
@@ -1500,6 +1492,17 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
 
     train = combined_df[:train_len]
     val = combined_df[train_len:train_len + val_len]
+
+    # do val filter after feature extraction
+    if config_scheme_to_use.val_filter_test_hours:
+        with timer('filter val according to test hours', logging.INFO):
+            logger.debug('len before val test hour filer: %d', len(val))
+            logger.debug('hours before val test hour filer: %s', val.groupby(by=val["click_time"].dt.hour)['app'].count().to_string())
+
+            val = val[val["click_time"].dt.hour.isin(most_freq_hours_in_test_data)]
+            logger.debug('len after val test hour filer: %d', len(val))
+            logger.debug('hours after val test hour filer: %s', val.groupby(by=val["click_time"].dt.hour)['app'].count().to_string())
+
 
 
     if config_scheme_to_use.train_smoothcvr_cache_from is not None:

@@ -1726,11 +1726,13 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         0.9, 0.7, 5, 20, 99, 20: 161, best train auc: , val auc: 0.979685
     61. test 18 fts with 0.9, 0.7, 5, 10, 99, 20:
         284, best train auc: , val auc: 0.980477
+        rerun after fix val filter: runnning
     62. 61 + predict:
         0.9788542    0.9791347
     63. 60 + 0.9, 0.7, 5, 10, 99, 20 + predict:
         0.9797662    0.9796247
     64. 63+ lgbm params search
+        rerun after fix val filter, moved to after fe: running
 
 
 to do test:
