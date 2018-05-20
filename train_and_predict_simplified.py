@@ -1103,7 +1103,7 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                                   valid_names=['valid'] if len(val) > 0 else None,
                                   evals_result=evals_results,
                                   num_boost_round=1000,
-                                  early_stopping_rounds=config_scheme_to_use.lgbm_params['early_stopping_round'],
+                                  early_stopping_rounds=params['early_stopping_round'],
                                   verbose_eval=10,
                                   feval=None)
                 logger.info(
