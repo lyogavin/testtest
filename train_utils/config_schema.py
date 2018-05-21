@@ -1792,6 +1792,11 @@ train_config_133_64.lgbm_params = [
     lgbm_params_pub_entire_set_test_early_stop_400,
 ]
 
+train_config_133_65 = copy.deepcopy(train_config_133_64)
+train_config_133_65.lgbm_params = lgbm_params_pub_entire_set_new_test_3
+
+train_config_133_65.train_from = id_7_0am
+train_config_133_65.train_to = id_9_0am
 
 debug = False
 
