@@ -177,7 +177,7 @@ dtypes = {
 }
 
 
-process_poll_size = 10
+process_poll_size = 4
 
 import socket
 if socket.gethostname() == 'test':
