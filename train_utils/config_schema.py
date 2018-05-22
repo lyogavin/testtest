@@ -1794,9 +1794,12 @@ train_config_133_64.lgbm_params = [
 
 train_config_133_65 = copy.deepcopy(train_config_133_64)
 train_config_133_65.lgbm_params = lgbm_params_pub_entire_set_new_test_3
-
 train_config_133_65.train_from = id_7_0am
 train_config_133_65.train_to = id_9_0am
+
+train_config_133_66 = copy.deepcopy(train_config_133_65)
+train_config_133_66.add_features_list = add_features_list_fts_search_reduced_split_add_counting_1
+
 
 debug = False
 

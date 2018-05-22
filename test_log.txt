@@ -1736,6 +1736,9 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         test3: 405, best train auc: , val auc: 0.980988
         test5: 690, best train auc: , val auc: 0.981080
     65. try more training data with 64:
+        423, best train auc: , val auc: 0.981362
+    65. more data with 61:
+        running
 
 
 to do test:
