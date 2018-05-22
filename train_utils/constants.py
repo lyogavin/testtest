@@ -132,7 +132,7 @@ id_9_0am = 131886955
 id_8_0am = 68941880
 id_9_3pm_reserve_last_250w = id_9_3pm - 250*10000
 id_9_4pm_reserve_last_250w = id_9_4pm - 250*10000
-
+id_all_train = 184903891 -1
 
 
 sample_from_list = [0, 50000]

@@ -1801,6 +1801,25 @@ train_config_133_66 = copy.deepcopy(train_config_133_65)
 train_config_133_66.add_features_list = add_features_list_fts_search_reduced_split_add_counting_1
 
 
+train_config_133_67 = copy.deepcopy(train_config_133_65)
+train_config_133_67.new_predict = True
+train_config_133_67.train_from = 0
+train_config_133_67.train_to = id_all_train
+train_config_133_67.val_from = id_9_3pm
+train_config_133_67.val_to = id_9_3pm + 10000
+train_config_133_67.submit_prediction = True
+train_config_133_67.add_features_list = add_features_list_fts_search
+train_config_133_67.lgbm_params = ({**train_config_133_67.lgbm_params,
+                                    **{ 'early_stopping_round': None,
+                                        'num_boost_round':423
+                                       }})
+train_config_133_68 = copy.deepcopy(train_config_133_67)
+train_config_133_68.add_features_list = add_features_list_fts_search_reduced_split_add_counting_1
+train_config_133_68.lgbm_params = ({**train_config_133_68.lgbm_params,
+                                    **{ 'early_stopping_round': None,
+                                        'num_boost_round':418
+                                       }})
+
 debug = False
 
 def use_config_scheme(str):

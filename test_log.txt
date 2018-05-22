@@ -1737,9 +1737,11 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         test5: 690, best train auc: , val auc: 0.981080
     65. try more training data with 64:
         423, best train auc: , val auc: 0.981362
-    65. more data with 61:
-        running
+    66. more data with 61:
+        418, best train auc: , val auc: 0.982092
 
+    67. predict with 65
+    68. predict with 66
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
