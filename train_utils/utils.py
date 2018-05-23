@@ -107,4 +107,18 @@ def timer(name, level=logging.DEBUG):
     yield
     logger.log(level, '[{}] done in {} s, ended mem:{}'.format(name, time.time() - t0, cpuStats()))
 
+def get_cols_com(op):
+    temp = []
+    if op == 'smoothcvr':
+        search_range = range(1, 4)
+    elif op in ['count', 'cumcount']:
+        search_range = range(1, 7)
+    else:
+        search_range = range(2, 7)
 
+    for cols_count in search_range:  # max 4 to avoid over-fitting, tried 7, overfitting too badly
+        for cols_coms in itertools.combinations(raw_cols, cols_count):
+            temp.extend(cols_coms)
+            if op in ['smoothcvr', 'count', 'cumcount']:
+                temp.append('is_attributed')
+    return temp

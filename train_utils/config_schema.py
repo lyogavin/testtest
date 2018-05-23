@@ -6,6 +6,9 @@ from train_utils.model_params import *
 from train_utils.features_def import *
 import collections
 from train_utils.utils import *
+import itertools
+from train_utils.constants import *
+
 
 logger = getLogger()
 
@@ -1819,6 +1822,13 @@ train_config_133_68.lgbm_params = ({**train_config_133_68.lgbm_params,
                                     **{ 'early_stopping_round': None,
                                         'num_boost_round':418
                                        }})
+train_config_133_69 = copy.deepcopy(train_config_133_65)
+train_config_133_69.add_features_list = train_config_133_69.add_features_list + get_cols_com('var')
+
+
+train_config_133_70 = copy.deepcopy(train_config_133_65)
+train_config_133_70.add_features_list = train_config_133_69.add_features_list + get_cols_com('nunique')
+
 
 debug = False
 

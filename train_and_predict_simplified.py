@@ -1793,7 +1793,6 @@ def lgbm_params_search(com_fts_list):
     result = bayes_cv_tuner.fit(train[predictors1].values, train['is_attributed'].values, callback=status_print)
 
 def train_and_predict_ft_search(op = 'smoothcvr'):
-    raw_cols = ['app', 'device', 'os', 'channel', 'hour', 'ip']
 
     search_range = []
 
