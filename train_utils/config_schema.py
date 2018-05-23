@@ -6,8 +6,6 @@ from train_utils.model_params import *
 from train_utils.features_def import *
 import collections
 from train_utils.utils import *
-import itertools
-from train_utils.constants import *
 
 
 logger = getLogger()
