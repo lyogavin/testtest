@@ -1397,8 +1397,21 @@ def neg_sample_df(combined_df, train_len, val_len, test_len):
     if config_scheme_to_use.use_neg_sample:
         logger.debug('neg sample 1/200(1:2 pos:neg) after checksum... with seed {}'.format(config_scheme_to_use.neg_sample_seed))
         np.random.seed(config_scheme_to_use.neg_sample_seed)
+
+        pos_in_train_count = (combined_df[:train_len]['is_attributed'] == 1).sum()
+        neg_in_train_count = (combined_df[:train_len]['is_attributed'] != 1).sum()
+
+        neg_sample_rate = neg_in_train_count // pos_in_train_count
+
+        logger.info('pos count: %d, neg count: %d, total len: %d, sample rate: %d',
+                    pos_in_train_count,
+                    neg_in_train_count,
+                    train_len,
+                    neg_sample_rate)
+
+
         #neg_sample_indice = random.sample(range(len(combined_df)),len(combined_df) // 200)
-        neg_sample_indice = (np.random.randint(0, neg_sample_rate, len(combined_df), np.uint8) == 0) \
+        neg_sample_indice = (np.random.randint(0, neg_sample_rate, len(combined_df), np.uint16) == 0) \
                             | (combined_df['is_attributed'] == 1) \
                             | np.concatenate((np.zeros(train_len, np.bool_) ,np.ones(val_len + test_len,np.bool_)))
         #logger.debug('neg sample indice: len:{}, tail:{}'.format(len(neg_sample_indice), neg_sample_indice[-10:]))
@@ -1406,11 +1419,11 @@ def neg_sample_df(combined_df, train_len, val_len, test_len):
 
         combined_df_before_sample = combined_df.copy(True)
         #logger.debug('len before sampel:',len(combined_df_before_sample))
-        #logger.debug('len before sampel:',len(combined_df))
+        logger.info('len before sampel: %d',len(combined_df))
 
         combined_df = combined_df[neg_sample_indice]
         #logger.debug('len after sampel:',len(combined_df_before_sample))
-        #logger.debug('len after sampel:',len(combined_df))
+        logger.info('len after sampel: %d',len(combined_df))
         train_len = len(combined_df) - test_len - val_len
     else:
         combined_df_before_sample = combined_df.copy(True)
