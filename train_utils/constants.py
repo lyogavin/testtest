@@ -176,7 +176,7 @@ dtypes = {
     'click_id': 'uint32'
 }
 
-raw_cols = ['app', 'device', 'os', 'channel', 'hour', 'ip']
+raw_cols = ['app', 'device', 'os', 'channel', 'ip'] #'hour'
 
 process_poll_size = 1
 
