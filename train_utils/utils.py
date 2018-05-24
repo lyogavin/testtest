@@ -126,5 +126,9 @@ def get_cols_com(op):
             temp.extend(cols_coms)
             if op in ['smoothcvr', 'count', 'cumcount']:
                 temp.append('is_attributed')
-            ret.append({'group': list(temp), 'op': op})
+            to_append = {'group': list(temp), 'op': op}
+
+            if op in ['smoothcvr', 'var']:
+                to_append['astype'] = 'float32'
+            ret.append(to_append)
     return ret
