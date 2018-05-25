@@ -243,7 +243,7 @@ def get_recursive_alpha_beta(sumi, count, global_alpha = 20.0, global_beta = 100
         else:
             return alpha, beta
 
-def load_ft_cache_file(group_by_cols, op, ft_cache_prefix):
+def load_ft_cache_file(group_by_cols, op, ft_cache_prefix, sample_indice):
     feature_name_added = '_'.join(group_by_cols) + op
 
     with timer('preloading ft file for:' + feature_name_added, logging.DEBUG):
@@ -255,6 +255,9 @@ def load_ft_cache_file(group_by_cols, op, ft_cache_prefix):
                                             #dtype='float32',
                                             #header=0, engine='c',
                                             compression='bz2')
+        if sample_indice is not None:
+            ft_cache_data = ft_cache_data.loc[sample_indice]
+
         logger.debug('tail of preload cache file(%s): %s', ft_cache_path + ft_cache_file_name, ft_cache_data.tail().to_string())
     return ft_cache_data
 
@@ -299,12 +302,12 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
                                         #dtype='float32',
                                         #header=0, engine='c',
                                         compression='bz2')
-            if sample_indice is not None:
-                #logger.debug(ft_cache_data)
-                #logger.debug(sample_indice)
-                ft_cache_data = ft_cache_data.loc[sample_indice]
-                logger.debug('sample indice applied, len after sample of ft cache: %d',len(ft_cache_data))
-            #logger.debug('SAMPLE:{}-{}'.format(feature_name_added, ft_cache_data.sample(5, random_state=88)))
+                    if sample_indice is not None:
+                        #logger.debug(ft_cache_data)
+                        #logger.debug(sample_indice)
+                        ft_cache_data = ft_cache_data.loc[sample_indice]
+                        logger.debug('sample indice applied, len after sample of ft cache: %d',len(ft_cache_data))
+                    #logger.debug('SAMPLE:{}-{}'.format(feature_name_added, ft_cache_data.sample(5, random_state=88)))
 
         except:
             logger.debug('[PID {}] err loading: {}'.format(os.getpid(), ft_cache_path + ft_cache_file_name))
@@ -837,7 +840,10 @@ def generate_counting_history_features(data,
         if multithread_load_ft and use_ft_cache:
             for add_feature in to_run_in_pool:
                 p = ThreadWithReturnValue(target = load_ft_cache_file,
-                                          args=(list(add_feature['group']), add_feature['op'],checksum))
+                                          args=(list(add_feature['group']),
+                                                add_feature['op'],
+                                                checksum,
+                                                sample_indice))
                 pdict[str(add_feature)] = p
                 p.start()
 
@@ -852,8 +858,8 @@ def generate_counting_history_features(data,
             for add_feature in pdict:
                 preload_dfs[str(add_feature)] = pdict[str(add_feature)].join()
                 #logger.info('preload_dfs keys: %s', pformat(preload_dfs.keys()))
-                assert (preload_dfs[str(add_feature)] is not None), 'cache len loaded should be the same as original df'
-                assert (len(preload_dfs[str(add_feature)]) == len(df_before_sample)), 'cache len loaded should be the same as original df'
+                assert (preload_dfs[str(add_feature)] is not None), 'cache len loaded should be the same as sampled df'
+                assert (len(preload_dfs[str(add_feature)]) == len(data)), 'cache len loaded should be the same as sampled df'
 
         for add_feature in to_run_in_pool:
             data, features_added,discretization_bins_used_current_feature = \
