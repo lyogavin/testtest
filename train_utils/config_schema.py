@@ -1827,6 +1827,27 @@ train_config_133_69.add_features_list = train_config_133_69.add_features_list + 
 train_config_133_70 = copy.deepcopy(train_config_133_65)
 train_config_133_70.add_features_list = train_config_133_69.add_features_list + get_cols_com('nunique')
 
+train_config_133_71 = copy.deepcopy(train_config_133_70)
+train_config_133_71.add_features_list = add_features_list_fts_search_reduced_split_add_counting_1
+
+train_config_133_72 = copy.deepcopy(train_config_133_69)
+train_config_133_72.lgbm_params = [
+    lgbm_params_pub_entire_set_new_test_1,
+    lgbm_params_pub_entire_set_new_test_2,
+    lgbm_params_pub_entire_set_new_test_3,
+    lgbm_params_pub_entire_set_new_test_4,
+    lgbm_params_pub_entire_set_new_test_5,
+    lgbm_params_pub_entire_set_new_test_6,
+    lgbm_params_pub_entire_set_new_test_7,
+    lgbm_params_pub_entire_set_new_test_8,
+    lgbm_params_pub_entire_set_test_early_stop_50,
+    lgbm_params_pub_entire_set_test_early_stop_200,
+    lgbm_params_pub_entire_set_test_depth_5,
+    lgbm_params_pub_entire_set_test_depth_5_leave_9,
+    lgbm_params_pub_entire_set_test_scale_pos_50,
+    lgbm_params_pub_entire_set_test_scale_pos_90,
+    lgbm_params_pub_entire_set_test_early_stop_400,
+]
 
 debug = False
 

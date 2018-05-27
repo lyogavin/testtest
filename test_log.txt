@@ -1744,7 +1744,12 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         0.9794796    0.9797827
     68. predict with 66
         0.9791894    0.9795590
-    69. 65 add all var fts:
+    69. fixed neg sample, 65 add all var fts:
+        [234]   valid's auc: 0.981214
+    70. fixed neg sample 65 add all nuniuqe fts:
+        [241]   valid's auc: 0.981266
+    71. fixed neg sample 61:
+    72. fixed neg sample 69 + params tests:
 
 
 to do test:
