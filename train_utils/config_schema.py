@@ -1849,6 +1849,18 @@ train_config_133_72.lgbm_params = [
     lgbm_params_pub_entire_set_test_early_stop_400,
 ]
 
+train_config_133_73 = copy.deepcopy(train_config_133_71)
+train_config_133_73.lgbm_params = ({**train_config_133_73.lgbm_params,
+                                    **{ 'early_stopping_round': 50,
+                                        'scale_pos_weight':1.0
+                                       }})
+
+train_config_133_74 = copy.deepcopy(train_config_133_69)
+train_config_133_74.lgbm_params = ({**train_config_133_74.lgbm_params,
+                                    **{ 'early_stopping_round': 50,
+                                        'scale_pos_weight':1.0
+                                       }})
+
 debug = False
 
 def use_config_scheme(str):

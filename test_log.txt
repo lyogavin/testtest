@@ -1749,7 +1749,16 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     70. fixed neg sample 65 add all nuniuqe fts:
         [241]   valid's auc: 0.981266
     71. fixed neg sample 61:
+         489, best train auc: , val auc: 0.981980
     72. fixed neg sample 69 + params tests:
+        test3(leaves 10):  234, best train auc: , val auc: 0.981214
+        test5 (early 200): 426, best train auc: , val auc: 0.981398
+        test8(leaves 20): 178, best train auc: , val auc: 0.981282
+        test early_stop_50 : 426, best train auc: , val auc: 0.981398
+        test lgbm_params_pub_entire_set_test_scale_pos_50: 466, best train auc: , val auc: 0.981748
+        test early_stop_400: 426, best train auc: , val auc: 0.981398
+    73. 71 + test early stop 50, scale pos 1.0
+    74. 72 + scale pos 1.0
 
 
 to do test:
