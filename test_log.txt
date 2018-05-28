@@ -1758,7 +1758,11 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         test lgbm_params_pub_entire_set_test_scale_pos_50: 466, best train auc: , val auc: 0.981748
         test early_stop_400: 426, best train auc: , val auc: 0.981398
     73. 71 + test early stop 50, scale pos 1.0
-    74. 72 + scale pos 1.0
+        675, best train auc: , val auc: 0.982430
+    74. 72 + scale pos 1.0, early stop 50
+        409, best train auc: , val auc: 0.982134
+    75. 73 predict
+    76. 74 predict
 
 
 to do test:
