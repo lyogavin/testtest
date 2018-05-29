@@ -1360,42 +1360,67 @@ def do_data_validation(df, df0, sample_indice):
     df0.reset_index(drop=True, inplace=True)
 
 
+    if 'ip_hour_is_attributedcount' in df.columns:
 
-    df_for_val = do_countuniq( df0, ['ip', 'device', 'os'], 'app', 'A0', show_max=False )[sample_indice]; gc.collect()
-    df_for_val.reset_index(drop=True, inplace=True)
+        df_for_val = do_countuniq( df0, ['ip', 'hour'], 'app', 'A0', show_max=False )[sample_indice]; gc.collect()
+        df_for_val.reset_index(drop=True, inplace=True)
 
-    logger.debug('var gap: %d',(df_for_val['A0'] - df['ip_device_os_appnunique']).sum())
-    logger.debug('var diff: %s',df['ip_device_os_appnunique'][(df_for_val['A0'] - df['ip_device_os_appnunique']) != 0].head().to_string())
-    logger.debug('var diff: %s',df_for_val['A0'][(df_for_val['A0'] - df['ip_device_os_appnunique']) != 0].head().to_string())
-
-
-    assert (df_for_val['A0'] - df['ip_device_os_appnunique']).sum() == 0
-
-    df_for_val = do_var( df0, ['ip', 'app', 'os'], 'hour', 'A0', show_max=False ,agg_type='float64')[sample_indice]; gc.collect()
-    df_for_val.reset_index(drop=True, inplace=True)
+        logger.debug('var gap: %d',(df_for_val['A0'] - df['ip_hour_is_attributedcount']).sum())
+        logger.debug('var diff: %s',df['ip_hour_is_attributedcount'][(df_for_val['A0'] - df['ip_hour_is_attributedcount']) != 0].head().to_string())
+        logger.debug('var diff: %s',df_for_val['A0'][(df_for_val['A0'] - df['ip_hour_is_attributedcount']) != 0].head().to_string())
 
 
-    logger.debug('var gap: %d',(df_for_val['A0'] - df['ip_app_os_hourvar']).sum())
-    logger.debug('var diff:%s',df['ip_app_os_hourvar'][(df_for_val['A0'] - df['ip_app_os_hourvar']) != 0].head().to_string())
-    logger.debug('var diff:%s',df_for_val['A0'][(df_for_val['A0'] - df['ip_app_os_hourvar']) != 0].head().to_string())
+    if 'ip_device_os_app_is_attributedcount' in df.columns:
+
+        df_for_val = do_countuniq( df0, ['ip', 'device', 'os', 'app'], 'channel', 'A0', show_max=False )[sample_indice]; gc.collect()
+        df_for_val.reset_index(drop=True, inplace=True)
+
+        logger.debug('var gap: %d',(df_for_val['A0'] - df['ip_device_os_app_is_attributedcount']).sum())
+        logger.debug('var diff: %s',df['ip_device_os_app_is_attributedcount'][(df_for_val['A0'] - df['ip_device_os_app_is_attributedcount']) != 0].head().to_string())
+        logger.debug('var diff: %s',df_for_val['A0'][(df_for_val['A0'] - df['ip_device_os_app_is_attributedcount']) != 0].head().to_string())
 
 
-    assert (df_for_val['A0'] - df['ip_app_os_hourvar']).sum() == 0
 
-    df_for_val = do_mean( df0, ['ip', 'app', 'channel'], 'hour', 'A0', show_max=False ,agg_type='float64' )[sample_indice]; gc.collect()
-    df_for_val.reset_index(drop=True, inplace=True)
+    if 'ip_device_os_appnunique' in df.columns:
+        df_for_val = do_countuniq( df0, ['ip', 'device', 'os'], 'app', 'A0', show_max=False )[sample_indice]; gc.collect()
+        df_for_val.reset_index(drop=True, inplace=True)
+
+        logger.debug('var gap: %d',(df_for_val['A0'] - df['ip_device_os_appnunique']).sum())
+        logger.debug('var diff: %s',df['ip_device_os_appnunique'][(df_for_val['A0'] - df['ip_device_os_appnunique']) != 0].head().to_string())
+        logger.debug('var diff: %s',df_for_val['A0'][(df_for_val['A0'] - df['ip_device_os_appnunique']) != 0].head().to_string())
 
 
-    logger.debug('var gap:%d',(df_for_val['A0'] - df['ip_app_channel_hourmean']).sum())
-    logger.debug('var diff:%s',df['ip_app_channel_hourmean'][(df_for_val['A0'] - df['ip_app_channel_hourmean']) != 0].head().to_string())
-    logger.debug('var diff:%s',df_for_val['A0'][(df_for_val['A0'] - df['ip_app_channel_hourmean']) != 0].head().to_string())
+        assert (df_for_val['A0'] - df['ip_device_os_appnunique']).sum() == 0
 
-    assert (df_for_val['A0'] - df['ip_app_channel_hourmean']).sum() == 0
+    if 'ip_app_os_hourvar' in df.columns:
+        df_for_val = do_var( df0, ['ip', 'app', 'os'], 'hour', 'A0', show_max=False ,agg_type='float64')[sample_indice]; gc.collect()
+        df_for_val.reset_index(drop=True, inplace=True)
 
-    df_for_val = do_cumcount( df0, ['ip', 'device', 'os'], 'channel', 'A0', show_max=False )[sample_indice]; gc.collect()
-    df_for_val.reset_index(drop=True, inplace=True)
 
-    assert (df_for_val['A0'] - df['ip_device_os_channelcumcount']).sum() == 0
+        logger.debug('var gap: %d',(df_for_val['A0'] - df['ip_app_os_hourvar']).sum())
+        logger.debug('var diff:%s',df['ip_app_os_hourvar'][(df_for_val['A0'] - df['ip_app_os_hourvar']) != 0].head().to_string())
+        logger.debug('var diff:%s',df_for_val['A0'][(df_for_val['A0'] - df['ip_app_os_hourvar']) != 0].head().to_string())
+
+
+        assert (df_for_val['A0'] - df['ip_app_os_hourvar']).sum() == 0
+
+    if 'ip_app_channel_hourmean' in df.columns:
+        df_for_val = do_mean( df0, ['ip', 'app', 'channel'], 'hour', 'A0', show_max=False ,agg_type='float64' )[sample_indice]; gc.collect()
+        df_for_val.reset_index(drop=True, inplace=True)
+
+
+        logger.debug('var gap:%d',(df_for_val['A0'] - df['ip_app_channel_hourmean']).sum())
+        logger.debug('var diff:%s',df['ip_app_channel_hourmean'][(df_for_val['A0'] - df['ip_app_channel_hourmean']) != 0].head().to_string())
+        logger.debug('var diff:%s',df_for_val['A0'][(df_for_val['A0'] - df['ip_app_channel_hourmean']) != 0].head().to_string())
+
+        assert (df_for_val['A0'] - df['ip_app_channel_hourmean']).sum() == 0
+
+    if 'ip_device_os_channelcumcount' in df.columns:
+
+        df_for_val = do_cumcount( df0, ['ip', 'device', 'os'], 'channel', 'A0', show_max=False )[sample_indice]; gc.collect()
+        df_for_val.reset_index(drop=True, inplace=True)
+
+        assert (df_for_val['A0'] - df['ip_device_os_channelcumcount']).sum() == 0
 
     #logger.debug()
 def neg_sample_df(combined_df, train_len, val_len, test_len):
@@ -1490,7 +1515,7 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
                                            sample_indice = neg_sample_indice,
                                            df_before_sample = combined_df_before_sample)
 
-    data_validation = False
+    data_validation = True
     if data_validation and options.unittest:
         do_data_validation(combined_df, combined_df_before_sample, neg_sample_indice)
     #test

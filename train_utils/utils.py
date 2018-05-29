@@ -33,6 +33,18 @@ class ThreadWithReturnValue(threading.Thread):
         threading.Thread.join(self)
         return self._return
 
+
+def do_count( df, group_cols, agg_name, agg_type='uint32', show_max=False, show_agg=True ):
+    if show_agg:
+        print( "Aggregating by ", group_cols , '...' )
+    gp = df[group_cols][group_cols].groupby(group_cols).size().rename(agg_name).to_frame().reset_index()
+    df = df.merge(gp, on=group_cols, how='left', copy=False)
+    del gp
+    if show_max:
+        print( agg_name + " max value = ", df[agg_name].max() )
+    df[agg_name] = df[agg_name].astype(agg_type,copy=False)
+    return( df )
+
 def do_countuniq(df, group_cols, counted, agg_name, agg_type='uint32', show_max=False, show_agg=True):
     if show_agg:
         logger.debug("Counting unqiue ", counted, " by ", group_cols, '...')

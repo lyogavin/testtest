@@ -1762,7 +1762,13 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
     74. 72 + scale pos 1.0, early stop 50
         409, best train auc: , val auc: 0.982134
     75. 73 predict
+        0.9795666    0.9799399
     76. 74 predict
+        0.9796812    0.9799284
+    77. test use more training data to compare with 78 to see if more fts still worse val score
+        more fts
+    78. test more data as 77
+        reduced fts
 
 
 to do test:
