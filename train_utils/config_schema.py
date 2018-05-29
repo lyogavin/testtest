@@ -1883,10 +1883,19 @@ train_config_133_77.lgbm_params = ({**train_config_133_77.lgbm_params,
                                     **{ 'early_stopping_round': 50,
                                         'scale_pos_weight':1.0
                                        }})
+train_config_133_77.add_features_list = add_features_list_fts_search_reduced_split_add_counting_1
 
 
 train_config_133_78 = copy.deepcopy(train_config_133_77)
-train_config_133_77.add_features_list = add_features_list_fts_search_reduced_split_add_counting_1
+train_config_133_78.add_features_list = add_features_list_fts_search
+
+train_config_133_79 = copy.deepcopy(train_config_133_77)
+train_config_133_79.add_features_list = train_config_133_79.add_features_list + get_cols_com('var') + get_cols_com('count') + get_cols_com('nunique')
+
+train_config_133_80 = copy.deepcopy(train_config_133_77)
+train_config_133_80.add_features_list = train_config_133_80.add_features_list + get_cols_com('mean') + get_cols_com('cumcount') + get_cols_com('smoothcvr')
+
+
 
 
 debug = False
