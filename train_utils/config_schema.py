@@ -1900,6 +1900,7 @@ train_config_133_80.add_features_list = train_config_133_80.add_features_list + 
 
 train_config_133_81 = copy.deepcopy(train_config_133_66)
 train_config_133_81.test_important_fts = True
+train_config_133_81.add_features_list = train_config_133_81.add_features_list + get_cols_com('var')
 
 
 
