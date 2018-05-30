@@ -80,7 +80,8 @@ class ConfigScheme:
                  submit_prediction = False,
                  val_filter_test_hours = False,
                  lgbm_seed = None,
-                 lgbm_seed_test_list = None
+                 lgbm_seed_test_list = None,
+                 test_important_fts = False
                  ):
         self.predict = predict
         self.train = train
@@ -151,6 +152,7 @@ class ConfigScheme:
         self.val_filter_test_hours = val_filter_test_hours
         self.lgbm_seed = lgbm_seed
         self.lgbm_seed_test_list = lgbm_seed_test_list
+        self.test_important_fts = test_important_fts
 
 
 
@@ -1888,6 +1890,7 @@ train_config_133_77.add_features_list = add_features_list_fts_search_reduced_spl
 
 train_config_133_78 = copy.deepcopy(train_config_133_77)
 train_config_133_78.add_features_list = add_features_list_fts_search
+train_config_133_78.test_important_fts = True
 
 train_config_133_79 = copy.deepcopy(train_config_133_77)
 train_config_133_79.add_features_list = train_config_133_79.add_features_list + get_cols_com('var') + get_cols_com('count') + get_cols_com('nunique')

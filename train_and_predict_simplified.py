@@ -1048,7 +1048,8 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                              categorical_feature=categorical,
                              weight=train_weights,
                              free_raw_data=(config_scheme_to_use.lgbm_seed_test_list is None) and \
-                                           (not isinstance(config_scheme_to_use.lgbm_params, list))
+                                           (not isinstance(config_scheme_to_use.lgbm_params, list)) and \
+                                            (not config_scheme_to_use.test_important_fts)
                              )
         dvalid = lgb.Dataset(val[predictors].values.astype(np.float32),
                              label=val[target].values,
@@ -1056,7 +1057,8 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                              categorical_feature=categorical,
                              weight=val_weights,
                              free_raw_data=(config_scheme_to_use.lgbm_seed_test_list is None) and \
-                                           (not isinstance(config_scheme_to_use.lgbm_params, list))
+                                           (not isinstance(config_scheme_to_use.lgbm_params, list)) and \
+                                            (not config_scheme_to_use.test_important_fts)
                              )
 
         evals_results = {}
@@ -1120,6 +1122,78 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                     # lgb_model.best_score['train']['auc'],
                     lgb_model.best_score['valid']['auc']
                 )
+        elif config_scheme_to_use.test_important_fts:
+            early_stopping = config_scheme_to_use.lgbm_params['early_stopping_round']
+            lgb_model = lgb.train(config_scheme_to_use.lgbm_params,
+                                  dtrain,
+                                  # valid_sets=[dtrain, dvalid],
+                                  # valid_names=['train', 'valid'],
+                                  valid_sets=[dvalid] if len(val) > 0 else None,
+                                  valid_names=['valid'] if len(val) > 0 else None,
+                                  evals_result=evals_results,
+                                  num_boost_round=1000,
+                                  early_stopping_rounds=early_stopping,
+                                  verbose_eval=10,
+                                  feval=None)
+            logger.info(
+                'trainning all fts done, best iter num: %d, best train auc: , val auc: %f',
+                # 'trainning done, best iter num: %d, best train auc: %f, val auc: %f',
+                lgb_model.best_iteration,
+                # lgb_model.best_score['train']['auc'],
+                lgb_model.best_score['valid']['auc']
+            )
+
+            sorted_fts = sorted(zip(lgb_model.feature_name(), list(lgb_model.feature_importance())),
+                                key=lambda x: x[1])
+            importance_ordered_fts = [x[0] for x in sorted_fts]
+
+            steps = 5
+
+            for start_pos in range(len(predictors) // steps, len(predictors), len(predictors) // steps):
+                del dtrain, dvalid
+                gc.collect()
+                fts_to_use = importance_ordered_fts[start_pos:]
+                fts_to_use = list(set(fts_to_use).union(set(categorical)))
+
+                dtrain = lgb.Dataset(train[fts_to_use].values.astype(np.float32),
+                                     label=train[target].values,
+                                     feature_name=fts_to_use,
+                                     categorical_feature=categorical,
+                                     weight=train_weights,
+                                     free_raw_data=(config_scheme_to_use.lgbm_seed_test_list is None) and \
+                                                   (not isinstance(config_scheme_to_use.lgbm_params, list)) and \
+                                                   (not config_scheme_to_use.test_important_fts)
+                                     )
+                dvalid = lgb.Dataset(val[fts_to_use].values.astype(np.float32),
+                                     label=val[target].values,
+                                     feature_name=fts_to_use,
+                                     categorical_feature=categorical,
+                                     weight=val_weights,
+                                     free_raw_data=(config_scheme_to_use.lgbm_seed_test_list is None) and \
+                                                   (not isinstance(config_scheme_to_use.lgbm_params, list)) and \
+                                                   (not config_scheme_to_use.test_important_fts)
+                                     )
+                lgb_model = lgb.train(config_scheme_to_use.lgbm_params,
+                                      dtrain,
+                                      # valid_sets=[dtrain, dvalid],
+                                      # valid_names=['train', 'valid'],
+                                      valid_sets=[dvalid] if len(val) > 0 else None,
+                                      valid_names=['valid'] if len(val) > 0 else None,
+                                      evals_result=evals_results,
+                                      num_boost_round=1000,
+                                      early_stopping_rounds=early_stopping,
+                                      verbose_eval=10,
+                                      feval=None)
+                logger.info(
+                    'trainning from %d done, best iter num: %d, best train auc: , val auc: %f',
+                    start_pos,
+                    # 'trainning done, best iter num: %d, best train auc: %f, val auc: %f',
+                    lgb_model.best_iteration,
+                    # lgb_model.best_score['train']['auc'],
+                    lgb_model.best_score['valid']['auc']
+                )
+
+
         else:
             lgb_model = lgb.train(config_scheme_to_use.lgbm_params,
                               dtrain,

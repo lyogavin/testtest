@@ -78,7 +78,7 @@ def do_cumcount(df, group_cols, counted, agg_name, agg_type='uint32', show_max=F
 
 def do_mean(df, group_cols, counted, agg_name, agg_type='float32', show_max=False, show_agg=True):
     if show_agg:
-        logger.debug("Calculating mean of ", counted, " by ", group_cols, '...')
+        logger.debug("Calculating mean of " +  counted + " by " + str(group_cols) + '...')
     gp = df[group_cols + [counted]].groupby(group_cols)[counted].mean().reset_index().rename(
         columns={counted: agg_name})
     df = df.merge(gp, on=group_cols, how='left', copy=False)
