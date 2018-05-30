@@ -1773,6 +1773,7 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         610, best train auc: , val auc: 0.982226
     79. more data with var fts, nunique fts, count fts
     80. more data with cumcount fts,scvr fts, mean fts
+    81. 66+importance tests
 
 
 to do test:

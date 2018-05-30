@@ -1898,6 +1898,8 @@ train_config_133_79.add_features_list = train_config_133_79.add_features_list + 
 train_config_133_80 = copy.deepcopy(train_config_133_77)
 train_config_133_80.add_features_list = train_config_133_80.add_features_list + get_cols_com('mean') + get_cols_com('cumcount') + get_cols_com('smoothcvr')
 
+train_config_133_81 = copy.deepcopy(train_config_133_66)
+train_config_133_81.test_important_fts = True
 
 
 
