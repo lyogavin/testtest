@@ -1773,7 +1773,21 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
         610, best train auc: , val auc: 0.982226
     79. more data with var fts, nunique fts, count fts
     80. more data with cumcount fts,scvr fts, mean fts
-    81. 66+importance tests
+    81. 66+ vars fts + importance tests
+ all fts done, best iter num: 384, best train auc: , val auc: 0.981974
+ from 7 done, best iter num: 378, best train auc: , val auc: 0.981914
+ from 14 done, best iter num: 357, best train auc: , val auc: 0.981863
+ from 21 done, best iter num: 431, best train auc: , val auc: 0.981911
+ from 28 done, best iter num: 480, best train auc: , val auc: 0.981767
+ from 35 done, best iter num: 360, best train auc: , val auc: 0.975651
+    82. 66 + importance tests
+  all fts done, best iter num: 489, best train auc: , val auc: 0.981980
+  from 2 done, best iter num: 375, best train auc: , val auc: 0.981902
+    83. 66 + mean fts + importance tests
+    84. 66 + add train val data set
+    85. 66 changed to add_features_list_origin_no_channel_next_click_no_day + train data set
+    86. 66 + vars add train val data set
+
 
 
 to do test:
