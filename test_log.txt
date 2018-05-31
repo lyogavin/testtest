@@ -1785,8 +1785,17 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
   from 2 done, best iter num: 375, best train auc: , val auc: 0.981902
     83. 66 + mean fts + importance tests
     84. 66 + add train val data set
+    [489]   train's auc: 0.987059   valid's auc: 0.98198
+
     85. 66 changed to add_features_list_origin_no_channel_next_click_no_day + train data set
+    [347]   train's auc: 0.98625    valid's auc: 0.981531
+
     86. 66 + vars add train val data set
+    [384]   train's auc: 0.986754   valid's auc: 0.981974
+
+    87. 86 + params search to avoid overfitting
+
+
 
 
 
