@@ -1902,6 +1902,13 @@ train_config_133_81 = copy.deepcopy(train_config_133_66)
 train_config_133_81.test_important_fts = True
 train_config_133_81.add_features_list = train_config_133_81.add_features_list + get_cols_com('var')
 
+train_config_133_82 = copy.deepcopy(train_config_133_66)
+train_config_133_82.test_important_fts = True
+
+
+train_config_133_83 = copy.deepcopy(train_config_133_66)
+train_config_133_83.test_important_fts = True
+train_config_133_83.add_features_list = train_config_133_83.add_features_list + get_cols_com('mean')
 
 
 debug = False
