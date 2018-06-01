@@ -1936,7 +1936,16 @@ train_config_133_87.lgbm_params = [
     lgbm_params_pub_entire_set_test_early_stop_400,
 ]
 
-
+train_config_133_88 = copy.deepcopy(train_config_133_86)
+train_config_133_88.lgbm_params = [
+    lgbm_params_pub_entire_set_test_depth_5_leave_20,
+    lgbm_params_pub_entire_set_test_depth_5_leave_15,
+    lgbm_params_pub_entire_set_test_depth_4_leave_20,
+    lgbm_params_pub_entire_set_test_depth_5_leave_25,
+    lgbm_params_pub_entire_set_test_depth_5_leave_30,
+    lgbm_params_pub_entire_set_test_depth_5_leave_20_scale_1,
+    lgbm_params_pub_entire_set_test_depth_5_leave_30_scale_1
+]
 
 debug = False
 

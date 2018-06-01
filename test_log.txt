@@ -1795,7 +1795,38 @@ Best params: {'colsample_bytree': 0.8793460386326015, 'learning_rate': 0.1981450
 
     87. 86 + params search to avoid overfitting
 
+early 50, sample: 1.0, 1.0:
+414, best train auc: , val auc: 0.981826
+max depth 6:
+408, best train auc: , val auc: 0.981652
+num_leaves 10:
+384, best train auc: , val auc: 0.981974
+leaves 10, depth 6:
+450, best train auc: , val auc: 0.981948
+early 200:
+540, best train auc: , val auc: 0.981950
+scale_pos_weight 200:
+400, best train auc: , val auc: 0.981692
+early 200, sample 1.0, 1.0:
+566, best train auc: , val auc: 0.981864
+num_leaves 20:
+292, best train auc: , val auc: 0.982001
+early 50:
+540, best train auc: , val auc: 0.981950
+3, y, early 200:
+226, best train auc: , val auc: 0.980972
+depth 5:
+505, best train auc: , val auc: 0.981930
+depth 5, leaves 9:
+505, best train auc: , val auc: 0.981930
+scale 50:
+405, best train auc: , val auc: 0.982098
+scale 90:
+489, best train auc: , val auc: 0.981889
+early 400:
+540, best train auc: , val auc: 0.981950
 
+    88. 86 + leaves 20
 
 
 

@@ -311,6 +311,7 @@ lgbm_params_pub_entire_set_test_depth_5.update({'max_depth': 5})
 lgbm_params_pub_entire_set_test_depth_5_leave_9 = dict(new_lgbm_params)
 lgbm_params_pub_entire_set_test_depth_5_leave_9.update({'max_depth': 5, 'num_leaves': 9})
 
+
 lgbm_params_pub_entire_set_test_scale_pos_50 = dict(new_lgbm_params)
 lgbm_params_pub_entire_set_test_scale_pos_50.update({'scale_pos_weight': 50})
 
@@ -347,3 +348,34 @@ lgbm_params_pub_entire_set_new_test_7.update({'early_stopping_round': 200,
 
 lgbm_params_pub_entire_set_new_test_8 = dict(new_lgbm_params)
 lgbm_params_pub_entire_set_new_test_8.update({'num_leaves': 20})
+
+
+
+
+lgbm_params_pub_entire_set_test_depth_5_leave_20 = dict(new_lgbm_params)
+lgbm_params_pub_entire_set_test_depth_5_leave_20.update({'max_depth': 5, 'num_leaves': 20})
+
+
+lgbm_params_pub_entire_set_test_depth_5_leave_15 = dict(new_lgbm_params)
+lgbm_params_pub_entire_set_test_depth_5_leave_15.update({'max_depth': 5, 'num_leaves': 15})
+
+
+lgbm_params_pub_entire_set_test_depth_4_leave_20 = dict(new_lgbm_params)
+lgbm_params_pub_entire_set_test_depth_4_leave_20.update({'max_depth': 4, 'num_leaves': 20})
+
+
+lgbm_params_pub_entire_set_test_depth_5_leave_25 = dict(new_lgbm_params)
+lgbm_params_pub_entire_set_test_depth_5_leave_25.update({'max_depth': 5, 'num_leaves': 25})
+
+
+lgbm_params_pub_entire_set_test_depth_5_leave_30 = dict(new_lgbm_params)
+lgbm_params_pub_entire_set_test_depth_5_leave_30.update({'max_depth': 5, 'num_leaves': 30})
+
+
+lgbm_params_pub_entire_set_test_depth_5_leave_20_scale_1 = dict(new_lgbm_params)
+lgbm_params_pub_entire_set_test_depth_5_leave_20_scale_1.update({'max_depth': 5, 'num_leaves': 20, 'scale_pos_weight':1.0})
+
+
+lgbm_params_pub_entire_set_test_depth_5_leave_30_scale_1 = dict(new_lgbm_params)
+lgbm_params_pub_entire_set_test_depth_5_leave_30_scale_1.update({'max_depth': 5, 'num_leaves': 30, 'scale_pos_weight':1.0})
+
