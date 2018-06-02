@@ -1827,6 +1827,8 @@ early 400:
 540, best train auc: , val auc: 0.981950
 
     88. 86 + leaves 20
+    89.
+    90.
 
 
 
