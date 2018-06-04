@@ -178,7 +178,7 @@ dtypes = {
 
 raw_cols = ['app', 'device', 'os', 'channel', 'ip'] #'hour'
 
-process_poll_size = 4
+process_poll_size = 2
 
 import socket
 if socket.gethostname() == 'test':

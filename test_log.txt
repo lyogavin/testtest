@@ -1826,9 +1826,22 @@ scale 90:
 early 400:
 540, best train auc: , val auc: 0.981950
 
-    88. 86 + leaves 20
-    89.
-    90.
+    88. 86 (all vars) + leaves 20
+    lgbm_params_pub_entire_set_test_depth_5_leave_25: 287, best train auc: , val auc: 0.982143
+    lgbm_params_pub_entire_set_test_depth_5_leave_20_scale_1: 402, best train auc: , val auc: 0.982485
+    lgbm_params_pub_entire_set_test_depth_5_leave_30_scale_1: 313, best train auc: , val auc: 0.982462
+    89. fts + all var fts + tests:
+    depth_5_leave_25_scale_1: 300, best train auc: , val auc: 0.982434
+    depth_4_leave_30_scale_1: 410, best train auc: , val auc: 0.982451
+
+    90. fts params tests:
+    depth_5_leave_25_scale_1: 325, best train auc: , val auc: 0.982479
+    depth_4_leave_30_scale_1: 364, best train auc: , val auc: 0.982388
+    91. fts params tests:
+    lgbm_params_pub_entire_set_test_depth_5_leave_20_scale_1: 321, best train auc: 0.987400, val auc: 0.982343
+
+    92. fts + params from 90. + predict
+    93. fts + vars + params from 88 + predict
 
 
 
