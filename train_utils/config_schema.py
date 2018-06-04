@@ -1985,7 +1985,23 @@ train_config_133_93.lgbm_params = ({**lgbm_params_pub_entire_set_test_depth_5_le
                                     **{ 'early_stopping_round': None,
                                         'num_boost_round':402
                                        }})
+train_config_133_94 = copy.deepcopy(train_config_133_93)
+train_config_133_94.lgbm_params = ({**lgbm_params_pub_entire_set_test_depth_5_leave_25_scale_1,
+                                    **{ 'early_stopping_round': None,
+                                        'num_boost_round':300
+                                       }})
 
+
+train_config_133_95 = copy.deepcopy(train_config_133_89)
+train_config_133_95.add_features_list = add_features_list_fts_search_reduced_split_add_counting_1 + \
+                                        get_cols_com('var') + \
+                                        get_cols_com('nunique')
+
+train_config_133_95.lgbm_params = [
+    lgbm_params_pub_entire_set_test_depth_5_leave_25_scale_1,
+    lgbm_params_pub_entire_set_test_depth_5_leave_20_scale_1,
+    lgbm_params_pub_entire_set_test_depth_4_leave_30_scale_1
+]
 
 debug = False
 
