@@ -1070,6 +1070,10 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
         #to_dump.to_csv('/tmp/jjj', index=False)
         #exit(0)
 
+        val_non_empty = (len(val) > 0)
+
+        valid_sets_to_use = [dtrain, dvalid] if val_non_empty else [dtrain]
+        valid_names_to_use = ['train', 'valid'] if val_non_empty else ['train']
 
         if config_scheme_to_use.lgbm_seed_test_list is not None:
 
@@ -1082,8 +1086,8 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                                            'data_random_seed': lgbm_seed_test,
                                        }},
                                   dtrain,
-                                  valid_sets=[dtrain, dvalid],
-                                  valid_names=['train', 'valid'],
+                                  valid_sets=valid_sets_to_use,
+                                  valid_names=valid_names_to_use,
                                   #valid_sets=[dvalid] if len(val) > 0 else None,
                                   #valid_names=['valid'] if len(val) > 0 else None,
                                   evals_result=evals_results,
@@ -1097,7 +1101,7 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                     # 'trainning done, best iter num: %d, best train auc: %f, val auc: %f',
                     lgb_model.best_iteration,
                     lgb_model.best_score['train']['auc'],
-                    lgb_model.best_score['valid']['auc']
+                    lgb_model.best_score['valid']['auc'] if len(val) > 0 else 0
                 )
 
         elif isinstance(config_scheme_to_use.lgbm_params,list):
@@ -1105,8 +1109,8 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
             for params in config_scheme_to_use.lgbm_params:
                 lgb_model = lgb.train(params,
                                   dtrain,
-                                  valid_sets=[dtrain, dvalid],
-                                  valid_names=['train', 'valid'],
+                                  valid_sets=valid_sets_to_use,
+                                  valid_names=valid_names_to_use,
                                   #valid_sets=[dvalid] if len(val) > 0 else None,
                                   #valid_names=['valid'] if len(val) > 0 else None,
                                   evals_result=evals_results,
@@ -1115,19 +1119,19 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                                   verbose_eval=10,
                                   feval=None)
                 logger.info(
-                    'trainning@params of %s done, best iter num: %d, best train auc: , val auc: %f',
+                    'trainning@params of %s done, best iter num: %d, best train auc: %f, val auc: %f',
                     pformat(params),
                     # 'trainning done, best iter num: %d, best train auc: %f, val auc: %f',
                     lgb_model.best_iteration,
-                    # lgb_model.best_score['train']['auc'],
-                    lgb_model.best_score['valid']['auc']
+                    lgb_model.best_score['train']['auc'],
+                    lgb_model.best_score['valid']['auc'] if len(val) > 0 else 0
                 )
         elif config_scheme_to_use.test_important_fts:
             early_stopping = config_scheme_to_use.lgbm_params['early_stopping_round']
             lgb_model = lgb.train(config_scheme_to_use.lgbm_params,
                                   dtrain,
-                                  valid_sets=[dtrain, dvalid],
-                                  valid_names=['train', 'valid'],
+                                  valid_sets=valid_sets_to_use,
+                                  valid_names=valid_names_to_use,
                                   #valid_sets=[dvalid] if len(val) > 0 else None,
                                   #valid_names=['valid'] if len(val) > 0 else None,
                                   evals_result=evals_results,
@@ -1175,8 +1179,8 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                                      )
                 lgb_model = lgb.train(config_scheme_to_use.lgbm_params,
                                       dtrain,
-                                      valid_sets=[dtrain, dvalid],
-                                      valid_names=['train', 'valid'],
+                                      valid_sets=[dtrain, dvalid] if len(val) > 0 else [dtrain],
+                                      valid_names=['train', 'valid'] if len(val) > 0 else ['train'],
                                       #valid_sets=[dvalid] if len(val) > 0 else None,
                                       #valid_names=['valid'] if len(val) > 0 else None,
                                       evals_result=evals_results,
@@ -1190,15 +1194,15 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                     # 'trainning done, best iter num: %d, best train auc: %f, val auc: %f',
                     lgb_model.best_iteration,
                     lgb_model.best_score['train']['auc'],
-                    lgb_model.best_score['valid']['auc']
+                    lgb_model.best_score['valid']['auc'] if len(val) > 0 else 0
                 )
 
 
         else:
             lgb_model = lgb.train(config_scheme_to_use.lgbm_params,
                               dtrain,
-                              valid_sets=[dtrain, dvalid],
-                              valid_names=['train', 'valid'],
+                              valid_sets=valid_sets_to_use,
+                              valid_names=valid_names_to_use,
                               #valid_sets=[dvalid] if len(val) > 0 else None,
                               #valid_names=['valid'] if len(val) > 0 else None,
                               evals_result=evals_results,
