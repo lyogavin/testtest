@@ -1092,11 +1092,11 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                                   verbose_eval=10,
                                   feval=None)
                 logger.info(
-                    'trainning@seed of %d done, best iter num: %d, best train auc: , val auc: %f',
+                    'trainning@seed of %d done, best iter num: %d, best train auc: %f, val auc: %f',
                     lgbm_seed_test,
                     # 'trainning done, best iter num: %d, best train auc: %f, val auc: %f',
                     lgb_model.best_iteration,
-                    # lgb_model.best_score['train']['auc'],
+                    lgb_model.best_score['train']['auc'],
                     lgb_model.best_score['valid']['auc']
                 )
 
@@ -1136,10 +1136,10 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                                   verbose_eval=10,
                                   feval=None)
             logger.info(
-                'trainning all fts done, best iter num: %d, best train auc: , val auc: %f',
+                'trainning all fts done, best iter num: %d, best train auc: %f, val auc: %f',
                 # 'trainning done, best iter num: %d, best train auc: %f, val auc: %f',
                 lgb_model.best_iteration,
-                # lgb_model.best_score['train']['auc'],
+                lgb_model.best_score['train']['auc'],
                 lgb_model.best_score['valid']['auc']
             )
 
@@ -1185,11 +1185,11 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
                                       verbose_eval=10,
                                       feval=None)
                 logger.info(
-                    'trainning from %d done, best iter num: %d, best train auc: , val auc: %f',
+                    'trainning from %d done, best iter num: %d, best train auc: %f, val auc: %f',
                     start_pos,
                     # 'trainning done, best iter num: %d, best train auc: %f, val auc: %f',
                     lgb_model.best_iteration,
-                    # lgb_model.best_score['train']['auc'],
+                    lgb_model.best_score['train']['auc'],
                     lgb_model.best_score['valid']['auc']
                 )
 
@@ -1221,10 +1221,10 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
 
 
         logger.info(
-                    'trainning done, best iter num: %d, best train auc: , val auc: %f',
+                    'trainning done, best iter num: %d, best train auc: %f, val auc: %f',
                     #'trainning done, best iter num: %d, best train auc: %f, val auc: %f',
                     lgb_model.best_iteration,
-                    #lgb_model.best_score['train']['auc'],
+                    lgb_model.best_score['train']['auc'],
                     lgb_model.best_score['valid']['auc'] if len(val) > 0 else 0
                     )
         try:

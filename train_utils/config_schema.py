@@ -1961,7 +1961,8 @@ train_config_133_90.lgbm_params = [
 ]
 train_config_133_90.add_features_list = add_features_list_fts_search_reduced_split_add_counting_1
 
-
+train_config_133_91 = copy.deepcopy(train_config_133_90)
+train_config_133_91.lgbm_params = lgbm_params_pub_entire_set_test_depth_5_leave_20_scale_1
 
 debug = False
 
