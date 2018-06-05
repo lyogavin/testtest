@@ -2003,6 +2003,19 @@ train_config_133_95.lgbm_params = [
     lgbm_params_pub_entire_set_test_depth_4_leave_30_scale_1
 ]
 
+train_config_133_96 = copy.deepcopy(train_config_133_95)
+train_config_133_96.new_predict = True
+train_config_133_96.train_from = 0
+train_config_133_96.train_to = id_all_train
+train_config_133_96.val_from = id_9_3pm
+train_config_133_96.val_to = id_9_3pm + 10000
+train_config_133_96.submit_prediction = True
+train_config_133_96.lgbm_params = ({**lgbm_params_pub_entire_set_test_depth_5_leave_20_scale_1,
+                                    **{ 'early_stopping_round': None,
+                                        'num_boost_round':281
+                                       }})
+
+
 debug = False
 
 def use_config_scheme(str):
