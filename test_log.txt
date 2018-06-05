@@ -1850,10 +1850,9 @@ early 400:
     278, best train auc: 0.987576, val auc: 0.982466
     281, best train auc: 0.987290, val auc: 0.982495
     450, best train auc: 0.987451, val auc: 0.982468
-    96. 95 + predict
-
-    97. all vars + all counts + all nuniques + lgbm_params_pub_entire_set_test_depth_5_leave_20_scale_1
-
+    95 + predict:
+        0.9795058    0.9800474
+    97. all vars + all counts + all nuniques + all mean + all cumcount + all scvr params search
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE

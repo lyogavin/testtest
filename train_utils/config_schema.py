@@ -2000,7 +2000,7 @@ train_config_133_95.add_features_list = add_features_list_fts_search_reduced_spl
 train_config_133_95.lgbm_params = [
     lgbm_params_pub_entire_set_test_depth_5_leave_25_scale_1,
     lgbm_params_pub_entire_set_test_depth_5_leave_20_scale_1,
-    lgbm_params_pub_entire_set_test_depth_4_leave_30_scale_1
+    lgbm_params_pub_entire_set_test_depth_4_leave_30_scale_1,
 ]
 
 train_config_133_96 = copy.deepcopy(train_config_133_95)
@@ -2015,7 +2015,20 @@ train_config_133_96.lgbm_params = ({**lgbm_params_pub_entire_set_test_depth_5_le
                                         'num_boost_round':281
                                        }})
 
-
+train_config_133_97 = copy.deepcopy(train_config_133_95)
+train_config_133_97.add_features_list = get_cols_com('counts') + \
+                                        get_cols_com('var') + \
+                                        get_cols_com('mean') + \
+                                        get_cols_com('cumcount') + \
+                                        get_cols_com('smoothcvr') + \
+                                        get_cols_com('nunique')
+train_config_133_97.lgbm_params = [
+    lgbm_params_pub_entire_set_test_depth_5_leave_25_scale_1,
+    lgbm_params_pub_entire_set_test_depth_5_leave_20_scale_1,
+    lgbm_params_pub_entire_set_test_depth_4_leave_30_scale_1,
+    lgbm_params_pub_entire_set_test_depth_5_leave_30_scale_1,
+    lgbm_params_pub_entire_set_test_depth_5_leave_35_scale_1,
+]
 debug = False
 
 def use_config_scheme(str):
