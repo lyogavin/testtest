@@ -2044,6 +2044,24 @@ train_config_133_98.lgbm_params = [
     {**lgbm_params_pub_entire_set_test_depth_5_leave_35_scale_1, **{'learning_rate': 0.02}},
 ]
 
+train_config_133_98.lgbm_params = [
+    lgbm_params_pub_entire_set_new_test_1,
+    lgbm_params_pub_entire_set_new_test_2,
+    lgbm_params_pub_entire_set_new_test_3,
+    lgbm_params_pub_entire_set_new_test_4,
+    lgbm_params_pub_entire_set_new_test_5,
+    lgbm_params_pub_entire_set_new_test_6,
+    lgbm_params_pub_entire_set_new_test_7,
+    lgbm_params_pub_entire_set_new_test_8,
+    lgbm_params_pub_entire_set_test_early_stop_50,
+    lgbm_params_pub_entire_set_test_early_stop_200,
+    lgbm_params_pub_entire_set_test_depth_5,
+    lgbm_params_pub_entire_set_test_depth_5_leave_9,
+    lgbm_params_pub_entire_set_test_scale_pos_50,
+    lgbm_params_pub_entire_set_test_scale_pos_90,
+    lgbm_params_pub_entire_set_test_early_stop_400,
+]
+
 debug = False
 
 def use_config_scheme(str):
