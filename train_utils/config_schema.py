@@ -2017,8 +2017,8 @@ train_config_133_96.lgbm_params = ({**lgbm_params_pub_entire_set_test_depth_5_le
 
 train_config_133_97 = copy.deepcopy(train_config_133_95)
 train_config_133_97.add_features_list = get_cols_com('count') + \
-                                        get_cols_com('var') + \
-                                        get_cols_com('mean') + \
+                                        #get_cols_com('var') + \
+                                        #get_cols_com('mean') + \
                                         get_cols_com('cumcount') + \
                                         get_cols_com('smoothcvr') + \
                                         get_cols_com('nunique')
