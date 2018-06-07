@@ -2031,6 +2031,15 @@ train_config_133_97.lgbm_params = [
     lgbm_params_pub_entire_set_test_depth_5_leave_30_scale_1,
     lgbm_params_pub_entire_set_test_depth_5_leave_35_scale_1,
 ]
+
+train_config_133_98 = copy.deepcopy(train_config_133_97)
+train_config_133_98.lgbm_params = [
+    {**lgbm_params_pub_entire_set_test_depth_5_leave_30_scale_1, **{'learning_rate': 0.05}},
+    {**lgbm_params_pub_entire_set_test_depth_5_leave_30_scale_1, **{'learning_rate': 0.02}},
+    {**lgbm_params_pub_entire_set_test_depth_5_leave_35_scale_1, **{'learning_rate': 0.05}},
+    {**lgbm_params_pub_entire_set_test_depth_5_leave_35_scale_1, **{'learning_rate': 0.02}},
+]
+
 debug = False
 
 def use_config_scheme(str):

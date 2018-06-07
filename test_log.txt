@@ -1853,6 +1853,7 @@ early 400:
     95 + predict:
         0.9795058    0.9800474
     97. all vars + all counts + all nuniques + all mean + all cumcount + all scvr params search
+    98. 97 + more params search
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
