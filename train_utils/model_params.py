@@ -402,3 +402,15 @@ lgbm_params_pub_entire_set_test_depth_6_leave_75_scale_1.update({'max_depth': 6,
 
 lgbm_params_pub_entire_set_test_depth_4_leave_50_scale_1 = dict(new_lgbm_params)
 lgbm_params_pub_entire_set_test_depth_4_leave_50_scale_1.update({'max_depth': 4, 'num_leaves': 50, 'scale_pos_weight':1.0})
+
+lgbm_params_pub_entire_set_test_depth_7_leave_50_scale_1 = dict(new_lgbm_params)
+lgbm_params_pub_entire_set_test_depth_7_leave_50_scale_1.update({'max_depth': 7, 'num_leaves': 50, 'scale_pos_weight':1.0})
+
+lgbm_params_pub_entire_set_test_depth_7_leave_75_scale_1 = dict(new_lgbm_params)
+lgbm_params_pub_entire_set_test_depth_7_leave_75_scale_1.update({'max_depth': 7, 'num_leaves': 75, 'scale_pos_weight':1.0})
+
+lgbm_params_pub_entire_set_test_depth_8_leave_50_scale_1 = dict(new_lgbm_params)
+lgbm_params_pub_entire_set_test_depth_8_leave_50_scale_1.update({'max_depth': 8, 'num_leaves': 50, 'scale_pos_weight':1.0})
+
+lgbm_params_pub_entire_set_test_depth_8_leave_75_scale_1 = dict(new_lgbm_params)
+lgbm_params_pub_entire_set_test_depth_8_leave_75_scale_1.update({'max_depth': 8, 'num_leaves': 75, 'scale_pos_weight':1.0})
