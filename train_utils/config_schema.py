@@ -2073,6 +2073,8 @@ train_config_133_100.lgbm_params = [
     ]
 
 train_config_133_101 = copy.deepcopy(train_config_133_97)
+train_config_133_101.use_ft_cache = False
+
 train_config_133_101.lgbm_params = [
     lgbm_params_pub_entire_set_test_depth_6_leave_50_scale_1,
     lgbm_params_pub_entire_set_test_depth_6_leave_75_scale_1,
