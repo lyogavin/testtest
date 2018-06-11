@@ -2073,16 +2073,18 @@ train_config_133_100.lgbm_params = [
     ]
 
 train_config_133_101 = copy.deepcopy(train_config_133_97)
-train_config_133_101.use_ft_cache = False
+train_config_133_101.use_ft_cache = True
+train_config_133_101.lgbm_seed_test_list = [999, 555, 333]
+train_config_133_101.lgbm_params = lgbm_params_pub_entire_set_test_depth_6_leave_50_scale_1
 
-train_config_133_101.lgbm_params = [
-    lgbm_params_pub_entire_set_test_depth_6_leave_50_scale_1,
-    lgbm_params_pub_entire_set_test_depth_6_leave_75_scale_1,
-    lgbm_params_pub_entire_set_test_depth_7_leave_50_scale_1,
-    lgbm_params_pub_entire_set_test_depth_7_leave_75_scale_1,
-    lgbm_params_pub_entire_set_test_depth_8_leave_50_scale_1,
-    lgbm_params_pub_entire_set_test_depth_8_leave_75_scale_1,
-    ]
+#train_config_133_101.lgbm_params = [
+#    lgbm_params_pub_entire_set_test_depth_6_leave_50_scale_1,
+#    lgbm_params_pub_entire_set_test_depth_6_leave_75_scale_1,
+#    lgbm_params_pub_entire_set_test_depth_7_leave_50_scale_1,
+#    lgbm_params_pub_entire_set_test_depth_7_leave_75_scale_1,
+#    lgbm_params_pub_entire_set_test_depth_8_leave_50_scale_1,
+#    lgbm_params_pub_entire_set_test_depth_8_leave_75_scale_1,
+#    ]
 
 train_config_133_102 = copy.deepcopy(train_config_133_97)
 train_config_133_102.lgbm_params = [
