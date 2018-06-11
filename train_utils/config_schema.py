@@ -2023,6 +2023,8 @@ train_config_133_97.add_features_list = get_cols_com('count') + \
                                         [
                                             {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],
                                              'op': 'nextclick'},
+                                            {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+                                            {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
                                         ]
 
                                         # get_cols_com('var') + \
