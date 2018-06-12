@@ -1624,8 +1624,9 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
             val = val[val["click_time"].dt.hour.isin(most_freq_hours_in_test_data)]
             logger.debug('len after val test hour filer: %d', len(val))
             logger.debug('hours after val test hour filer: %s', val.groupby(by=val["click_time"].dt.hour)['app'].count().to_string())
-            logger.debug('val\'s start time: %d', val['click_time'][0])
-            logger.debug('val\'s end time: %d', val['click_time'][-1])
+            logger.debug('test')
+            logger.debug('val\'s start time: %s', val['click_time'].min())
+            logger.debug('val\'s end time: %s', val['click_time'].max())
 
 
 
