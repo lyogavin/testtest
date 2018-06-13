@@ -2076,9 +2076,43 @@ train_config_133_100.lgbm_params = [
 
 train_config_133_101 = copy.deepcopy(train_config_133_97)
 train_config_133_101.use_ft_cache = True
-train_config_133_101.lgbm_seed_test_list = [999, 555, 333]
-train_config_133_101.lgbm_params = { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
-                                     **{'early_stopping_round': 300}}
+#train_config_133_101.lgbm_seed_test_list = [999, 555, 333]
+train_config_133_101.lgbm_params = [{ **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.6,
+                                        'subsample': 0.9,
+                                        'max_bin': 150,
+                                        }},
+                                     { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.5,
+                                        'subsample': 0.9,
+                                        'max_bin': 150,
+                                        }},
+                                     { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.7,
+                                        'subsample': 0.6,
+                                        'max_bin': 150,
+                                        }},
+                                     { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.7,
+                                        'subsample': 0.5,
+                                        'max_bin': 150,
+                                        }},
+                                     { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.7,
+                                        'subsample': 0.9,
+                                        'max_bin': 100,
+                                        }},
+                                     { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.7,
+                                        'subsample': 0.9,
+                                        'max_bin': 50,
+                                        }},]
 
 #train_config_133_101.lgbm_params = [
 #    lgbm_params_pub_entire_set_test_depth_6_leave_50_scale_1,
