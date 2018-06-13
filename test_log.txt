@@ -1851,7 +1851,7 @@ early 400:
     281, best train auc: 0.987290, val auc: 0.982495
     450, best train auc: 0.987451, val auc: 0.982468
     95 + predict:
-        0.9795058    0.9800474
+        0.9795058    0.9800474·
     97. all vars + all counts + all nuniques + all mean + all cumcount + all scvr params search
     98. 97 + more params search
     99. 97 + more params search
