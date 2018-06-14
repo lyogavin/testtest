@@ -2126,6 +2126,62 @@ train_config_133_102.lgbm_params = { **lgbm_params_pub_entire_set_test_depth_4_l
                                         }}
 train_config_133_102.test_important_fts = True
 
+train_config_133_103 = copy.deepcopy(train_config_133_97)
+train_config_133_103.use_ft_cache = True
+train_config_133_103.lgbm_params = [{ **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.4,
+                                        'subsample': 0.9,
+                                        'max_bin': 150,
+                                        }},
+                                     { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.5,
+                                        'subsample': 0.9,
+                                        'max_bin': 150,
+                                        }},
+                                     { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.6,
+                                        'subsample': 0.9,
+                                        'reg_alpha': 0.1,
+                                        'reg_lambda': 0,
+                                        'max_bin': 150,
+                                        }},
+                                     { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.6,
+                                        'subsample': 0.9,
+                                        'reg_alpha': 0,
+                                        'reg_lambda': 0.1,
+                                        'max_bin': 150,
+                                        }},
+                                     { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.6,
+                                        'subsample': 0.9,
+                                        'reg_alpha': 0.2,
+                                        'reg_lambda': 0,
+                                        'max_bin': 150,
+                                        }},
+                                     { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.6,
+                                        'subsample': 0.9,
+                                        'reg_alpha': 0,
+                                        'reg_lambda': 0.2,
+                                        'max_bin': 150,
+                                        }},
+                                     { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.5,
+                                        'subsample': 0.9,
+                                        'reg_alpha': 0.2,
+                                        'reg_lambda': 0.2,
+                                        'max_bin': 150,
+                                        }},]
+
+
 debug = False
 
 def use_config_scheme(str):
