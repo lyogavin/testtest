@@ -2179,7 +2179,29 @@ train_config_133_103.lgbm_params = [{ **lgbm_params_pub_entire_set_test_depth_4_
                                         'reg_alpha': 0.2,
                                         'reg_lambda': 0.2,
                                         'max_bin': 150,
-                                        }},]
+                                        }},
+                                     { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.6,
+                                        'subsample': 0.9,
+                                        'min_child_samples': 300,
+                                        'max_bin': 150,
+                                        }},
+                                     { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.6,
+                                        'subsample': 0.9,
+                                        'min_child_samples': 500,
+                                        'max_bin': 150,
+                                        }},
+                                     { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.6,
+                                        'subsample': 0.9,
+                                        'min_child_samples': 1000,
+                                        'max_bin': 150,
+                                        }},
+                                    ]
 
 
 debug = False
