@@ -2206,6 +2206,9 @@ train_config_133_103.lgbm_params = [{ **lgbm_params_pub_entire_set_test_depth_4_
 
 train_config_133_104 = copy.deepcopy(train_config_133_97)
 train_config_133_104.use_ft_cache = True
+
+train_config_133_104.train_from = id_8_4am
+train_config_133_104.train_to = id_8_3pm
 train_config_133_104.lgbm_params = [{ **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
                                      **{'early_stopping_round': 300,
                                         'colsample_bytree': 0.5,
