@@ -2237,6 +2237,64 @@ train_config_133_104.lgbm_params = [{ **lgbm_params_pub_entire_set_test_depth_4_
                                         'min_child_samples': 1500,
                                         }},
                                     ]
+
+train_config_133_105 = copy.deepcopy(train_config_133_104)
+train_config_133_105.lgbm_params = [{ **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.5,
+                                        'subsample': 0.9,
+                                        'reg_alpha': 0.2,
+                                        'max_bin': 150,
+                                        'min_child_samples': 1000,
+                                        }},
+                                     { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.6,
+                                        'subsample': 0.9,
+                                        'reg_alpha': 0.2,
+                                        'max_bin': 150,
+                                        'min_child_samples': 1000,
+                                        }},
+                                     { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.7,
+                                        'subsample': 0.9,
+                                        'reg_alpha': 0.2,
+                                        'max_bin': 150,
+                                        'min_child_samples': 1000,
+                                        }},
+                                     { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.7,
+                                        'subsample': 0.9,
+                                        'reg_alpha': 0.2,
+                                        'max_bin': 150,
+                                        'min_child_samples': 500,
+                                        }},
+                                    ]
+train_config_133_105.add_features_list = get_cols_com('count') + \
+                                        get_cols_com('cumcount') + \
+                                        get_cols_com('smoothcvr') + \
+                                        get_cols_com('nunique') + \
+                                        [
+                                            {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+                                            {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+                                        ]
+
+train_config_133_106 = copy.deepcopy(train_config_133_105)
+train_config_133_106.add_features_list = get_cols_com('count') + \
+                                        get_cols_com('cumcount') + \
+                                        get_cols_com('smoothcvr') + \
+                                        [
+                                            {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+                                            {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+                                        ]
+
+
 debug = False
 
 def use_config_scheme(str):
