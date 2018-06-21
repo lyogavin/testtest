@@ -436,3 +436,9 @@ lgbm_params_pub_entire_set_test_depth_8_leave_30_scale_1.update({'max_depth': 8,
 
 lgbm_params_pub_entire_set_test_depth_8_leave_25_scale_1 = dict(new_lgbm_params)
 lgbm_params_pub_entire_set_test_depth_8_leave_25_scale_1.update({'max_depth': 8, 'num_leaves': 25, 'scale_pos_weight':1.0})
+
+
+lgbm_params_5th =  { 'boosting_type': 'gbdt', 'objective': 'binary', 'tree_learner': 'serial',
+                     'metric': 'binary_logloss', 'learning_rate': 0.05, 'max_bin': 255, 'num_leaves': 63,
+                     'max_depth': -1, 'min_data_in_leaf': 1000, 'feature_fraction': 0.7, 'bagging_freq': 1,
+                     'bagging_fraction': 0.7, 'lambda_l1': 1, 'lambda_l2': 1, 'sigmoid': 1}

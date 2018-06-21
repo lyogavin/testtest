@@ -2294,6 +2294,21 @@ train_config_133_106.add_features_list = get_cols_com('count') + \
                                             {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
                                         ]
 
+train_config_133_107 = copy.deepcopy(train_config_133_104)
+train_config_133_107.lgbm_params = { **lgbm_params_5th,
+                                     **{'early_stopping_round': 300,
+                                        }}
+
+train_config_133_108 = copy.deepcopy(train_config_133_105)
+train_config_133_108.lgbm_params = { **lgbm_params_5th,
+                                     **{'early_stopping_round': 300,
+                                        }}
+
+train_config_133_109 = copy.deepcopy(train_config_133_106)
+train_config_133_109.lgbm_params = { **lgbm_params_5th,
+                                     **{'early_stopping_round': 300,
+                                        }}
+
 
 debug = False
 
