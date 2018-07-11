@@ -293,6 +293,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
     loaded_from_cache = False
 
     logger.debug('checking {}, exist:{}'.format(ft_cache_path + ft_cache_file_name, os.path.exists((ft_cache_path + ft_cache_file_name))))
+
     if use_ft_cache and os.path.exists ((ft_cache_path + ft_cache_file_name)) and \
         preload_df is not None:
         if only_ft_cache:
