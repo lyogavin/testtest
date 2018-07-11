@@ -1859,6 +1859,76 @@ early 400:
         running
 
 
+===== use only 8th to train:
+
+    104. all fts besides  mean,
+    colsample_bytree 0.7, reg_alpha 0.2, min_child_samples 500:
+        best iter num: 99, best train auc: 0.987263, val auc: 0.977840
+        best fts: count and cumcount and nunique:
+ ('app_channel_ipnunique', 10),
+ ('app_device_os_is_attributedcount', 11),
+ ('device_os_is_attributedcount', 12),
+ ('app_channel_is_attributedcumcount', 13),
+ ('app_device_ip_is_attributedcount', 13),
+ ('app_ip_is_attributedcount', 13),
+ ('device', 13),
+ ('app_channel_is_attributedcount', 14),
+ ('device_os_ipnunique', 14),
+ ('app_device_os_ipnunique', 17),
+ ('hour', 18),
+ ('app_device_channel_is_attributedcount', 20),
+ ('os_ip_is_attributedcount', 22),
+ ('ip_is_attributedcumcount', 28),
+ ('device_is_attributedcumcount', 30),
+ ('device_os_ip_is_attributedcount', 37),
+ ('device_ip_is_attributedcount', 44),
+ ('ip_hour_is_attributedcount', 48),
+ ('ip_is_attributedcount', 80),
+ ('os', 105),
+ ('app', 126),
+ ('channel', 159),
+ ('ip_app_device_os_is_attributednextclick', 171)]
+
+    105.no var/mean fts:
+
+    best: colsample_bytree 0.5, learning_rate 0.1, min_child_samples 1500:
+        best iter num: 499, best train auc: 0.988981, val auc: 0.978614
+        best fts: count cumcount:
+         ('app_device_os_ip_is_attributedcount', 49),
+ ('channel_is_attributedcumcount', 49),
+ ('device_os_is_attributedcumcount', 49),
+ ('channel_ip_is_attributedcount', 51),
+ ('app_device_ip_is_attributedcount', 52),
+ ('device_channel_ip_is_attributedcount', 53),
+ ('app_ip_is_attributedcount', 57),
+ ('app_os_is_attributedcumcount', 58),
+ ('os_ip_is_attributedcount', 58),
+ ('os_is_attributedcumcount', 60),
+ ('ip_app_hour_os_is_attributedcount', 64),
+ ('ip_is_attributedcumcount', 73),
+ ('device_os_ip_is_attributedcount', 76),
+ ('device', 95),
+ ('device_is_attributedcumcount', 105),
+ ('device_ip_is_attributedcount', 122),
+ ('ip_is_attributedcount', 178),
+ ('hour', 194),
+ ('ip_hour_is_attributedcount', 199),
+ ('ip_app_device_os_is_attributednextclick', 337),
+ ('app', 427),
+ ('os', 503),
+ ('channel', 748)]
+
+
+    106. fts: only count cumcount:
+    best:  'colsample_bytree': 0.7,'learning_rate': 0.1,'min_child_samples': 1000,
+best iter num: 100, best train auc: 0.985728, val auc: 0.978192
+
+
+==== test use 7~9 to train , 9 4am-3pm to test: 104-111:
+    104.
+
+
+
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
 2. break down auc by dimensions and filter data and train separately and ensemble DONE

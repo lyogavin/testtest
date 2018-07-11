@@ -42,7 +42,7 @@ new_lgbm_params = {
     'min_split_gain': 0,
     'reg_alpha': 0,
     'reg_lambda': 0,
-    'nthread': 10,
+    'nthread': 16,
     'verbose': 9,
     'early_stopping_round': 20,
     # 'is_unbalance': True,
