@@ -251,14 +251,20 @@ def load_ft_cache_file(group_by_cols, op, ft_cache_prefix, sample_indice):
         ft_cache_file_name = config_scheme_to_use.use_ft_cache_from + "_" + ft_cache_prefix + '_' + feature_name_added
         ft_cache_file_name = ft_cache_file_name + '_sample' if options.unittest else ft_cache_file_name
         ft_cache_file_name = ft_cache_file_name + '.pickle.bz2'
-        ft_cache_data = pd.read_pickle(ft_cache_path + ft_cache_file_name,
+        try:
+            ft_cache_data = pd.read_pickle(ft_cache_path + ft_cache_file_name,
                                             #dtype='float32',
                                             #header=0, engine='c',
                                             compression='bz2')
-        if sample_indice is not None:
-            ft_cache_data = ft_cache_data.loc[sample_indice]
+            if sample_indice is not None:
+                ft_cache_data = ft_cache_data.loc[sample_indice]
+            logger.debug('tail of preload cache file(%s): %s', ft_cache_path + ft_cache_file_name,
+                         ft_cache_data.tail().to_string())
 
-        logger.debug('tail of preload cache file(%s): %s', ft_cache_path + ft_cache_file_name, ft_cache_data.tail().to_string())
+        except:
+            logger.info("Unexpected error:", sys.exc_info()[0])
+            ft_cache_data = None
+
     return ft_cache_data
 
 def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_use.qcut, #0, #0.98,
@@ -287,7 +293,8 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
     loaded_from_cache = False
 
     logger.debug('checking {}, exist:{}'.format(ft_cache_path + ft_cache_file_name, os.path.exists((ft_cache_path + ft_cache_file_name))))
-    if use_ft_cache and os.path.exists ((ft_cache_path + ft_cache_file_name)):
+    if use_ft_cache and os.path.exists ((ft_cache_path + ft_cache_file_name)) and \
+        preload_df is not None:
         if only_ft_cache:
             logger.debug('cache only, cache exists, return.')
             return
