@@ -138,6 +138,9 @@ def get_cols_com(op):
             temp.extend(cols_coms)
             if op in ['smoothcvr', 'count', 'cumcount']:
                 temp.append('is_attributed')
+            elif op in ['nunique', 'var', 'mean'] and len(temp) == 1:
+                temp.append('is_attributed')
+
             to_append = {'group': list(temp), 'op': op}
 
             if op in ['smoothcvr', 'var']:
