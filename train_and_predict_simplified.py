@@ -865,9 +865,12 @@ def generate_counting_history_features(data,
 
             for add_feature in pdict:
                 preload_dfs[str(add_feature)] = pdict[str(add_feature)].join()
+
+                if preload_dfs[str(add_feature)] is not None and len(preload_dfs[str(add_feature)]) != len(data):
+                    del preload_dfs[str(add_feature)]
                 #logger.info('preload_dfs keys: %s', pformat(preload_dfs.keys()))
-                assert (preload_dfs[str(add_feature)] is not None), 'cache len loaded should be the same as sampled df'
-                assert (len(preload_dfs[str(add_feature)]) == len(data)), 'cache len loaded should be the same as sampled df'
+                #assert (preload_dfs[str(add_feature)] is not None), 'cache len loaded should be the same as sampled df'
+                #assert (len(preload_dfs[str(add_feature)]) == len(data)), 'cache len loaded should be the same as sampled df'
 
         for add_feature in to_run_in_pool:
             data, features_added,discretization_bins_used_current_feature = \
