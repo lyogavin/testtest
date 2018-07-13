@@ -126,7 +126,7 @@ def get_cols_com(op):
     ret = []
     if op == 'smoothcvr':
         search_range = range(1, 4)
-    elif op in ['count', 'cumcount']:
+    elif op in ['count', 'cumcount', 'nunique', 'var', 'mean']:
         search_range = range(1, 7)
     else:
         search_range = range(2, 7)

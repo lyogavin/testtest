@@ -2,7 +2,7 @@
 set -e
 
 
-for i in `seq 104 111`;
+for i in `seq 112 116`;
 do
         echo $i
         echo "run train_config_133_$i...."
