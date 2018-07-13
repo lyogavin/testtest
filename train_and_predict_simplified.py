@@ -842,6 +842,8 @@ def generate_counting_history_features(data,
         #data.sort_index(inplace=True)
 
         logger.debug('second round load cache files:')
+        logger.debug('TORUN: %s', pformat(to_run_in_pool))
+
         multithread_load_ft = True
         preload_dfs = {}
         pdict = {}
@@ -862,6 +864,7 @@ def generate_counting_history_features(data,
                     for pp in pdict:
                         alive_count += pdict[pp].is_alive()
 
+            logger.debug('TORUN: %s', pformat(to_run_in_pool))
 
             for add_feature in pdict:
                 preload_dfs[str(add_feature)] = pdict[str(add_feature)].join()
@@ -871,6 +874,8 @@ def generate_counting_history_features(data,
                 #logger.info('preload_dfs keys: %s', pformat(preload_dfs.keys()))
                 #assert (preload_dfs[str(add_feature)] is not None), 'cache len loaded should be the same as sampled df'
                 #assert (len(preload_dfs[str(add_feature)]) == len(data)), 'cache len loaded should be the same as sampled df'
+
+        logger.debug('TORUN: %s', pformat(to_run_in_pool))
 
         for add_feature in to_run_in_pool:
             data, features_added,discretization_bins_used_current_feature = \
