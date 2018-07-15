@@ -2376,8 +2376,34 @@ train_config_133_116.add_features_list = get_cols_com('count') + \
                                             {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
                                             {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
                                         ]
+train_config_133_117 = copy.deepcopy(train_config_133_111)
+train_config_133_117.add_features_list = get_cols_com('smoothcvr') + \
+                                        [
+                                            {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+                                            {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+                                        ]
 
-
+train_config_133_118 = copy.deepcopy(train_config_133_106)
+train_config_133_118.add_features_list = get_cols_com('var') + \
+                                        get_cols_com('nunique') + \
+                                        [
+                                            {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+                                            {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+                                        ]
+train_config_133_119 = copy.deepcopy(train_config_133_106)
+train_config_133_119.add_features_list = get_cols_com('var') + \
+                                        get_cols_com('nunique') + \
+                                        get_cols_com('count') + \
+                                        [
+                                            {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+                                            {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+                                        ]
 debug = False
 
 def use_config_scheme(str):
