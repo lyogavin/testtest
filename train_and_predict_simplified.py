@@ -294,44 +294,45 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
 
     logger.debug('checking {}, exist:{}'.format(ft_cache_path + ft_cache_file_name, os.path.exists((ft_cache_path + ft_cache_file_name))))
 
-    if use_ft_cache and os.path.exists ((ft_cache_path + ft_cache_file_name)) and \
-        preload_df is not None:
+    if use_ft_cache and os.path.exists ((ft_cache_path + ft_cache_file_name))
         if only_ft_cache:
             logger.debug('cache only, cache exists, return.')
             return
         logger.debug('[PID {}] cache file exist, loading: {}'.format(os.getpid(), ft_cache_path + ft_cache_file_name))
 
-        try:
-            with timer('read pickle ft cache file:' + ft_cache_path + ft_cache_file_name):
-                if preload_df is not None:
-                    ft_cache_data = preload_df
-                else:
-                    ft_cache_data = pd.read_pickle(ft_cache_path + ft_cache_file_name,
-                                        #dtype='float32',
-                                        #header=0, engine='c',
-                                        compression='bz2')
-                    if sample_indice is not None:
-                        #logger.debug(ft_cache_data)
-                        #logger.debug(sample_indice)
-                        ft_cache_data = ft_cache_data.loc[sample_indice]
-                        logger.debug('sample indice applied, len after sample of ft cache: %d',len(ft_cache_data))
-                    #logger.debug('SAMPLE:{}-{}'.format(feature_name_added, ft_cache_data.sample(5, random_state=88)))
 
-        except:
-            logger.debug('[PID {}] err loading: {}'.format(os.getpid(), ft_cache_path + ft_cache_file_name))
-            raise ValueError('[PID {}] err loading: {}'.format(os.getpid(), ft_cache_path + ft_cache_file_name))
+        if preload_df is not None:
+            try:
+                with timer('read pickle ft cache file:' + ft_cache_path + ft_cache_file_name):
+                    if preload_df is not None:
+                        ft_cache_data = preload_df
+                    else:
+                        ft_cache_data = pd.read_pickle(ft_cache_path + ft_cache_file_name,
+                                            #dtype='float32',
+                                            #header=0, engine='c',
+                                            compression='bz2')
+                        if sample_indice is not None:
+                            #logger.debug(ft_cache_data)
+                            #logger.debug(sample_indice)
+                            ft_cache_data = ft_cache_data.loc[sample_indice]
+                            logger.debug('sample indice applied, len after sample of ft cache: %d',len(ft_cache_data))
+                        #logger.debug('SAMPLE:{}-{}'.format(feature_name_added, ft_cache_data.sample(5, random_state=88)))
 
-        #logger.debug('before merge', training.columns)
-        #training = training.join(ft_cache_data)#training.merge(ft_cache_data, how='left', left_index=True, right_index=True)
-        training[feature_name_added] = ft_cache_data
-        logger.debug('ft loaded: %s' + training[feature_name_added].tail().to_string())
+            except:
+                logger.debug('[PID {}] err loading: {}'.format(os.getpid(), ft_cache_path + ft_cache_file_name))
+                raise ValueError('[PID {}] err loading: {}'.format(os.getpid(), ft_cache_path + ft_cache_file_name))
 
-        logger.debug('[PID {}] loaded {} from file {}, count:({})'.format(
-            os.getpid(), feature_name_added, ft_cache_path + ft_cache_file_name, training[feature_name_added].count()))
-        loaded_from_cache=True
-        del ft_cache_data
-        gc.collect()
-        return training, [feature_name_added], None
+            #logger.debug('before merge', training.columns)
+            #training = training.join(ft_cache_data)#training.merge(ft_cache_data, how='left', left_index=True, right_index=True)
+            training[feature_name_added] = ft_cache_data
+            logger.debug('ft loaded: %s' + training[feature_name_added].tail().to_string())
+
+            logger.debug('[PID {}] loaded {} from file {}, count:({})'.format(
+                os.getpid(), feature_name_added, ft_cache_path + ft_cache_file_name, training[feature_name_added].count()))
+            loaded_from_cache=True
+            del ft_cache_data
+            gc.collect()
+            return training, [feature_name_added], None
     if use_ft_cache and only_ft_cache:
         #logger.debug('only gen cache, use df_before_sample..., use ',df_before_sample)
         training = df_before_sample
