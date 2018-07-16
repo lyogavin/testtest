@@ -2404,6 +2404,65 @@ train_config_133_119.add_features_list = get_cols_com('var') + \
                                             {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
                                             {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
                                         ]
+
+train_config_133_120 = copy.deepcopy(train_config_133_106)
+train_config_133_120.lgbm_params = { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.5,
+                                        'subsample': 0.9,
+                                        'reg_alpha': 0.2,
+                                        'max_bin': 150,
+                                        'min_child_samples': 1000,
+                                        }}
+train_config_133_120.add_features_list = get_cols_com('nunique') + \
+                                        get_cols_com('count') + \
+                                        [
+                                            {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+                                            {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+                                        ]
+
+train_config_133_121 = copy.deepcopy(train_config_133_120)
+train_config_133_121.add_features_list = get_cols_com('cumcount') + \
+                                        get_cols_com('count') + \
+                                        [
+                                            {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+                                            {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+                                        ]
+
+train_config_133_122 = copy.deepcopy(train_config_133_120)
+train_config_133_122.add_features_list = get_cols_com('nunique') + \
+                                        get_cols_com('cumcount') + \
+                                        get_cols_com('count') + \
+                                        [
+                                            {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+                                            {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+                                        ]
+
+train_config_133_123 = copy.deepcopy(train_config_133_120)
+train_config_133_123.add_features_list = get_cols_com('nunique') + \
+                                        get_cols_com('cumcount') + \
+                                        [
+                                            {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+                                            {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+                                        ]
+
+train_config_133_124 = copy.deepcopy(train_config_133_120)
+train_config_133_124.add_features_list = get_cols_com('var') + \
+                                        get_cols_com('count') + \
+                                        [
+                                            {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+                                            {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+                                        ]
 debug = False
 
 def use_config_scheme(str):

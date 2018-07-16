@@ -1925,7 +1925,29 @@ best iter num: 100, best train auc: 0.985728, val auc: 0.978192
 
 
 ==== test use 7~9 to train , 9 4am-3pm to test: 104-111:
-    104.
+    110: count
+    best iter num: 678, best train auc: 0.987662, val auc: 0.982481
+    'colsample_bytree': 0.5,  'min_child_samples': 1000,
+
+    112: nunique
+    iter num: 478, best train auc: 0.986343, val auc: 0.981653
+    'colsample_bytree': 0.5, 'min_child_samples': 1000,
+
+    113: mean
+    best iter num: 241, best train auc: 0.970586, val auc: 0.961790
+    'colsample_bytree': 0.6, 'min_child_samples': 1000,
+
+    114: var
+    best iter num: 439, best train auc: 0.986282, val auc: 0.981527
+    'colsample_bytree': 0.6, 'min_child_samples': 1000,
+
+    115: cumcount
+    best iter num: 503, best train auc: 0.987192, val auc: 0.981618
+    'colsample_bytree': 0.7, 'min_child_samples': 1000,
+
+    117: smoothcvr
+    best iter num: 91, best train auc: 0.983800, val auc: 0.974691
+    'colsample_bytree': 0.5,, 'min_child_samples': 1000,
 
 
 
