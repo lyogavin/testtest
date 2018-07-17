@@ -346,6 +346,7 @@
                  'min_child_weight': 0,
                  'min_split_gain': 0,
                  'nthread': 16,
+                 'num_boost_round': 2000,
                  'num_leaves': 20,
                  'objective': 'binary',
                  'reg_alpha': 0.2,

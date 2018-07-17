@@ -2,7 +2,11 @@
 set -e
 
 
-for i in `seq 125 129`;
+echo 120
+echo "run train_config_133_120...."
+python3 -u ./train_and_predict_simplified.py -c train_config_133_120
+
+for i in `seq 123 129`;
 do
         echo $i
         echo "run train_config_133_$i...."

@@ -2413,6 +2413,7 @@ train_config_133_120.lgbm_params = { **lgbm_params_pub_entire_set_test_depth_4_l
                                         'reg_alpha': 0.2,
                                         'max_bin': 150,
                                         'min_child_samples': 1000,
+                                        'num_boost_round': 2000,
                                         }}
 train_config_133_120.add_features_list = get_cols_com('nunique') + \
                                         get_cols_com('count') + \

@@ -1950,6 +1950,25 @@ best iter num: 100, best train auc: 0.985728, val auc: 0.978192
     'colsample_bytree': 0.5,, 'min_child_samples': 1000,
 
 
+    120: nunique + count:
+    best iter num: 1000, best train auc: 0.988321, val auc: 0.982409
+
+    121: cumcount + count
+     best iter num: 475, best train auc: 0.987306, val auc: 0.982042
+
+    122: nunique+cumcount+count
+    best iter num: 682, best train auc: 0.987919, val auc: 0.982084
+
+    123: nunique + cumcount:
+    best iter num: 1000, best train auc: 0.988177, val auc: 0.981537
+
+    124:var+count:
+    best iter num: 1000, best train auc: 0.988362, val auc: 0.982409
+
+    125: var + count + nunique:
+    best iter num: 1000, best train auc: 0.988428, val auc: 0.982425
+
+
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE

@@ -263,7 +263,10 @@ def load_ft_cache_file(group_by_cols, op, ft_cache_prefix, sample_indice):
 
         except:
             logger.info("Unexpected error:", sys.exc_info()[0])
+            logger.info('removing %s.', ft_cache_path + ft_cache_file_name)
+            os.remove(ft_cache_path + ft_cache_file_name)
             ft_cache_data = None
+            raise ValueError('%s loading error'.format(ft_cache_path + ft_cache_file_name))
 
     return ft_cache_data
 
