@@ -419,7 +419,12 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
                 logger.debug('debug str %s', (training['ip'].astype(str) + "_" + training['app'].astype(str) + "_" + training['device'].astype(str) \
             + "_" + training['os'].astype(str)+ "_" + training['channel'].astype(str))[0:10])
 
-            training['category'] = joint_col.apply(mmh3.hash) % D
+            try:
+                training['category'] = joint_col.apply(mmh3.hash) % D
+            except:
+                logger.debug(joint_col.describe())
+                raise AttributeError('None type')
+
             if debug:
                 logger.debug('debug category %s',training['category'][0:10])
 
