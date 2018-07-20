@@ -1952,6 +1952,7 @@ best iter num: 100, best train auc: 0.985728, val auc: 0.978192
 
     120: nunique + count:
     best iter num: 1000, best train auc: 0.988321, val auc: 0.982409
+    best iter num: 815, best train auc: 0.987966, val auc: 0.982433
 
     121: cumcount + count
      best iter num: 475, best train auc: 0.987306, val auc: 0.982042
@@ -1961,14 +1962,26 @@ best iter num: 100, best train auc: 0.985728, val auc: 0.978192
 
     123: nunique + cumcount:
     best iter num: 1000, best train auc: 0.988177, val auc: 0.981537
+    757, best train auc: 0.987654, val auc: 0.981629
 
     124:var+count:
     best iter num: 1000, best train auc: 0.988362, val auc: 0.982409
+    best iter num: 1031, best train auc: 0.988410, val auc: 0.982423
 
     125: var + count + nunique:
     best iter num: 1000, best train auc: 0.988428, val auc: 0.982425
+    best iter num: 812, best train auc: 0.988067, val auc: 0.982474
 
+    126: var + count + cumcount:
+    best iter num: 704, best train auc: 0.987951, val auc: 0.981986
 
+    127: var + count + mean:
+    best iter num: 706, best train auc: 0.987801, val auc: 0.982442
+
+    128: var + count + nextclick:
+    [828]	train's auc: 0.9885	valid's auc: 0.982762
+
+    129: var + count + nextclick + nextnclick
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE
