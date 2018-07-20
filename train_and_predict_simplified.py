@@ -328,7 +328,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
             #logger.debug('before merge', training.columns)
             #training = training.join(ft_cache_data)#training.merge(ft_cache_data, how='left', left_index=True, right_index=True)
             training[feature_name_added] = ft_cache_data
-            logger.debug('ft loaded: %s' + training[feature_name_added].tail().to_string())
+            #logger.debug('ft loaded: %s' + training[feature_name_added].tail().to_string())
 
             logger.debug('[PID {}] loaded {} from file {}, count:({})'.format(
                 os.getpid(), feature_name_added, ft_cache_path + ft_cache_file_name, training[feature_name_added].count()))
@@ -499,7 +499,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
         #training.sort_index(inplace=True)
 
         #logger.debug('nan count: ', n_chans[n_chans[feature_name_added].isnull()])
-        logger.debug('[PID {}] nan count: {}'.format(os.getpid(), n_chans[feature_name_added].isnull().sum()))
+        #logger.debug('[PID {}] nan count: {}'.format(os.getpid(), n_chans[feature_name_added].isnull().sum()))
         training = training.merge(n_chans, on=group_by_cols,# if len(group_by_cols) >1 else group_by_cols[0],
                                   how='left', copy=False)
         del n_chans
