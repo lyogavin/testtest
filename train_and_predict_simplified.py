@@ -258,8 +258,8 @@ def load_ft_cache_file(group_by_cols, op, ft_cache_prefix, sample_indice):
                                             compression='bz2')
             if sample_indice is not None:
                 ft_cache_data = ft_cache_data.loc[sample_indice]
-            logger.debug('tail of preload cache file(%s): %s', ft_cache_path + ft_cache_file_name,
-                         ft_cache_data.tail().to_string())
+            #logger.debug('tail of preload cache file(%s): %s', ft_cache_path + ft_cache_file_name,
+            #             ft_cache_data.tail().to_string())
 
         except:
             logger.info("Unexpected error:", sys.exc_info()[0])
