@@ -2507,8 +2507,9 @@ train_config_133_128.add_features_list = get_cols_com('var') + \
                                             {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
                                         ]
 train_config_133_129 = copy.deepcopy(train_config_133_120)
+# get_cols_com('nextclick') + \
+
 train_config_133_129.add_features_list = get_cols_com('count') + \
-                                        get_cols_com('nextclick') + \
                                         get_cols_com('nextnclick') + \
                                         [
                                             {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],
