@@ -1981,7 +1981,22 @@ best iter num: 100, best train auc: 0.985728, val auc: 0.978192
     128: var + count + nextclick:
     [828]	train's auc: 0.9885	valid's auc: 0.982762
 
-    129: var + count + nextclick + nextnclick
+    129: count + nextnclick
+    best iter num: 795, best train auc: 0.988323, val auc: 0.982744
+
+    130: mean + count + nextclick
+    671, best train auc: 0.988087, val auc: 0.982777
+
+    131: mean + count:
+    770, best train auc: 0.987853, val auc: 0.982441
+
+    132: 128 test lgbm params:
+    best = 128(0.5 1000)
+
+    133:
+
+
+
 
 to do test:
 1. kaggle public kernel, most least frequent hours feature DONE

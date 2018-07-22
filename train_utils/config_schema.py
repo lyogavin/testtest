@@ -2575,6 +2575,45 @@ train_config_133_132.lgbm_params = [{ **lgbm_params_pub_entire_set_test_depth_4_
                                         'num_boost_round': 2000,
                                         }},
                                     ]
+
+train_config_133_133 = copy.deepcopy(train_config_133_120)
+# get_cols_com('nextclick') + \
+
+train_config_133_133.add_features_list = get_cols_com('previousclick') + \
+                                        get_cols_com('nextclick') + \
+                                        get_cols_com('count') + \
+                                        [
+                                            {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+                                            {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+                                        ]
+train_config_133_134 = copy.deepcopy(train_config_133_120)
+# get_cols_com('nextclick') + \
+
+train_config_133_134.add_features_list = get_cols_com('nextnclick') + \
+                                        get_cols_com('nextclick') + \
+                                        get_cols_com('count') + \
+                                        [
+                                            {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+                                            {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+                                        ]
+
+train_config_133_135 = copy.deepcopy(train_config_133_120)
+# get_cols_com('nextclick') + \
+
+train_config_133_135.add_features_list = get_cols_com('previousclick') + \
+                                        get_cols_com('nextclick') + \
+                                        get_cols_com('count') + \
+                                        [
+                                            {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+                                            {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+                                        ]
+
 debug = False
 
 def use_config_scheme(str):

@@ -451,6 +451,55 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
 
             #if print_verbose:
             #logger.debug('next click added:', training[feature_name_added].describe())
+    elif op=='previousclick':
+        with timer("Adding previous click times"):
+            D = 2 ** 26
+            #data['category'] = (data['ip'].astype(str) + "_" + data['app'].astype(str) + "_" + \
+            #                    data['device'].astype(str) \
+            #                    + "_" + data['os'].astype(str) + "_" + data['channel'].astype(str)) \
+            #                       .apply(hash) % D
+            joint_col = None
+
+            for col in group_by_cols:
+                if joint_col is None:
+                    joint_col = training[col].astype(str)
+                else:
+                    joint_col = joint_col + "_" + training[col].astype(str)
+            if debug:
+                logger.debug('data: %s',training[0:10])
+                logger.debug('debug str %s',joint_col[0:10])
+                logger.debug('debug str %s', (training['ip'].astype(str) + "_" + training['app'].astype(str) + "_" + training['device'].astype(str) \
+            + "_" + training['os'].astype(str)+ "_" + training['channel'].astype(str))[0:10])
+
+            try:
+                training['category'] = joint_col.apply(mmh3.hash) % D
+            except:
+                logger.debug(joint_col.describe())
+                raise AttributeError('None type')
+
+            if debug:
+                logger.debug('debug category %s',training['category'][0:10])
+
+            del joint_col
+            gc.collect()
+            click_buffer = np.full(D, 0, dtype=np.uint32)
+            training['epochtime'] = training['click_time'].astype(np.int64) // 10 ** 9
+            next_clicks = []
+            for category, echtime in zip(training['category'].values,
+                                      training['epochtime'].values):
+                next_clicks.append(click_buffer[category] - echtime)
+                click_buffer[category] = echtime
+            del (click_buffer)
+            training[feature_name_added] = list(reversed(next_clicks))
+
+            #training[feature_name_added+'_shift'] = pd.DataFrame(list(reversed(next_clicks))).shift(+1).values
+            #features_added.append(feature_name_added+'_shift')
+
+            training.drop('epochtime', inplace=True, axis=1)
+            training.drop('category', inplace=True, axis=1)
+
+            #if print_verbose:
+            #logger.debug('next click added:', training[feature_name_added].describe())
     elif op=='smoothcvr':
         with timer('gen cvr grouping cache:'):
             if not hasattr(add_statistic_feature, 'train_cvr_cache'):

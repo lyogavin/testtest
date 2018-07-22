@@ -124,7 +124,7 @@ def timer(name, level=logging.DEBUG):
 
 def get_cols_com(op):
     ret = []
-    if op in ['smoothcvr', 'nextclick', 'nextnclick']:
+    if op in ['smoothcvr', 'nextclick', 'nextnclick', 'previousclick']:
         search_range = range(1, 7) #changed to 7 from 117
     elif op in ['count', 'cumcount']: #, 'nunique', 'var', 'mean']:
         search_range = range(1, 7)
@@ -136,7 +136,7 @@ def get_cols_com(op):
         for cols_coms in itertools.combinations(raw_cols, cols_count):
             temp = []
             temp.extend(cols_coms)
-            if op in ['smoothcvr', 'count', 'cumcount','nextclick', 'nextnclick']:
+            if op in ['smoothcvr', 'count', 'cumcount','nextclick', 'nextnclick', 'previousclick']:
                 temp.append('is_attributed')
             elif op in ['nunique', 'var', 'mean'] and len(temp) == 1:
                 temp.append('is_attributed')
