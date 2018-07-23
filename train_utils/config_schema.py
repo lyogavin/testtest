@@ -2614,6 +2614,27 @@ train_config_133_135.add_features_list = get_cols_com('previousclick') + \
                                             {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
                                         ]
 
+
+train_config_133_136 = copy_predict_config_from_test(train_config_133_110, 678)
+
+train_config_133_137 = copy_predict_config_from_test(train_config_133_113, 241)
+
+
+train_config_133_138 = copy_predict_config_from_test(train_config_133_125, 812)
+
+
+train_config_133_139 = copy_predict_config_from_test(train_config_133_127, 706)
+
+train_config_133_140 = copy_predict_config_from_test(train_config_133_128, 828)
+
+train_config_133_141 = copy_predict_config_from_test(train_config_133_130, 671)
+
+train_config_133_142 = copy_predict_config_from_test(train_config_133_133, 750)
+
+train_config_133_143 = copy_predict_config_from_test(train_config_133_134, 698)
+
+train_config_133_144 = copy_predict_config_from_test(train_config_133_135, 1)
+
 debug = False
 
 def use_config_scheme(str):

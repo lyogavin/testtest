@@ -1993,7 +1993,11 @@ best iter num: 100, best train auc: 0.985728, val auc: 0.978192
     132: 128 test lgbm params:
     best = 128(0.5 1000)
 
-    133:
+    133: count + previous click + nextclick
+    [750]   train's auc: 0.988405   valid's auc: 0.982753
+
+    134: count + nextclick + nextnclick
+    best iter num: 698, best train auc: 0.988337, val auc: 0.982977
 
 
 

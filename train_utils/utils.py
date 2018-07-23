@@ -4,6 +4,7 @@ from contextlib import contextmanager
 import time, os, gc, psutil
 import itertools
 from train_utils.constants import *
+import copy
 
 #import lightgbm as lgb
 
@@ -147,3 +148,21 @@ def get_cols_com(op):
                 to_append['astype'] = 'float32'
             ret.append(to_append)
     return ret
+
+
+def copy_predict_config_from_test(test_config, num_iter):
+    predict_config = copy.deepcopy(test_config)
+    predict_config.new_predict = True
+    predict_config.train_from = 0
+    predict_config.train_to = id_all_train
+    predict_config.val_from = id_9_3pm
+    predict_config.val_to = id_9_3pm + 10000
+    predict_config.submit_prediction = True
+    to_merge = {'early_stopping_round': None,
+                'num_boost_round': num_iter
+                }
+    to_merge0 = predict_config.lgbm_params if not isinstance(predict_config.lgbm_params, list) \
+        else predict_config.lgbm_params[0]
+
+    predict_config.lgbm_params =  {**to_merge0, **to_merge}
+    return predict_config
