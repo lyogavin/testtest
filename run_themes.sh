@@ -13,7 +13,7 @@ do
         python3 -u ./train_and_predict_simplified.py -c train_config_133_$i
 
 
-#done
+done
 
 
 if [ -f ./next.sh ]; then
