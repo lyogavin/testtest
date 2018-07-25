@@ -2634,6 +2634,32 @@ train_config_133_142 = copy_predict_config_from_test(train_config_133_133, 750)
 train_config_133_143 = copy_predict_config_from_test(train_config_133_134, 698)
 
 
+train_config_133_144 = copy.deepcopy(train_config_133_120)
+train_config_133_144.add_features_list = get_cols_com('previousclick') + \
+                                        get_cols_com('previousnclick') + \
+                                        get_cols_com('count') + \
+                                        [
+                                            {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+                                            {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+                                        ]
+
+
+train_config_133_145 = copy.deepcopy(train_config_133_120)
+train_config_133_145.train_smoothcvr_cache_from = 0
+train_config_133_145.train_smoothcvr_cache_to = id_8_0am
+train_config_133_145.val_smoothcvr_cache_from = id_8_4am
+train_config_133_145.val_smoothcvr_cache_to = id_8_3pm
+train_config_133_145.use_scvr_cache_file = True
+train_config_133_145.add_features_list = get_cols_com('smoothcvr') + \
+                                         get_cols_com('count') + \
+                                         [
+                                            {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+                                            {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+                                        ]
 debug = False
 
 def use_config_scheme(str):

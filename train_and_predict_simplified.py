@@ -402,6 +402,56 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
 
             #if print_verbose:
             #logger.debug('next click added:', training[feature_name_added].describe())
+    elif op=='previousnclick':
+        with timer("Adding previous n click times"):
+            D = 2 ** 26
+            #data['category'] = (data['ip'].astype(str) + "_" + data['app'].astype(str) + "_" + \
+            #                    data['device'].astype(str) \
+            #                    + "_" + data['os'].astype(str) + "_" + data['channel'].astype(str)) \
+            #                       .apply(hash) % D
+            joint_col = None
+
+            for col in group_by_cols:
+                if joint_col is None:
+                    joint_col = training[col].astype(str)
+                else:
+                    joint_col = joint_col + "_" + training[col].astype(str)
+            if debug:
+                logger.debug('data: %s',training[0:10])
+                logger.debug('debug str %s',joint_col[0:10])
+                logger.debug('debug str %s', (training['ip'].astype(str) + "_" + training['app'].astype(str) + "_" + training['device'].astype(str) \
+            + "_" + training['os'].astype(str)+ "_" + training['channel'].astype(str))[0:10])
+
+            training['category'] = joint_col.apply(mmh3.hash) % D
+            if debug:
+                logger.debug('debug category %s',training['category'][0:10])
+
+            del joint_col
+            gc.collect()
+
+            n = 3
+            click_buffers = []
+            for i in range(n):
+                click_buffers.append(np.full(D, 0, dtype=np.uint32))
+            training['epochtime'] = training['click_time'].astype(np.int64) // 10 ** 9
+            next_clicks = []
+            for category, echtime in zip(training['category'].values, training['epochtime'].values):
+                # shift values in buffers queue and append new value from the tail
+                for i in range(n - 1):
+                    click_buffers[i][category] = click_buffers[i+1][category]
+                next_clicks.append(click_buffers[0][category] - echtime)
+                click_buffers[n-1][category] = echtime
+            del (click_buffers)
+            training[feature_name_added] = list(reversed(next_clicks))
+
+            #training[feature_name_added+'_shift'] = pd.DataFrame(list(reversed(next_clicks))).shift(+1).values
+            #features_added.append(feature_name_added+'_shift')
+
+            training.drop('epochtime', inplace=True, axis=1)
+            training.drop('category', inplace=True, axis=1)
+
+            #if print_verbose:
+            #logger.debug('next click added:', training[feature_name_added].describe())
     elif op=='nextclick':
         with timer("Adding next click times"):
             D = 2 ** 26
@@ -502,6 +552,9 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
             #logger.debug('next click added:', training[feature_name_added].describe())
     elif op=='smoothcvr':
         with timer('gen cvr grouping cache:'):
+            if 'day' not in group_by_cols:
+                group_by_cols.append('day')
+
             if not hasattr(add_statistic_feature, 'train_cvr_cache'):
                 add_statistic_feature.train_cvr_cache = dict()
 
@@ -683,6 +736,10 @@ def gen_smoothcvr_cache(add_features_list, frm, to):
         if add_feature['op'] != 'smoothcvr':
             continue
 
+        if 'day' not in add_feature['group']:
+            add_feature['group'] =  ['day'] + add_feature['group']
+            #logger.debug('added add ft grp: %s', add_feature['group'])
+
         feature_name_added = '_'.join(add_feature['group']) + add_feature['op']
         if not hasattr(add_statistic_feature, 'train_cvr_cache'):
             add_statistic_feature.train_cvr_cache = dict()
@@ -717,6 +774,9 @@ def gen_smoothcvr_cache(add_features_list, frm, to):
             if feature_name_added in add_statistic_feature.train_cvr_cache:
                 temp_sum = add_statistic_feature.train_cvr_cache[feature_name_added]
             elif not config_scheme_to_use.use_hourly_alpha_beta or 'hour' not in group_by_cols:
+                # shiftting day forward 1 day
+                train['day'] = train['day'] + 1
+
                 temp_count = train[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[
                     ['is_attributed']].count()
                 temp_sum = train[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[['is_attributed']].sum()
@@ -726,6 +786,7 @@ def gen_smoothcvr_cache(add_features_list, frm, to):
                                                    'float16')
                 del temp_count
                 del temp_sum['is_attributed']
+                train['day'] = train['day'] - 1
                 gc.collect()
                 add_statistic_feature.train_cvr_cache[feature_name_added] = temp_sum.copy(True)
                 del temp_sum
