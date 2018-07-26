@@ -679,8 +679,8 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
     logger.debug('[PID {}] columns after added: {}'.format(os.getpid(), training.columns.values))
 
     #for test:
-    if op == 'smoothcvr':
-        logger.debug('SAMPLE:{}-{}'.format(feature_name_added, training[feature_name_added].sample(5, random_state=88)))
+    #if op == 'smoothcvr':
+    #    logger.debug('SAMPLE:{}-{}'.format(feature_name_added, training[feature_name_added].sample(5, random_state=88)))
 
     if use_ft_cache and not loaded_from_cache:
 
