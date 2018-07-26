@@ -2648,7 +2648,7 @@ train_config_133_144.add_features_list = get_cols_com('previousclick') + \
 
 train_config_133_145 = copy.deepcopy(train_config_133_120)
 train_config_133_145.train_smoothcvr_cache_from = 0
-train_config_133_145.train_smoothcvr_cache_to = id_8_0am
+train_config_133_145.train_smoothcvr_cache_to = id_8_3pm
 train_config_133_145.val_smoothcvr_cache_from = id_8_4am
 train_config_133_145.val_smoothcvr_cache_to = id_8_3pm
 train_config_133_145.use_scvr_cache_file = True

@@ -1779,8 +1779,8 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
             new_features = new_features.union(new_features_cvr)
 
         with timer('gen scvr fts for val', logging.INFO):
-            clear_smoothcvr_cache()
-            gen_smoothcvr_cache(com_fts_list, config_scheme_to_use.val_smoothcvr_cache_from, config_scheme_to_use.val_smoothcvr_cache_to)
+            #clear_smoothcvr_cache()
+            #gen_smoothcvr_cache(com_fts_list, config_scheme_to_use.val_smoothcvr_cache_from, config_scheme_to_use.val_smoothcvr_cache_to)
             val, _, _ = \
                 generate_counting_history_features(val,
                                                discretization=config_scheme_to_use.discretization,
@@ -1816,9 +1816,9 @@ def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
                 test = combined_df[train_len + val_len: train_len+val_len+test_len]
 
             if config_scheme_to_use.train_smoothcvr_cache_from is not None:
-                clear_smoothcvr_cache()
-                gen_smoothcvr_cache(config_scheme_to_use.test_smoothcvr_cache_from,
-                                    config_scheme_to_use.test_smoothcvr_cache_to)
+                #clear_smoothcvr_cache()
+                #gen_smoothcvr_cache(config_scheme_to_use.test_smoothcvr_cache_from,
+                #                    config_scheme_to_use.test_smoothcvr_cache_to)
                 test, _, _ = \
                     generate_counting_history_features(test,
                                                        discretization=config_scheme_to_use.discretization,
