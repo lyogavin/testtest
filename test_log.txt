@@ -2013,7 +2013,10 @@ best iter num: 100, best train auc: 0.985728, val auc: 0.978192
 
     142: rep 133: 0.9793505    0.9794113
 
-    143: rep 134:
+    143: rep 134: 0.9793188    0.9793615
+
+    145:  smoothcvr t-1 day + count,
+    352, best train auc: 0.986959, val auc: 0.982252
 
 
 

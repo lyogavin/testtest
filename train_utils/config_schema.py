@@ -2660,6 +2660,9 @@ train_config_133_145.add_features_list = get_cols_com('smoothcvr') + \
                                             {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
                                             {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
                                         ]
+
+train_config_133_146 = copy_predict_config_from_test(train_config_133_145, 352)
+
 debug = False
 
 def use_config_scheme(str):
