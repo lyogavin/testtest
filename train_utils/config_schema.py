@@ -2691,6 +2691,11 @@ train_config_133_148.add_features_list = get_cols_com('var') + \
                                         ]
 
 train_config_133_149 = copy.deepcopy(train_config_133_120)
+train_config_133_149.train_smoothcvr_cache_from = 0
+train_config_133_149.train_smoothcvr_cache_to = id_8_3pm
+train_config_133_149.val_smoothcvr_cache_from = id_8_4am
+train_config_133_149.val_smoothcvr_cache_to = id_8_3pm
+train_config_133_149.use_scvr_cache_file = True
 train_config_133_149.add_features_list = get_cols_com('var') + \
                                          get_cols_com('count') + \
                                          get_cols_com('nunique') + \
@@ -2704,6 +2709,11 @@ train_config_133_149.add_features_list = get_cols_com('var') + \
                                             {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
                                             {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
                                         ]
+
+train_config_133_150 = copy_predict_config_from_test(train_config_133_147, 509)
+train_config_133_151 = copy_predict_config_from_test(train_config_133_148, 584)
+
+
 debug = False
 
 def use_config_scheme(str):

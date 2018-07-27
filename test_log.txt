@@ -2020,6 +2020,15 @@ best iter num: 100, best train auc: 0.985728, val auc: 0.978192
 
     146: repl 145: 0.9788539    0.9793854, best train auc: 0.986022
 
+    147: var+count+mean+nunique+cumcount
+    509, best train auc: 0.987427, val auc: 0.982070
+
+    148: 147+next click
+    584, best train auc: 0.987938, val auc: 0.982329
+
+    149: 147+next click+smooth cvr
+    best iter num: 584, best train auc: 0.987938, val auc: 0.982329
+
 
 
 
