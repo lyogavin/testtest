@@ -2663,6 +2663,47 @@ train_config_133_145.add_features_list = get_cols_com('smoothcvr') + \
 
 train_config_133_146 = copy_predict_config_from_test(train_config_133_145, 352)
 
+train_config_133_147 = copy.deepcopy(train_config_133_120)
+train_config_133_147.add_features_list = get_cols_com('var') + \
+                                         get_cols_com('count') + \
+                                         get_cols_com('nunique') + \
+                                         get_cols_com('mean') + \
+                                         get_cols_com('cumcount') + \
+                                         [
+                                            {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+                                            {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+                                        ]
+
+train_config_133_148 = copy.deepcopy(train_config_133_120)
+train_config_133_148.add_features_list = get_cols_com('var') + \
+                                         get_cols_com('count') + \
+                                         get_cols_com('nunique') + \
+                                         get_cols_com('nextclick') + \
+                                         get_cols_com('mean') + \
+                                         get_cols_com('cumcount') + \
+                                         [
+                                            {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+                                            {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+                                        ]
+
+train_config_133_149 = copy.deepcopy(train_config_133_120)
+train_config_133_149.add_features_list = get_cols_com('var') + \
+                                         get_cols_com('count') + \
+                                         get_cols_com('nunique') + \
+                                         get_cols_com('smoothcvr') + \
+                                         get_cols_com('nextclick') + \
+                                         get_cols_com('mean') + \
+                                         get_cols_com('cumcount') + \
+                                         [
+                                            {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
+                                            {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+                                        ]
 debug = False
 
 def use_config_scheme(str):

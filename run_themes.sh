@@ -6,7 +6,7 @@ set -e
 #echo "run train_config_133_120...."
 #python3 -u ./train_and_predict_simplified.py -c train_config_133_120
 
-for i in `seq 146 146`;
+for i in `seq 147 149`;
 do
         echo $i
         echo "run train_config_133_$i...."

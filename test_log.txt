@@ -1999,7 +1999,7 @@ best iter num: 100, best train auc: 0.985728, val auc: 0.978192
     134: count + nextclick + nextnclick
     best iter num: 698, best train auc: 0.988337, val auc: 0.982977
 
-    136: rep 110: 0.9797737    0.9799361
+    136: rep 110: 0.9797737    0.9799361, best train auc: 0.986765, val auc: 0.000000
 
     137: rep 113: 0.9791001    0.9787127
 
@@ -2007,7 +2007,7 @@ best iter num: 100, best train auc: 0.985728, val auc: 0.978192
 
     139: rep 127: 0.9786803    0.9783865
 
-    140: rep 128: 0.9791141    0.9790223
+    140: rep 128: 0.9791141    0.9790223, best train auc: 0.987300, val auc: 0.000000
 
     141: rep 130: 0.9791251    0.9793777
 
@@ -2017,6 +2017,10 @@ best iter num: 100, best train auc: 0.985728, val auc: 0.978192
 
     145:  smoothcvr t-1 day + count,
     352, best train auc: 0.986959, val auc: 0.982252
+
+    146: repl 145: 0.9788539    0.9793854, best train auc: 0.986022
+
+
 
 
 
