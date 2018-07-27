@@ -2712,6 +2712,7 @@ train_config_133_149.add_features_list = get_cols_com('var') + \
 
 train_config_133_150 = copy_predict_config_from_test(train_config_133_147, 509)
 train_config_133_151 = copy_predict_config_from_test(train_config_133_148, 584)
+train_config_133_152 = copy_predict_config_from_test(train_config_133_149, 503)
 
 
 debug = False

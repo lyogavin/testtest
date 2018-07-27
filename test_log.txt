@@ -2027,7 +2027,9 @@ best iter num: 100, best train auc: 0.985728, val auc: 0.978192
     584, best train auc: 0.987938, val auc: 0.982329
 
     149: 147+next click+smooth cvr
-    best iter num: 584, best train auc: 0.987938, val auc: 0.982329
+     best iter num: 503, best train auc: 0.987956, val auc: 0.982601
+
+    150: repl 147: 0.9665010    0.9689138
 
 
 
