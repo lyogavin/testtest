@@ -1541,19 +1541,19 @@ def get_combined_df(gen_test_data, load_test_supplement=False):
     gc.collect()
     logger.debug('mem after appended val data: %s', cpuStats())
 
-    if gen_test_data:
+    if gen_test_data and load_test_supplement:
+        test_supplement = get_test_supplement_df()
+        train = train.append(test_supplement)
+        test_len += len(test_supplement)
+        del test_supplement
+        gc.collect()
+    elif gen_test_data:
         test = get_test_df()
         test_len = len(test)
         train = train.append(test)
         del test
         gc.collect()
 
-        if load_test_supplement:
-            test_supplement = get_test_supplement_df()
-            train = train.append(test_supplement)
-            test_len += len(test_supplement)
-            del test_supplement
-            gc.collect()
 
     return train, train_len, val_len, test_len
 
