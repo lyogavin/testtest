@@ -50,7 +50,7 @@ def do_count( df, group_cols, agg_name, agg_type='uint32', show_max=False, show_
 
 
 def do_next_Click(df, agg_suffix='nextClick', agg_type='float32'):
-    print(f">> \nExtracting {agg_suffix} time calculation features...\n")
+    print(">> \nExtracting {agg_suffix} time calculation features...\n")
 
     GROUP_BY_NEXT_CLICKS = [
 
