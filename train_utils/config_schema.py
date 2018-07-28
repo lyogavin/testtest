@@ -2736,6 +2736,30 @@ train_config_133_153.add_features_list = get_cols_com('var') + \
                                             {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
                                         ]
 
+# for data validation
+train_config_133_154 = copy.deepcopy(train_config_133_120)
+train_config_133_154.add_features_list =  \
+    [
+        {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'],
+                                             'op': 'nextclick'},
+    ]
+
+train_config_133_155 = copy.deepcopy(train_config_133_110)
+train_config_133_155.train_from = 0
+train_config_133_155.train_to = id_9_4am
+
+train_config_133_156 = copy.deepcopy(train_config_133_125)
+train_config_133_156.train_from = 0
+train_config_133_156.train_to = id_9_4am
+
+train_config_133_157 = copy.deepcopy(train_config_133_129)
+train_config_133_157.train_from = 0
+train_config_133_157.train_to = id_9_4am
+
+#train_config_133_158 = copy.deepcopy(train_config_133_145)
+#train_config_133_158.train_from = 0
+#train_config_133_158.train_to = id_9_4am
+
 debug = False
 
 def use_config_scheme(str):

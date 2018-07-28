@@ -466,6 +466,8 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
                     joint_col = training[col].astype(str)
                 else:
                     joint_col = joint_col + "_" + training[col].astype(str)
+
+            debug = True
             if debug:
                 logger.debug('data: %s',training[0:10])
                 logger.debug('debug str %s',joint_col[0:10])
@@ -483,7 +485,7 @@ def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_u
 
             del joint_col
             gc.collect()
-            click_buffer = np.full(D, 3000000000, dtype=np.uint32)
+            click_buffer = np.full(D, 3000000000, dtype=np.uint32) #3000000000
             training['epochtime'] = training['click_time'].astype(np.int64) // 10 ** 9
             next_clicks = []
             for category, echtime in zip(reversed(training['category'].values),
@@ -1549,6 +1551,7 @@ def get_combined_df(gen_test_data, load_test_supplement=False):
         if load_test_supplement:
             test_supplement = get_test_supplement_df()
             train = train.append(test_supplement)
+            test_len += len(test_supplement)
             del test_supplement
             gc.collect()
 
@@ -1571,6 +1574,26 @@ def do_data_validation(df, df0, sample_indice):
     df.reset_index(drop=True, inplace=True)
     df0 = df0.copy(True)
     df0.reset_index(drop=True, inplace=True)
+
+    logger.debug('df columns to val: %s', df.columns)
+
+    if 'ip_app_device_os_channel_is_attributednextclick' in df.columns:
+
+        df_for_val = do_next_Click( df0, agg_type='float64')[sample_indice]; gc.collect()
+        df_for_val.reset_index(drop=True, inplace=True)
+
+        logger.debug('var gap: %d',(df_for_val['ip_app_device_os_channel_nextClick'] - df['ip_app_device_os_channel_is_attributednextclick']).sum())
+        logger.debug('var diff: %s',df['ip_app_device_os_channel_is_attributednextclick'][(df_for_val['ip_app_device_os_channel_nextClick'] - df['ip_app_device_os_channel_is_attributednextclick']) != 0].head().to_string())
+        logger.debug('var diff: %s',df_for_val['ip_app_device_os_channel_nextClick'][(df_for_val['ip_app_device_os_channel_nextClick'] - df['ip_app_device_os_channel_is_attributednextclick']) != 0].head().to_string())
+        logger.debug('var diff: %s',df[:][(df_for_val['ip_app_device_os_channel_nextClick'] - df['ip_app_device_os_channel_is_attributednextclick']) != 0].head().to_string())
+        logger.debug('var diff: %s',df_for_val[:][(df_for_val['ip_app_device_os_channel_nextClick'] - df['ip_app_device_os_channel_is_attributednextclick']) != 0].head().to_string())
+
+        #logger.debug('var diff: %s', df.query('ip == 64 and app == 5348 and device == 29 and os == 1 and channel == 19'))
+        logger.debug('df dump: %s', df.loc[df['ip'] == 5314].loc[df['app'] == 18].loc[df['device']==1].loc[df['os']==19].loc[df['channel']==107]['click_time'])
+        logger.debug('df dump: %s', df_for_val.loc[df_for_val['ip'] == 5314].loc[df_for_val['app'] == 18].loc[df_for_val['device']==1].loc[df_for_val['os']==19].loc[df_for_val['channel']==107]['click_time'])
+
+        logger.debug('df dump: %s', df.loc[df['ip'] == 5314].loc[df['app'] == 18].loc[df['device']==1].loc[df['os']==19].loc[df['channel']==107])
+        logger.debug('df dump: %s', df_for_val.loc[df_for_val['ip'] == 5314].loc[df_for_val['app'] == 18].loc[df_for_val['device']==1].loc[df_for_val['os']==19].loc[df_for_val['channel']==107])
 
 
     if 'ip_hour_is_attributedcount' in df.columns:
@@ -1676,8 +1699,8 @@ def neg_sample_df(combined_df, train_len, val_len, test_len):
 
 def get_input_data(load_test_supplement):
     with timer('load combined data df'):
-        combined_df, train_len, val_len, test_len = get_combined_df(config_scheme_to_use.new_predict,
-                                                                    load_test_supplement = load_test_supplement)
+        combined_df, train_len, val_len, test_len = get_combined_df(True,#config_scheme_to_use.new_predict,
+                                                                    True)#load_test_supplement = load_test_supplement)
         logger.debug('total len: {}, train len: {}, val len: {}.'.format(len(combined_df), train_len, val_len))
         combined_df.reset_index(drop=True,inplace=True)
 

@@ -46,6 +46,51 @@ def do_count( df, group_cols, agg_name, agg_type='uint32', show_max=False, show_
     df[agg_name] = df[agg_name].astype(agg_type,copy=False)
     return( df )
 
+
+
+
+def do_next_Click(df, agg_suffix='nextClick', agg_type='float32'):
+    print(f">> \nExtracting {agg_suffix} time calculation features...\n")
+
+    GROUP_BY_NEXT_CLICKS = [
+
+        # V1
+        # {'groupby': ['ip']},
+        # {'groupby': ['ip', 'app']},
+        # {'groupby': ['ip', 'channel']},
+        # {'groupby': ['ip', 'os']},
+
+        # V3
+        {'groupby': ['ip', 'app', 'device', 'os', 'channel']},
+        {'groupby': ['ip', 'os', 'device']},
+        {'groupby': ['ip', 'os', 'device', 'app']},
+        {'groupby': ['ip', 'os', 'device', 'channel']},
+
+        {'groupby': ['ip', 'os', 'device', 'app', 'hour']},
+        {'groupby': ['ip', 'os', 'device', 'channel', 'hour']},
+        {'groupby': ['device']},
+        {'groupby': ['device', 'channel']},
+        {'groupby': ['app', 'device', 'channel']},
+        {'groupby': ['device', 'hour']}
+    ]
+
+    # Calculate the time to next click for each group
+    for spec in GROUP_BY_NEXT_CLICKS:
+        # Name of new feature
+        new_feature = '{}_{}'.format('_'.join(spec['groupby']), agg_suffix)
+
+        # Unique list of features to select
+        all_features = spec['groupby'] + ['click_time']
+
+        # Run calculation
+        print(f">> Grouping by {spec['groupby']}, and saving time to {agg_suffix} in: {new_feature}")
+        df[new_feature] = (df[all_features].groupby(spec[
+                                                        'groupby']).click_time.shift(
+            -1) - df.click_time).dt.seconds.astype(agg_type)
+
+        gc.collect()
+    return (df)
+
 def do_countuniq(df, group_cols, counted, agg_name, agg_type='uint32', show_max=False, show_agg=True):
     if show_agg:
         logger.debug("Counting unqiue ", counted, " by ", group_cols, '...')
