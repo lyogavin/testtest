@@ -2311,6 +2311,10 @@ train_config_133_110.add_features_list = get_cols_com('count') + \
                                              'op': 'nextclick'},
                                             {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
                                             {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
+                                            {'group': ['app', 'device', 'os', 'ip', 'is_attributed'],
+                                             'op': 'mean'},
+                                            {'group': ['hour', 'is_attributed'],
+                                             'op': 'mean'},
                                         ]
 train_config_133_111 = copy.deepcopy(train_config_133_105)
 
@@ -2745,20 +2749,53 @@ train_config_133_154.add_features_list =  \
     ]
 
 train_config_133_155 = copy.deepcopy(train_config_133_110)
+train_config_133_155.lgbm_params = { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.5,
+                                        'subsample': 0.9,
+                                        'reg_alpha': 0.2,
+                                        'max_bin': 150,
+                                        'min_child_samples': 1000,
+                                        'num_boost_round': 2000,
+                                        }}
+#train_config_133_155.lgbm_params = lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1
 train_config_133_155.train_from = 0
 train_config_133_155.train_to = id_9_4am
 
 train_config_133_156 = copy.deepcopy(train_config_133_125)
+train_config_133_156.lgbm_params = { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.5,
+                                        'subsample': 0.9,
+                                        'reg_alpha': 0.2,
+                                        'max_bin': 150,
+                                        'min_child_samples': 1000,
+                                        'num_boost_round': 2000,
+                                        }}
 train_config_133_156.train_from = 0
 train_config_133_156.train_to = id_9_4am
 
 train_config_133_157 = copy.deepcopy(train_config_133_129)
+train_config_133_157.lgbm_params = { **lgbm_params_pub_entire_set_test_depth_4_leave_20_scale_1,
+                                     **{'early_stopping_round': 300,
+                                        'colsample_bytree': 0.5,
+                                        'subsample': 0.9,
+                                        'reg_alpha': 0.2,
+                                        'max_bin': 150,
+                                        'min_child_samples': 1000,
+                                        'num_boost_round': 2000,
+                                        }}
 train_config_133_157.train_from = 0
 train_config_133_157.train_to = id_9_4am
 
 #train_config_133_158 = copy.deepcopy(train_config_133_145)
 #train_config_133_158.train_from = 0
 #train_config_133_158.train_to = id_9_4am
+
+#train_config_133_158 = copy_predict_config_from_test(train_config_133_155, 144)
+
+#train_config_133_159 = copy_predict_config_from_test(train_config_133_155, 509)
+
 
 debug = False
 

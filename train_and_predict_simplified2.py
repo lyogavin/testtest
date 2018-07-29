@@ -131,7 +131,7 @@ def gen_categorical_features(data):
         data['second'] = data["click_time"].dt.second.astype('int8')
         categorical.append('second')
 
-    add_hh_feature = False
+    add_hh_feature = True
     if add_hh_feature:
         data['in_test_hh'] = (3
                               - 2 * data['hour'].isin(most_freq_hours_in_test_data)
@@ -270,8 +270,8 @@ def load_ft_cache_file(group_by_cols, op, ft_cache_prefix, sample_indice):
 
     return ft_cache_data
 
-def add_statistic_feature(group_by_cols,
-                          training,
+def add_statistic_feature(group_by_cols, training, qcut_count=config_scheme_to_use.qcut, #0, #0.98,
+                          discretization=0, discretization_bins=None,
                           log_discretization=False,
                           op='count',
                           use_ft_cache = False,
@@ -285,7 +285,7 @@ def add_statistic_feature(group_by_cols,
     #    os.getpid(), only_ft_cache))
     logger.debug('[PID {}] adding: {}, {}'.format(os.getpid(), str(group_by_cols), op))
 
-    debug = False
+
     input_len = len(training)
     feature_name_added = '_'.join(group_by_cols) + op
 
@@ -335,7 +335,7 @@ def add_statistic_feature(group_by_cols,
             loaded_from_cache=True
             del ft_cache_data
             gc.collect()
-            return training, [feature_name_added]
+            return training, [feature_name_added], None
     if use_ft_cache and only_ft_cache:
         #logger.debug('only gen cache, use df_before_sample..., use ',df_before_sample)
         training = df_before_sample
@@ -557,6 +557,9 @@ def add_statistic_feature(group_by_cols,
             if 'day' not in group_by_cols:
                 group_by_cols.append('day')
 
+            if not hasattr(add_statistic_feature, 'train_cvr_cache'):
+                add_statistic_feature.train_cvr_cache = dict()
+
             if not hasattr(add_statistic_feature, 'alpha'):
                 add_statistic_feature.alpha, add_statistic_feature.beta = \
                     get_recursive_alpha_beta(training['is_attributed'].sum(), training['is_attributed'].count())
@@ -564,20 +567,20 @@ def add_statistic_feature(group_by_cols,
                 logger.debug('total cvr:{}, alpha/(alpha+beta):{}'.format(training['is_attributed'].mean(),
                     add_statistic_feature.alpha/ (add_statistic_feature.alpha + add_statistic_feature.beta)))
 
-            # shiftting day forward 1 day
-            training['day'] = training['day'] + 1
-
-            temp_count = training[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[
-                ['is_attributed']].count()
-            temp_sum = training[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[['is_attributed']].sum()
-            temp_sum[feature_name_added] = (temp_sum['is_attributed'] + add_statistic_feature.alpha) / \
-                                           (temp_count[
-                                                'is_attributed'] + add_statistic_feature.alpha + add_statistic_feature.beta).astype(
-                                               'float16')
-            del temp_count
-            del temp_sum['is_attributed']
-            training['day'] = training['day'] - 1
-            gc.collect()
+            if feature_name_added in add_statistic_feature.train_cvr_cache:
+                temp_sum = add_statistic_feature.train_cvr_cache[feature_name_added]
+            else:
+                logger.warn("!!!!!!non-train should only use cache, which should be there!!!!!!!")
+                exit(-1)
+                temp_count = training[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[['is_attributed']].count()
+                temp_sum = training[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[['is_attributed']].sum()
+                temp_sum[feature_name_added] = (temp_sum['is_attributed'] + add_statistic_feature.alpha) /  \
+                        (temp_count['is_attributed'] + add_statistic_feature.alpha + add_statistic_feature.beta).astype('float16')
+                del temp_count
+                del temp_sum['is_attributed']
+                gc.collect()
+                add_statistic_feature.train_cvr_cache[feature_name_added] = temp_sum
+        #n_chans = temp1.reset_index().rename(columns={'is_attributed': feature_name_added})
         training = training.merge(temp_sum.reset_index(), on=group_by_cols if len(group_by_cols) >1 else group_by_cols[0],
                                   how='left')
         if not hasattr(add_statistic_feature, 'global_cvr'):
@@ -607,6 +610,16 @@ def add_statistic_feature(group_by_cols,
         #training.sort_index(inplace=True)
 
 
+
+        if config_scheme_to_use.normalization and op == 'count':
+            if hasattr(add_statistic_feature, first_df_count):
+                rate = add_statistic_feature.first_df_count / input_len
+            else:
+                add_statistic_feature.first_df_count = input_len
+                rate = 1.0
+            training[feature_name_added] = (training[feature_name_added] * rate).astype('uint32')
+
+
     gc.collect()
 
     # auto type cast:
@@ -619,6 +632,20 @@ def add_statistic_feature(group_by_cols,
         elif  training[feature_name_added].max() <= 255:
             training[feature_name_added] = training[feature_name_added].astype('uint8', copy=False)
 
+    no_type_cast = True
+    if not no_type_cast and not log_discretization and discretization == 0:
+        if training[feature_name_added].max() <= 65535 and \
+            op in ['count', 'nunique','cumcount']:
+            training[feature_name_added] = training[feature_name_added].astype('uint16')
+
+    qcut_op_types = ['count', 'nextclick', 'nunique']
+    if not log_discretization and qcut_count != 0 and discretization == 0 and op in qcut_op_types:
+        colmax = training[feature_name_added].max()
+        quantile_cut = training[feature_name_added].quantile(qcut_count)
+        training[feature_name_added] = training[feature_name_added].apply(
+            lambda x: x if x < quantile_cut else quantile_cut)
+            # fix colmax transform to test
+            # lambda x: x if x < quantile_cut else colmax)
 
 
     if log_discretization:
@@ -627,6 +654,19 @@ def add_statistic_feature(group_by_cols,
             training[feature_name_added] = training[feature_name_added].apply(lambda x: np.max([0, x]))
         training[feature_name_added] = np.log2(1 + training[feature_name_added].values).astype(int)
         logger.debug('log dicretizing feature: %s', feature_name_added)
+    elif discretization != 0:
+        if print_verbose:
+            logger.debug('before qcut %s %s', feature_name_added, training[feature_name_added].describe())
+        if discretization_bins is None:
+            ret, discretization_bins_used[feature_name_added] = pd.qcut(training[feature_name_added], discretization,
+                                                                        labels=False, duplicates='drop', retbins=True)
+            training[feature_name_added] = ret.fillna(0).astype('uint16')
+        else:
+            training[feature_name_added] = pd.cut(training[feature_name_added],
+                                                  discretization_bins[feature_name_added],
+                                                  labels=False).fillna(0).astype('uint16')
+        if print_verbose:
+            logger.debug('after qcut %s %s', feature_name_added, training[feature_name_added].describe())
 
     features_added.append(feature_name_added)
     for ft in features_added:
@@ -666,20 +706,173 @@ def add_statistic_feature(group_by_cols,
             del features_added[-1]
             gc.collect()
 
-    return training, features_added
+    return training, features_added, discretization_bins_used
 
+def clear_smoothcvr_cache():
+    if hasattr(add_statistic_feature, 'train_cvr_cache'):
+        del add_statistic_feature.train_cvr_cache
+        del add_statistic_feature.global_cvr
+        gc.collect()
+
+def gen_smoothcvr_cache(add_features_list, frm, to):
+    with timer('loading train df:'):
+        train = pd.read_csv(path_train_sample if options.unittest else path_train,
+                            dtype=dtypes,
+                            header=0,
+                            usecols=train_cols,
+                            skiprows=range(1, frm) \
+                                if not options.unittest and frm is not None else None,
+                            nrows=to - frm \
+                                if not options.unittest and frm is not None else None,
+                            parse_dates=["click_time"])
+        if config_scheme_to_use.use_scvr_cache_file:
+            checksum = get_checksum_from_df(train)
+
+    logger.debug('mem after loaded train data: %s', cpuStats())
+
+    with timer('gen categorical features for train'):
+        train = gen_categorical_features(train)
+
+
+    for add_feature in add_features_list:
+        if add_feature['op'] != 'smoothcvr':
+            continue
+
+        if 'day' not in add_feature['group']:
+            add_feature['group'] =  ['day'] + add_feature['group']
+            #logger.debug('added add ft grp: %s', add_feature['group'])
+
+        feature_name_added = '_'.join(add_feature['group']) + add_feature['op']
+        if not hasattr(add_statistic_feature, 'train_cvr_cache'):
+            add_statistic_feature.train_cvr_cache = dict()
+
+        if config_scheme_to_use.use_scvr_cache_file:
+            ft_cache_file_name = "scvr_" + str(checksum) + '_' + feature_name_added
+            ft_cache_file_name = ft_cache_file_name + '_sample' if options.unittest else ft_cache_file_name
+            ft_cache_file_name = ft_cache_file_name + '.pickle'
+            logger.debug('checking %s', ft_cache_path + ft_cache_file_name)
+            if os.path.exists((ft_cache_path + ft_cache_file_name)):
+                with timer('loading scvr cache file '+ ft_cache_path + ft_cache_file_name):
+                    add_statistic_feature.train_cvr_cache[feature_name_added] = \
+                        pd.read_pickle(ft_cache_path + ft_cache_file_name)
+                continue
+            else:
+                logger.info('no cache file found, loading...')
+
+        counting_col = add_feature['group'][len(add_feature['group']) - 1]
+        group_by_cols = add_feature['group'][0:len(add_feature['group']) - 1]
+
+        logger.debug('processing: %s',add_feature)
+        with timer('gen cvr grouping cache:'):
+
+            if not hasattr(add_statistic_feature, 'alpha'):
+                add_statistic_feature.alpha, add_statistic_feature.beta = \
+                    get_recursive_alpha_beta(train['is_attributed'].sum(), train['is_attributed'].count())
+                logger.debug('total alpha/beta: {}/{}'.format(add_statistic_feature.alpha, add_statistic_feature.beta))
+                logger.debug('total cvr:{}, alpha/(alpha+beta):{}'.format(train['is_attributed'].mean(),
+                                                                   add_statistic_feature.alpha / (
+                                                                   add_statistic_feature.alpha + add_statistic_feature.beta)))
+
+            if feature_name_added in add_statistic_feature.train_cvr_cache:
+                temp_sum = add_statistic_feature.train_cvr_cache[feature_name_added]
+            elif not config_scheme_to_use.use_hourly_alpha_beta or 'hour' not in group_by_cols:
+                # shiftting day forward 1 day
+                train['day'] = train['day'] + 1
+
+                temp_count = train[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[
+                    ['is_attributed']].count()
+                temp_sum = train[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[['is_attributed']].sum()
+                temp_sum[feature_name_added] = (temp_sum['is_attributed'] + add_statistic_feature.alpha) / \
+                                               (temp_count[
+                                                    'is_attributed'] + add_statistic_feature.alpha + add_statistic_feature.beta).astype(
+                                                   'float16')
+                del temp_count
+                del temp_sum['is_attributed']
+                train['day'] = train['day'] - 1
+                gc.collect()
+                add_statistic_feature.train_cvr_cache[feature_name_added] = temp_sum.copy(True)
+                del temp_sum
+                gc.collect()
+            else:
+                if not hasattr(add_statistic_feature, 'hourly_alpha_beta'):
+                    add_statistic_feature.hourly_alpha_beta = train[['hour', 'is_attributed']].\
+                        groupby(by=['hour'])[['is_attributed']].sum()
+                    add_statistic_feature.hourly_alpha_beta['count'] = train[['hour', 'is_attributed']].\
+                        groupby(by=['hour'])[['is_attributed']].count()['is_attributed']
+                    add_statistic_feature.hourly_alpha_beta['alpha'] = add_statistic_feature.hourly_alpha_beta.apply(
+                        lambda x: get_recursive_alpha_beta(x['is_attributed'], x['count'],
+                                                           add_statistic_feature.alpha,
+                                                           add_statistic_feature.beta)[0], axis=1
+                    )
+                    add_statistic_feature.hourly_alpha_beta['beta'] = add_statistic_feature.hourly_alpha_beta.apply(
+                        lambda x: get_recursive_alpha_beta(x['is_attributed'], x['count'],
+                                                           add_statistic_feature.alpha,
+                                                           add_statistic_feature.beta)[1], axis=1
+                    )
+                    del add_statistic_feature.hourly_alpha_beta['is_attributed']
+                    del add_statistic_feature.hourly_alpha_beta['count']
+                    add_statistic_feature.hourly_alpha_beta = add_statistic_feature.hourly_alpha_beta.reset_index()
+                    logger.debug('debug: hourly alapha beta:')
+                    logger.debug(add_statistic_feature.hourly_alpha_beta.to_string())
+                    logger.debug(add_statistic_feature.hourly_alpha_beta.\
+                          apply(lambda x: x['alpha']/(x['alpha']+x['beta']), axis=1).to_string())
+                    logger.debug('hourly mean:')
+                    logger.debug(train[['hour', 'is_attributed']].\
+                        groupby(by=['hour'])[['is_attributed']].mean().to_string())
+                    logger.debug('hourly sum:')
+                    logger.debug(train[['hour', 'is_attributed']].\
+                        groupby(by=['hour'])[['is_attributed']].sum().to_string())
+                    logger.debug('hourly count:')
+                    logger.debug(train[['hour', 'is_attributed']].\
+                        groupby(by=['hour'])[['is_attributed']].count().to_string())
+
+                temp_count = train[group_by_cols + ['is_attributed']].groupby(by=group_by_cols)[
+                    ['is_attributed']].count().rename(columns={'is_attributed':'count'})
+                temp_count['sum'] = train[group_by_cols + ['is_attributed']].\
+                    groupby(by=group_by_cols)[['is_attributed']].sum()['is_attributed']
+
+                temp_count = temp_count.reset_index().merge(add_statistic_feature.hourly_alpha_beta,
+                                                            on='hour',how='left')
+                temp_count[feature_name_added] = temp_count.apply(lambda x: (x['sum'] + x['alpha'])/ \
+                                                                            (x['count'] + x['alpha'] + x['beta']), axis=1)
+                del temp_count['alpha']
+                del temp_count['beta']
+                del temp_count['sum']
+                del temp_count['count']
+                #del temp_count['is_attributed']
+
+                gc.collect()
+                add_statistic_feature.train_cvr_cache[feature_name_added] = temp_count.copy(True)
+                del temp_count
+                gc.collect()
+        logger.info('scvr cache %s loaded.', feature_name_added)
+        if config_scheme_to_use.use_scvr_cache_file:
+            with timer('saving scvr cache file:' + ft_cache_path + ft_cache_file_name):
+                add_statistic_feature.train_cvr_cache[feature_name_added].to_pickle(ft_cache_path + ft_cache_file_name)
+
+    logger.debug('setting global cvr for fillna...')
+    if not hasattr(add_statistic_feature, 'global_cvr'):
+        add_statistic_feature.global_cvr = train['is_attributed'].mean()
+
+    del train
+    gc.collect()
 
 
 def generate_counting_history_features(data,
+                                       discretization=0, discretization_bins=None,
                                        add_features_list=None,
                                        use_ft_cache = False,
                                        ft_cache_prefix = '',
                                        only_ft_cache = False,
                                        val_start = None,
                                        val_end = None,
+                                       only_scvr_ft = 3,
                                        checksum = 'checksum',
                                        sample_indice = None,
                                        df_before_sample = None):
+    #logger.debug('tail all before:',data.tail())
+    #logger.debug('DEBUG:', data.query('ip == 123517 & day==7 &channel ==328'))
+    #logger.debug('DEBUG:', data.loc[6,:])
 
     if val_start is not None:
         logger.debug('clear val(data[{}:{}]) is_attributed before gen sta fts and restore after'.format(val_start, val_end))
@@ -691,6 +884,7 @@ def generate_counting_history_features(data,
 
         data.iloc[val_start:val_end, data.columns.values.tolist().index('is_attributed')] = 0
         logger.debug('sum of val target col: %d', data.iloc[val_start:val_end, data.columns.values.tolist().index('is_attributed')].sum())
+    logger.debug('discretization bins to use: %s', discretization_bins)
 
     new_features = set()
 
@@ -699,6 +893,18 @@ def generate_counting_history_features(data,
             data['id_10min'] = data.click_time.astype(int) // (10 ** 9 * 600 *5)
             categorical.append('id_10min')
 
+    if config_scheme_to_use.adversial_val_ft:
+        with timer('add ad_val ft:'):
+            ad_val_bst = lgb.Booster(model_file='ad_val_model.txt')
+            ad_val_predictors = ['app', 'device', 'os', 'channel', 'ip', 'hour']
+            data['ad_val'] = ad_val_bst.predict(data[ad_val_predictors])
+            #logger.debug('add ad_val fts:', data['ad_val'].describe())
+            new_features.append('ad_val')
+
+            del ad_val_bst
+            gc.collect()
+
+    discretization_bins_used = None
     i = -1
     to_run_in_pool = []
     for add_feature in add_features_list:
@@ -711,6 +917,10 @@ def generate_counting_history_features(data,
             continue
 
         i += 1
+        if only_scvr_ft == 1 and add_feature['op'] != 'smoothcvr':
+            continue
+        elif only_scvr_ft == 2 and add_feature['op'] == 'smoothcvr':
+            continue
 
         to_run_in_pool.append(add_feature)
 
@@ -726,6 +936,9 @@ def generate_counting_history_features(data,
                 p = Process(target=add_statistic_feature, args = (
                                         add_feature['group'], #group_by_cols
                                         data, #training
+                                        0,#qcut
+                                        discretization, #discretization
+                                        discretization_bins,#discretization_bins
                                         config_scheme_to_use.log_discretization, #log_discretization
                                         add_feature['op'],
                                         use_ft_cache,
@@ -786,10 +999,13 @@ def generate_counting_history_features(data,
         logger.debug('TORUN: %s', pformat(to_run_in_pool))
 
         for add_feature in to_run_in_pool:
-            data, features_added = \
+            data, features_added,discretization_bins_used_current_feature = \
                 add_statistic_feature(
                                     list(add_feature['group']), #group_by_cols
                                     data, #training
+                                    0,#qcut
+                                    discretization, #discretization
+                                    discretization_bins,#discretization_bins
                                     config_scheme_to_use.log_discretization, #log_discretization
                                     add_feature['op'],
                                     use_ft_cache,
@@ -807,6 +1023,11 @@ def generate_counting_history_features(data,
             #))
 
             new_features = new_features.union(features_added)
+            if discretization_bins_used_current_feature is not None:
+                if discretization_bins_used is None:
+                    discretization_bins_used = {}
+                discretization_bins_used = \
+                    dict(list(discretization_bins_used.items()) + list(discretization_bins_used_current_feature.items()))
             gc.collect()
 
 
@@ -819,19 +1040,55 @@ def generate_counting_history_features(data,
                     'hour_is_attributedcount','hour']].sample(20).to_string())
 
 
-    if 'app_device_os_ip_is_attributedsmoothcvr' in data.columns and \
-        'app_device_os_ip_is_attributedmean' in data.columns and \
-        'app_device_os_ip_is_attributedcount' in  data.columns:
+    if 'ip_app_device_os_is_attributedsmoothcvr' in data.columns and \
+        'ip_app_device_os_is_attributedmean' in data.columns and \
+        'ip_app_device_os_is_attributedcount' in  data.columns:
         logger.debug('gened ip_app_device_os_is_attributedsmoothcvr:')
-        logger.debug(data[['app_device_os_ip_is_attributedsmoothcvr',
-              'app_device_os_ip_is_attributedmean','app_device_os_ip_is_attributedcount']].sample(20).to_string())
+        logger.debug(data[['ip_app_device_os_is_attributedsmoothcvr',
+              'ip_app_device_os_is_attributedmean','ip_app_device_os_is_attributedcount']].sample(20).to_string())
 
 
     logger.debug('\n\n\n-------------\nDEBUG CVR DONE\n-------------\n\n\n')
 
 
+    if discretization_bins is None:
+        logger.debug('discretization bins used: %s', discretization_bins_used)
+    else:
+        logger.debug('discretizatoin bins passed in params, so no discretization_bins_used returned')
+
     data = post_statistics_features(data)
 
+    # add next click feature:
+    add_next_click = False
+    if add_next_click:
+        with timer("Adding next click times"):
+            D = 2 ** 26
+            data['category'] = (data['ip'].astype(str) + "_" + data['app'].astype(str) + "_" + \
+                                data['device'].astype(str) \
+                                + "_" + data['os'].astype(str) + "_" + data['channel'].astype(str)).apply(mmh3.hash) % D
+            click_buffer = np.full(D, 3000000000, dtype=np.uint32)
+            data['epochtime'] = data['click_time'].astype(np.int64) // 10 ** 9
+            next_clicks = []
+            for category, echtime in zip(reversed(data['category'].values), reversed(data['epochtime'].values)):
+                next_clicks.append(click_buffer[category] - echtime)
+                click_buffer[category] = echtime
+            del (click_buffer)
+            data['next_click'] = list(reversed(next_clicks))
+
+            if discretization != 0:
+                logger.debug('min of next click: {}, max: {}'.format(data['next_click'].min(), data['next_click'].max()))
+                if data['next_click'].min() < 0:
+                    logger.debug('!!!! invalid time in next click, fix it.....')
+                    data['next_click'] = data['next_click'].apply(lambda x: np.max([0, x]))
+                data['next_click'] = np.log2(1 + data['next_click'].values).astype(int)
+            data.drop('epochtime', inplace=True, axis=1)
+            data.drop('category', inplace=True, axis=1)
+
+            #logger.debug('next click ', data['next_click'])
+            if print_verbose:
+                logger.debug(data['next_click'].describe())
+
+            new_features = new_features + ['next_click']
 
     gc.collect()
 
@@ -863,7 +1120,7 @@ def generate_counting_history_features(data,
               data.iloc[val_start:val_end, data.columns.values.tolist().index('is_attributed')].sum())
 
 
-    return data, new_features
+    return data, new_features, discretization_bins_used
 
 
 
@@ -1451,28 +1708,45 @@ def get_input_data(load_test_supplement):
         checksum = get_checksum_from_df(combined_df)
         logger.debug('md5 checksum of whole data set: %s', checksum)
 
+
+
     with timer('gen categorical features'):
         combined_df = gen_categorical_features(combined_df)
+
 
     neg_sample_indice, combined_df, combined_df_before_sample, train_len, val_len, test_len = \
         neg_sample_df(combined_df, train_len, val_len, test_len)
     return neg_sample_indice, combined_df, combined_df_before_sample, train_len, val_len, test_len, checksum
 
-def train_and_predict(com_fts_list, use_ft_cache = False, load_test_supplement = False,
-                      return_dict = None):
+def train_and_predict(com_fts_list, use_ft_cache = False, only_cache=False,
+                      use_base_data_cache=False, gen_fts = False, load_test_supplement = False,
+                      return_dict = None, preloaded_input = None, preload = False):
 
-    with timer('load input data from files', logging.INFO):
-        neg_sample_indice, combined_df, combined_df_before_sample, train_len, val_len, test_len, checksum = \
-            get_input_data(load_test_supplement)
+    if preloaded_input is None:
+        with timer('load input data from files', logging.INFO):
+            neg_sample_indice, combined_df, combined_df_before_sample, train_len, val_len, test_len, checksum = \
+                get_input_data(load_test_supplement)
+    else:
+        with timer('load input data from preload var', logging.DEBUG):
+            neg_sample_indice= preloaded_input['neg_sample_indice']
+            combined_df= preloaded_input['combined_df']
+            combined_df_before_sample= preloaded_input['combined_df_before_sample']
+            train_len= preloaded_input['train_len']
+            val_len= preloaded_input['val_len']
+            test_len= preloaded_input['test_len']
+            checksum= preloaded_input['checksum']
 
-    with timer('gen statistical hist features', logging.INFO):
-        combined_df, new_features = \
+
+    with timer('gen statistical hist features for non-scvr fts', logging.INFO):
+        combined_df, new_features, discretization_bins_used = \
         generate_counting_history_features(combined_df,
+                                           discretization=config_scheme_to_use.discretization,
                                            use_ft_cache = use_ft_cache,
                                            ft_cache_prefix='joint',
                                            add_features_list=com_fts_list,
                                            val_start = train_len,
                                            val_end = train_len + val_len,
+                                           only_scvr_ft = 2,
                                            checksum = checksum,
                                            sample_indice = neg_sample_indice,
                                            df_before_sample = combined_df_before_sample)
@@ -1480,6 +1754,21 @@ def train_and_predict(com_fts_list, use_ft_cache = False, load_test_supplement =
     data_validation = True
     if data_validation and options.unittest:
         do_data_validation(combined_df, combined_df_before_sample, neg_sample_indice)
+    #test
+    #logger.debug('sample:',combined_df.sample(10,random_state=888).to_string())
+    #logger.debug('poslen: {}, neglen:{}'.format(len(combined_df.query('is_attributed == 1')),
+    #                                     len(combined_df.query('is_attributed == 0'))))
+    if preload:
+        logger.info('return preload var')
+        return {
+                    "neg_sample_indice": neg_sample_indice,
+                    "combined_df": combined_df,
+                    'combined_df_before_sample': combined_df_before_sample,
+                    'train_len': train_len,
+                    'val_len': val_len,
+                    'test_len': test_len,
+                    'checksum': checksum
+                }
 
     train = combined_df[:train_len]
     val = combined_df[train_len:train_len + val_len]
@@ -1497,6 +1786,31 @@ def train_and_predict(com_fts_list, use_ft_cache = False, load_test_supplement =
             logger.debug('val\'s start time: %s', val['click_time'].min())
             logger.debug('val\'s end time: %s', val['click_time'].max())
 
+
+
+    if config_scheme_to_use.train_smoothcvr_cache_from is not None:
+        with timer('gen scvr fts for train', logging.INFO):
+            gen_smoothcvr_cache(com_fts_list, config_scheme_to_use.train_smoothcvr_cache_from, config_scheme_to_use.train_smoothcvr_cache_to)
+
+            train, new_features_cvr, _ = \
+                generate_counting_history_features(train,
+                                               discretization=config_scheme_to_use.discretization,
+                                               use_ft_cache=False, #use_ft_cache,
+                                               ft_cache_prefix='joint',
+                                               add_features_list=com_fts_list,
+                                               only_scvr_ft=1)
+            new_features = new_features.union(new_features_cvr)
+
+        with timer('gen scvr fts for val', logging.INFO):
+            #clear_smoothcvr_cache()
+            #gen_smoothcvr_cache(com_fts_list, config_scheme_to_use.val_smoothcvr_cache_from, config_scheme_to_use.val_smoothcvr_cache_to)
+            val, _, _ = \
+                generate_counting_history_features(val,
+                                               discretization=config_scheme_to_use.discretization,
+                                               use_ft_cache=False, #use_ft_cache,
+                                               ft_cache_prefix='joint',
+                                               add_features_list=com_fts_list,
+                                               only_scvr_ft=1)
 
     if config_scheme_to_use.dump_train_data:
         train.to_csv("train_ft_dump.csv.bz2", compression='bz2',index=False)
@@ -1521,8 +1835,20 @@ def train_and_predict(com_fts_list, use_ft_cache = False, load_test_supplement =
 
     if config_scheme_to_use.new_predict:
         with timer('predict test data:', logging.INFO):
-            test = combined_df[train_len + val_len: train_len+val_len+test_len]
+            if not dump_train_data: # because for dump case, it'll be set above
+                test = combined_df[train_len + val_len: train_len+val_len+test_len]
 
+            if config_scheme_to_use.train_smoothcvr_cache_from is not None:
+                #clear_smoothcvr_cache()
+                #gen_smoothcvr_cache(config_scheme_to_use.test_smoothcvr_cache_from,
+                #                    config_scheme_to_use.test_smoothcvr_cache_to)
+                test, _, _ = \
+                    generate_counting_history_features(test,
+                                                       discretization=config_scheme_to_use.discretization,
+                                                       use_ft_cache=False, #use_ft_cache,
+                                                       ft_cache_prefix='joint',
+                                                       add_features_list=com_fts_list,
+                                                       only_scvr_ft=1)
 
             logger.debug('NAN next click count in test: %s', len(test.query('ip_app_device_os_is_attributednextclick > 1489000000')))
 
@@ -1549,6 +1875,66 @@ def train_and_predict(com_fts_list, use_ft_cache = False, load_test_supplement =
                         logger.info('submitting succeeded.')
             logger.debug("All done...")
 
+    if gen_fts:
+        #train
+        with timer('predict train LGBM features:'):
+            predict_result = lgb_model.predict(train[predictors], num_iteration=lgb_model.best_iteration, pred_leaf=True)
+
+        with timer('create df of train LGBM features:'):
+            ft_df = pd.DataFrame(predict_result, columns=['T' + str(i) for i in range(len(predict_result[0]))])
+
+
+        with timer('dump df of train LGBM features:'):
+            # ensure lgbm ft dump dir
+            inter_dump_path = './lgbmft_dump/'
+            try:
+                os.mkdir(inter_dump_path)
+                logger.debug('created dir %s', inter_dump_path)
+            except:
+                None
+
+            ft_df.to_csv(inter_dump_path + "train_lgbm_ft_dump.csv.bz2", compression='bz2',index=False)
+
+        del predict_result
+        del ft_df
+        gc.collect(
+        )
+        logger.debug('mem after train lgbm fts gen %s', cpuStats())
+
+        with timer('predict val LGBM features:'):
+            predict_result = lgb_model.predict(val[predictors], num_iteration=lgb_model.best_iteration, pred_leaf=True)
+
+        with timer('create df of val LGBM features:'):
+            ft_df = pd.DataFrame(predict_result, columns=['T' + str(i) for i in range(len(predict_result[0]))])
+
+
+        with timer('dump df of val LGBM features:'):
+            # ensure lgbm ft dump dir
+            inter_dump_path = './lgbmft_dump/'
+            ft_df.to_csv(inter_dump_path + "val_lgbm_ft_dump.csv.bz2", compression='bz2',index=False)
+
+
+        del predict_result
+        del ft_df
+        gc.collect(
+        )
+        logger.debug('mem after val lgbm fts gen %s', cpuStats())
+
+        with timer('predict test LGBM features:'):
+            test = combined_df[train_len + val_len: train_len + val_len + test_len]
+            predict_result = lgb_model.predict(test[predictors], num_iteration=lgb_model.best_iteration, pred_leaf=True)
+
+        with timer('create df of test LGBM features:'):
+            ft_df = pd.DataFrame(predict_result, columns=['T' + str(i) for i in range(len(predict_result[0]))])
+
+
+        with timer('dump df of test LGBM features:'):
+            # ensure lgbm ft dump dir
+            inter_dump_path = './lgbmft_dump/'
+
+            ft_df.to_csv(inter_dump_path + "test_lgbm_ft_dump.csv.bz2", compression='bz2',index=False)
+
+        logger.debug('done gen test lgbm fts')
 
     if return_dict is not None:
         return_dict['val_auc'] = val_auc
@@ -1557,6 +1943,192 @@ def train_and_predict(com_fts_list, use_ft_cache = False, load_test_supplement =
         return_dict['train_auc'] = lgb_model.best_score['train']['auc']
     return importances, val_auc
 
+
+
+def lgbm_params_search(com_fts_list):
+    ITERATIONS = 1000
+    # Classifier
+    search_spaces_0 = {
+                'learning_rate': (10.0 ** 0.01, 10.0 ** 1.0, 'log-uniform'),
+                'num_leaves': (4, 31),
+                'max_depth': (0, 50),
+                'min_child_samples': (10,200),
+                #'max_bin': (64, 255), # unsupported in skylearn
+                'subsample': (0.01, 1.0, 'uniform'),
+                'subsample_freq': (0, 1),
+                'colsample_bytree': (0.01, 1.0, 'uniform'),
+                'min_child_weight': (0, 10),
+                'subsample_for_bin': (200000,800000),
+                'min_split_gain': (10.0 ** 0, 10.0 ** 0.01, 'log-uniform'),
+                'reg_alpha':  (10.0 ** 0, 10.0 ** 1.0, 'log-uniform'),
+                'reg_lambda': (10.0 ** 0, 1000.0, 'log-uniform'),
+                # 'is_unbalance': True,
+                'n_estimators': (50, 100), # alias: num_boost_round
+                'scale_pos_weight': (10.0 ** 1e-6, 500.0, 'log-uniform')
+            }
+    search_spaces_1 = {
+                        'learning_rate': (0.01, 1.0, 'log-uniform'),
+                        'min_child_weight': (0, 10),
+                        'max_depth': (3, 10),
+                        'num_leaves': (4, 11),
+                        'subsample': (0.01, 1.0, 'uniform'),
+                        'colsample_bytree': (0.01, 1.0, 'uniform'),
+                        'reg_lambda': (1e-9, 1000, 'log-uniform'),
+                        'reg_alpha': (1e-9, 1.0, 'log-uniform'),
+                        'min_child_weight': (0, 5),
+                        'min_child_samples': (10, 200),
+                        # 'max_bin': (64, 255), # unsupported in skylearn
+                        'subsample_freq': (0, 1),
+                        'subsample_for_bin': (200000, 800000),
+                        'min_split_gain': (0, 0.01, 'uniform'),
+                        # 'is_unbalance': True,
+                        'n_estimators': (50, 500),  # alias: num_boost_round
+                        'scale_pos_weight': (1e-6, 500.0, 'log-uniform')
+                    }
+    # search 128
+    search_spaces_128 = {
+                        'learning_rate': (0.03, 0.2, 'log-uniform'),
+                        'min_child_weight': (0, 10),
+                        'max_depth': (3, 10),
+                        'num_leaves': (4, 11),
+                        'subsample': (0.01, 1.0, 'uniform'),
+                        'colsample_bytree': (0.01, 1.0, 'uniform'),
+                        'reg_lambda': (1e-9, 1000, 'log-uniform'),
+                        'reg_alpha': (1e-9, 1.0, 'log-uniform'),
+                        'min_child_weight': (0, 5),
+                        'min_child_samples': (10, 200),
+                        # 'max_bin': (64, 255), # unsupported in skylearn
+                        # 'is_unbalance': True,
+                        #'n_estimators': (50),  # alias: num_boost_round
+                        'scale_pos_weight': (98.0, 250.0, 'log-uniform')
+                    }
+
+    with timer('create bayes cv tunner'):
+        bayes_cv_tuner = BayesSearchCV(
+            estimator=lgb.LGBMClassifier(
+                boosting_type= 'gbdt',
+                objective= 'binary',
+                metric= 'auc',
+                n_jobs = 5,
+                silent = False,
+                subsample_for_bin = 200000,
+                subsample_freq=1,
+                min_split_gain=0,
+                random_state=666,
+                n_estimators =50
+            ),
+            search_spaces=search_spaces_128,
+            scoring='roc_auc',
+            cv=StratifiedKFold(
+                n_splits=3,
+                shuffle=True,
+                random_state=42
+            ),
+            n_jobs=3,
+            n_iter=ITERATIONS,
+            verbose=9,
+            refit=True,
+            random_state=42
+        )
+
+    with timer('load combined data df'):
+        combined_df, train_len, val_len, test_len = get_combined_df(config_scheme_to_use.new_predict)
+        logger.debug('total len: {}, train len: {}, val len: {}.'.format(len(combined_df), train_len, val_len))
+    with timer('gen categorical features'):
+        combined_df = gen_categorical_features(combined_df)
+    with timer('gen statistical hist features'):
+        combined_df, new_features, discretization_bins_used = \
+        generate_counting_history_features(combined_df,
+                                           discretization=config_scheme_to_use.discretization,
+                                           add_features_list=com_fts_list,
+                                           ft_cache_prefix='joint')
+
+    train = combined_df[:train_len]
+    val = combined_df[train_len:train_len + val_len]
+
+    predictors1 = categorical + new_features
+
+    if config_scheme_to_use.add_hist_statis_fts:
+        predictors1 = predictors1 + hist_st
+
+    train = train.append(val)
+    train[predictors1].values
+
+    def status_print(optim_result):
+        """Status callback durring bayesian hyperparameter search"""
+
+        # Get all the models tested so far in DataFrame format
+        all_models = pd.DataFrame(bayes_cv_tuner.cv_results_)
+
+        # Get current parameters and the best parameters
+        best_params = pd.Series(bayes_cv_tuner.best_params_)
+        logger.debug('Model #{}\nBest ROC-AUC: {}\nBest params: {}\n'.format(
+            len(all_models),
+            np.round(bayes_cv_tuner.best_score_, 4),
+            bayes_cv_tuner.best_params_
+        ))
+        all_models.sort_values('mean_test_score')
+
+        # Save all model results
+        all_models.to_csv("xgBoost_cv_results.csv")
+
+    # Fit the model
+    result = bayes_cv_tuner.fit(train[predictors1].values, train['is_attributed'].values, callback=status_print)
+
+def train_and_predict_ft_search(op = 'smoothcvr'):
+
+    search_range = []
+
+    if op == 'smoothcvr':
+        search_range = range(1, 4)
+    elif op in ['count', 'cumcount']:
+        search_range = range(1, 7)
+    else:
+        search_range = range(2, 7)
+
+    results = collections.OrderedDict()
+
+    use_preload = True
+    preloaded_input = None
+    if use_preload:
+        preloaded_input = train_and_predict(config_scheme_to_use.add_features_list,
+                                            config_scheme_to_use.use_ft_cache,
+                                            preload=True)
+        #logger.debug('preloaded input returned: {}'.format(preloaded_input))
+
+    for cols_count in search_range:  # max 4 to avoid over-fitting, tried 7, overfitting too badly
+        for cols_coms in itertools.combinations(raw_cols, cols_count):
+            temp = []
+            temp.extend(cols_coms)
+            if op in ['smoothcvr', 'count', 'cumcount']:
+                temp.append('is_attributed')
+            # add both mean and var:
+            com_fts_list_to_use = config_scheme_to_use.add_features_list.copy()
+            com_fts_list_to_use.append({'group': list(temp), 'op': op})
+            logger.info('======================================================')
+            logger.info('testing %s', str({'group': list(temp), 'op': op}))
+            logger.info('======================================================')
+
+            manager = mp.Manager()
+            return_dict = manager.dict()
+
+            p = mp.Process(target=train_and_predict,
+                           args=(com_fts_list_to_use,
+                                 config_scheme_to_use.use_ft_cache,
+                                 False,
+                                 False,
+                                 False,
+                                 False,
+                                 return_dict,
+                                 preloaded_input))
+            p.start()
+            p.join()
+            results[return_dict['val_auc']] =  dict(return_dict)
+
+            logger.info('======================================================')
+            logger.info('testing {} done.'.format( str({'group': list(temp), 'op': op})))
+            logger.debug(results)
+            logger.info('======================================================')
 
 
 def run_model():
@@ -1572,6 +2144,14 @@ def run_model():
         train_and_predict(config_scheme_to_use.add_features_list,
                           use_ft_cache=config_scheme_to_use.use_ft_cache,
                           load_test_supplement=True)
+    elif config_scheme_to_use.run_theme == 'lgbm_params_search':
+        logger.debug('add features list: ')
+        logger.debug(config_scheme_to_use.add_features_list)
+        lgbm_params_search(config_scheme_to_use.add_features_list)
+    elif config_scheme_to_use.run_theme == 'train_and_predict_ft_search':
+        logger.debug('add features list: ')
+        logger.debug(config_scheme_to_use.add_features_list)
+        train_and_predict_ft_search(config_scheme_to_use.ft_search_op)
     else:
         logger.info("nothing to run... exit")
 
