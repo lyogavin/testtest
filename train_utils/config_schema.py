@@ -2305,7 +2305,6 @@ train_config_133_109.lgbm_params = lgbm_params_5th
 
 train_config_133_110 = copy.deepcopy(train_config_133_106)
 train_config_133_110.add_features_list = get_cols_com('count') + \
-                                        get_cols_com('smoothcvr') + \
                                         [
                                             {'group': ['ip', 'app', 'device', 'os', 'is_attributed'],
                                              'op': 'nextclick'},
@@ -2317,6 +2316,8 @@ train_config_133_110.add_features_list = get_cols_com('count') + \
                                             #{'group': ['hour', 'is_attributed'],
                                             # 'op': 'mean'},
                                         ]
+
+#get_cols_com('smoothcvr') + \
 train_config_133_111 = copy.deepcopy(train_config_133_105)
 
 train_config_133_111.train_smoothcvr_cache_from = 0
