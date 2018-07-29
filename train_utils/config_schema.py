@@ -2797,6 +2797,8 @@ train_config_133_157.train_to = id_9_4am
 #train_config_133_158 = copy_predict_config_from_test(train_config_133_155, 144)
 
 #train_config_133_159 = copy_predict_config_from_test(train_config_133_155, 509)
+train_config_133_158 = copy_predict_config_from_test(train_config_133_155, 182)
+train_config_133_159 = copy_predict_config_from_test(train_config_133_155, 400)
 
 
 debug = False

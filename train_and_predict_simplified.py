@@ -1530,6 +1530,15 @@ def train_and_predict(com_fts_list, use_ft_cache = False, load_test_supplement =
             submission = pd.DataFrame({'is_attributed':predict_result,
                                        'click_id':test['click_id'].astype('uint32').values})
 
+
+            # re-read the test without supplyment and merge with id
+            test_without_supplyment = pd.read_csv(path_test_sample if options.unittest else path_test,
+                               dtype=dtypes,
+                               header=0,
+                               usecols=['click_id'])
+            submission = test_without_supplyment.merge(submission, how='left',
+                               on=['click_id'])
+
             logger.debug("Writing the submission data into a csv file...")
 
             predict_filename = get_dated_filename("submission_notebook")
