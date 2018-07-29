@@ -872,6 +872,9 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
 
     target = 'is_attributed'
 
+    iter_num_set =  -1 if config_scheme_to_use.lgbm_params['early_stopping_round'] is not None \
+        else config_scheme_to_use.lgbm_params['num_boost_round']
+
     predictors1 =  list(new_features.union(categorical))
 
     if config_scheme_to_use.add_hist_statis_fts:
@@ -1146,6 +1149,9 @@ def train_lgbm(train, val, new_features, do_val_prediction=False):
             if persist_intermediate:
                 val['predict'] = val_prediction
                 val.to_csv(get_dated_filename("val_prediction.csv"), index=False)
+
+    if iter_num_set != -1:
+        lgb_model.best_iteration = iter_num_set
 
     if do_val_prediction:
         return lgb_model, val_prediction, predictors1, importance_dict, val_auc
@@ -1442,8 +1448,8 @@ def neg_sample_df(combined_df, train_len, val_len, test_len):
 
 def get_input_data(load_test_supplement):
     with timer('load combined data df'):
-        combined_df, train_len, val_len, test_len = get_combined_df(True,#config_scheme_to_use.new_predict,
-                                                                    True)#load_test_supplement = load_test_supplement)
+        combined_df, train_len, val_len, test_len = get_combined_df(config_scheme_to_use.use_test_data,#config_scheme_to_use.new_predict,
+                                                                    config_scheme_to_use.use_test_supplyment)#load_test_supplement = load_test_supplement)
         logger.debug('total len: {}, train len: {}, val len: {}.'.format(len(combined_df), train_len, val_len))
         combined_df.reset_index(drop=True,inplace=True)
 
@@ -1519,6 +1525,8 @@ def train_and_predict(com_fts_list, use_ft_cache = False, load_test_supplement =
     with timer('train lgbm model...', logging.INFO):
         lgb_model, val_prediction, predictors, importances, val_auc = train_lgbm(train, val, new_features, False)
 
+    logger.info('trained model: %s, num best iter: %d', pformat(vars(lgb_model)), lgb_model.best_iteration)
+
     if config_scheme_to_use.new_predict:
         with timer('predict test data:', logging.INFO):
             test = combined_df[train_len + val_len: train_len+val_len+test_len]
@@ -1526,18 +1534,20 @@ def train_and_predict(com_fts_list, use_ft_cache = False, load_test_supplement =
 
             logger.debug('NAN next click count in test: %s', len(test.query('ip_app_device_os_is_attributednextclick > 1489000000')))
 
-            predict_result = lgb_model.predict(test[predictors], num_iteration=lgb_model.best_iteration)
+            predict_result = lgb_model.predict(test[predictors],
+                num_iteration=lgb_model.best_iteration)
             submission = pd.DataFrame({'is_attributed':predict_result,
                                        'click_id':test['click_id'].astype('uint32').values})
 
 
             # re-read the test without supplyment and merge with id
-            test_without_supplyment = pd.read_csv(path_test_sample if options.unittest else path_test,
-                               dtype=dtypes,
-                               header=0,
-                               usecols=['click_id'])
-            submission = test_without_supplyment.merge(submission, how='left',
-                               on=['click_id'])
+            if config_scheme_to_use.use_test_supplyment:
+                test_without_supplyment = pd.read_csv(path_test_sample if options.unittest else path_test,
+                                   dtype=dtypes,
+                                   header=0,
+                                   usecols=['click_id'])
+                submission = test_without_supplyment.merge(submission, how='left',
+                                   on=['click_id'])
 
             logger.debug("Writing the submission data into a csv file...")
 

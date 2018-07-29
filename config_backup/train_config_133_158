@@ -287,6 +287,8 @@
  'use_lgbm_fts': False,
  'use_neg_sample': True,
  'use_scvr_cache_file': False,
+ 'use_test_data': True,
+ 'use_test_supplyment': True,
  'val_end_time': '2017-11-08 15:00:00',
  'val_filter': None,
  'val_filter_test_hours': True,

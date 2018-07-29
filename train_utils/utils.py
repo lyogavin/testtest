@@ -14,7 +14,7 @@ formatter = logging.Formatter(
     '%(asctime)s P%(process)d T%(thread)d %(levelname)s [%(module)s]:%(lineno)d %(message)s')
 hdlr.setFormatter(formatter)
 logger.addHandler(hdlr)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 #lgb.logger.addHandler(hdlr)
 

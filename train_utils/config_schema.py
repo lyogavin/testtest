@@ -81,7 +81,9 @@ class ConfigScheme:
                  val_filter_test_hours = False,
                  lgbm_seed = None,
                  lgbm_seed_test_list = None,
-                 test_important_fts = False
+                 test_important_fts = False,
+                 use_test_data = False,
+                 use_test_supplyment = False
                  ):
         self.predict = predict
         self.train = train
@@ -153,6 +155,8 @@ class ConfigScheme:
         self.lgbm_seed = lgbm_seed
         self.lgbm_seed_test_list = lgbm_seed_test_list
         self.test_important_fts = test_important_fts
+        self.use_test_data = use_test_data
+        self.use_test_supplyment = use_test_supplyment
 
 
 
@@ -2798,7 +2802,11 @@ train_config_133_157.train_to = id_9_4am
 
 #train_config_133_159 = copy_predict_config_from_test(train_config_133_155, 509)
 train_config_133_158 = copy_predict_config_from_test(train_config_133_155, 182)
+train_config_133_158.use_test_data = True
+train_config_133_158.use_test_supplyment = True
 train_config_133_159 = copy_predict_config_from_test(train_config_133_155, 400)
+train_config_133_159.use_test_data = True
+train_config_133_159.use_test_supplyment = True
 
 
 debug = False
