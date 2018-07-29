@@ -1448,7 +1448,7 @@ def neg_sample_df(combined_df, train_len, val_len, test_len):
 
 def get_input_data(load_test_supplement):
     with timer('load combined data df'):
-        combined_df, train_len, val_len, test_len = get_combined_df(config_scheme_to_use.use_test_data,#config_scheme_to_use.new_predict,
+        combined_df, train_len, val_len, test_len = get_combined_df(config_scheme_to_use.use_test_data or config_scheme_to_use.new_predict,
                                                                     config_scheme_to_use.use_test_supplyment)#load_test_supplement = load_test_supplement)
         logger.debug('total len: {}, train len: {}, val len: {}.'.format(len(combined_df), train_len, val_len))
         combined_df.reset_index(drop=True,inplace=True)
