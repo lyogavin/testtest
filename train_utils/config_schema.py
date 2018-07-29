@@ -2311,10 +2311,11 @@ train_config_133_110.add_features_list = get_cols_com('count') + \
                                              'op': 'nextclick'},
                                             {'group': ['ip', 'hour', 'is_attributed'], 'op': 'count'},
                                             {'group': ['ip', 'app', 'hour', 'os', 'is_attributed'], 'op': 'count'},
-                                            {'group': ['app', 'device', 'os', 'ip', 'is_attributed'],
-                                             'op': 'mean'},
-                                            {'group': ['hour', 'is_attributed'],
-                                             'op': 'mean'},
+                                            # for CVR debugging only:
+                                            #{'group': ['app', 'device', 'os', 'ip', 'is_attributed'],
+                                            # 'op': 'mean'},
+                                            #{'group': ['hour', 'is_attributed'],
+                                            # 'op': 'mean'},
                                         ]
 train_config_133_111 = copy.deepcopy(train_config_133_105)
 
