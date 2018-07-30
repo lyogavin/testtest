@@ -295,7 +295,7 @@ def add_statistic_feature(group_by_cols,
 
     loaded_from_cache = False
 
-    logger.debug('checking {}, exist:{}'.format(ft_cache_path + ft_cache_file_name, os.path.exists((ft_cache_path + ft_cache_file_name))))
+    #logger.debug('checking {}, exist:{}'.format(ft_cache_path + ft_cache_file_name, os.path.exists((ft_cache_path + ft_cache_file_name))))
 
     if use_ft_cache and os.path.exists ((ft_cache_path + ft_cache_file_name)):
         if only_ft_cache:

@@ -2,9 +2,9 @@
 set -e
 
 
-echo 136
-echo "run train_config_133_136...."
-python3 -u ./train_and_predict_simplified.py -c train_config_133_136
+#echo 136
+#echo "run train_config_133_136...."
+#python3 -u ./train_and_predict_simplified.py -c train_config_133_136
 echo 141
 echo "run train_config_133_141...."
 python3 -u ./train_and_predict_simplified.py -c train_config_133_141
