@@ -2808,6 +2808,55 @@ train_config_133_159 = copy_predict_config_from_test(train_config_133_155, 400)
 train_config_133_159.use_test_data = True
 train_config_133_159.use_test_supplyment = True
 
+train_config_133_160 = copy.deepcopy(train_config_133_157)
+train_config_133_160.use_test_data = True
+train_config_133_160.use_test_supplyment = True
+train_config_133_160.add_features_list = [
+                                            {'group': ['ip', 'channel'], 'op': 'nunique'},
+                                            {'group': ['ip', 'device', 'os', 'app'], 'op': 'nunique'},
+                                            {'group': ['ip', 'device', 'os', 'app'], 'op': 'mean'},
+                                            {'group': ['ip', 'day', 'hour'], 'op': 'nunique'},
+                                            {'group': ['ip', 'app'], 'op': 'nunique'},
+                                            {'group': ['ip', 'app', 'os'], 'op': 'nunique'},
+                                            {'group': ['ip', 'device'], 'op': 'nunique'},
+                                            {'group': ['app', 'channel'], 'op': 'nunique'},
+                                            {'group': ['ip', 'os'], 'op': 'cumcount'},
+                                            {'group': ['ip', 'device', 'os', 'app'], 'op': 'cumcount'},
+                                            {'group': ['ip', 'day','hour'], 'op': 'count'},
+                                            {'group': ['ip', 'app'], 'op': 'count'},
+                                            {'group': ['ip', 'app','os'], 'op': 'count'},
+                                            {'group': ['ip', 'day', 'channel', 'hour'], 'op': 'var'},
+                                            {'group': ['ip', 'app', 'os', 'hour'], 'op': 'var'},
+                                            {'group': ['ip', 'app', 'channel', 'day'], 'op': 'var'},
+                                            {'group': ['ip', 'app', 'channel', 'hour'], 'op': 'mean'},
+                                            {'group': ['os', 'device', 'app', 'channel'], 'op': 'mean'},
+                                            {'group': ['os', 'device', 'app', 'channel', 'hour'], 'op': 'nunique'},
+                                            {'group': ['ip', 'channel', 'is_attributed'],
+                                             'op': 'previousclick'},
+                                            {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'os', 'device', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'os', 'device', 'app', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'os', 'device', 'channel', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'os', 'device', 'app', 'hour', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['ip', 'os', 'device', 'channel', 'hour', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['device', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['device', 'channel', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['app', 'device', 'channel', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                            {'group': ['device', 'hour', 'is_attributed'],
+                                             'op': 'nextclick'},
+                                        ]
+
+
+
 
 debug = False
 
