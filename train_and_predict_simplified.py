@@ -1532,7 +1532,7 @@ def train_and_predict(com_fts_list, use_ft_cache = False, load_test_supplement =
             test = combined_df[train_len + val_len: train_len+val_len+test_len]
 
 
-            logger.debug('NAN next click count in test: %s', len(test.query('ip_app_device_os_is_attributednextclick > 1489000000')))
+            #logger.debug('NAN next click count in test: %s', len(test.query('ip_app_device_os_is_attributednextclick > 1489000000')))
 
             predict_result = lgb_model.predict(test[predictors],
                 num_iteration=lgb_model.best_iteration)
