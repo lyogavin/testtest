@@ -1536,18 +1536,32 @@ def train_and_predict(com_fts_list, use_ft_cache = False, load_test_supplement =
 
             predict_result = lgb_model.predict(test[predictors],
                 num_iteration=lgb_model.best_iteration)
-            submission = pd.DataFrame({'is_attributed':predict_result,
-                                       'click_id':test['click_id'].astype('uint32').values})
+            test['is_attributed'] = predict_result
+
+
+            #logger.debug('predict_result len: %d', len(predict_result))
 
 
             # re-read the test without supplyment and merge with id
             if config_scheme_to_use.use_test_supplyment:
+                logger.debug('re-merging test...')
                 test_without_supplyment = pd.read_csv(path_test_sample if options.unittest else path_test,
                                    dtype=dtypes,
                                    header=0,
-                                   usecols=['click_id'])
-                submission = test_without_supplyment.merge(submission, how='left',
-                                   on=['click_id'])
+                                   usecols=['click_id', 'ip','app', 'device', 'os', 'channel','click_time'])
+                test_without_supplyment = test_without_supplyment.merge(
+                    test[['ip','app', 'device', 'os', 'channel','click_time', 'is_attributed']],
+                    how='left',
+                    on=['ip','app', 'device', 'os', 'channel','click_time'])
+                logger.debug('test head: %s', test['is_attributed'].head())
+                logger.debug('test_without_supplyment head: %s', test_without_supplyment['is_attributed'].head())
+
+                submission = pd.DataFrame({'is_attributed':test_without_supplyment['is_attributed'],
+                                       'click_id':test_without_supplyment['click_id'].astype('uint32').values})
+
+            else:
+                submission = pd.DataFrame({'is_attributed':test['is_attributed'],
+                                       'click_id':test['click_id'].astype('uint32').values})
 
             logger.debug("Writing the submission data into a csv file...")
 

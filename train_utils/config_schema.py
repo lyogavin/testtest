@@ -2748,6 +2748,8 @@ train_config_133_153.add_features_list = get_cols_com('var') + \
 
 # for data validation
 train_config_133_154 = copy.deepcopy(train_config_133_120)
+train_config_133_154.new_predict = True
+train_config_133_154.use_test_supplyment = True
 train_config_133_154.add_features_list =  \
     [
         {'group': ['ip', 'app', 'device', 'os', 'channel', 'is_attributed'],
