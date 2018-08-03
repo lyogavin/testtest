@@ -1547,6 +1547,7 @@ def train_and_predict(com_fts_list, use_ft_cache = False, load_test_supplement =
                 logger.debug('re-merging test...')
                 test_without_supplyment = pd.read_csv(path_test_sample if options.unittest else path_test,
                                    dtype=dtypes,
+                                   parse_dates=["click_time"],
                                    header=0,
                                    usecols=['click_id', 'ip','app', 'device', 'os', 'channel','click_time'])
                 test_without_supplyment = test_without_supplyment.merge(
