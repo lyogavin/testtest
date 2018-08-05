@@ -1271,6 +1271,11 @@ def get_test_supplement_df():
                        nrows=1000 if options.unittest else None,
                        parse_dates=["click_time"])
     test_supplement['is_attributed'] = 0
+    test_supplement1 = test_supplement[test_supplement.click_time < '2017-11-10 04:00:00']
+    test_supplement2 = test_supplement[test_supplement.click_time > '2017-11-10 15:00:00']
+
+    test_supplement = test_supplement1.append(test_supplement2)
+
     return test_supplement
 
 def get_combined_df(gen_test_data, load_test_supplement=False):
