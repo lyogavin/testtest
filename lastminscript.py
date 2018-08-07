@@ -387,6 +387,7 @@ def DO(frm,to,fileno):
 
     params = {
         'learning_rate': 0.10,
+        'nthread': 16,
         #'is_unbalance': 'true', # replaced with scale_pos_weight argument
         'num_leaves': 7,  # 2^max_depth - 1
         'max_depth': 3,  # -1 means no limit
@@ -494,7 +495,8 @@ def DO(frm,to,fileno):
 nrows=184903891-1
 nchunk=25000000
 #val_size=2500000
-val_size=5000000
+#val_size=5000000
+val_size=40000000
 
 
 #frm=nrows-65000000
