@@ -406,7 +406,7 @@ def DO(frm,to,fileno):
                             target, 
                             objective='binary', 
                             metrics='auc',
-                            early_stopping_rounds=30, 
+                            early_stopping_rounds=500,
                             verbose_eval=True, 
                             num_boost_round=1000, 
                             categorical_features=categorical)
