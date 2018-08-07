@@ -1568,6 +1568,7 @@ def train_and_predict(com_fts_list, use_ft_cache = False, load_test_supplement =
 
                 submission = pd.DataFrame({'is_attributed':test_without_supplyment['is_attributed'],
                                        'click_id':test_without_supplyment['click_id'].astype('uint32').values})
+                submission = submission.drop_duplicates('click_id')
 
             else:
                 submission = pd.DataFrame({'is_attributed':test['is_attributed'],

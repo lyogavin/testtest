@@ -46,7 +46,7 @@ path = '../input/talkingdata-adtracking-fraud-detection/'
 predictors=[]
 def do_next_Click( df,agg_suffix='nextClick', agg_type='float32'):
     
-    print(f">> \nExtracting {agg_suffix} time calculation features...\n")
+    print(">> \nExtracting {agg_suffix} time calculation features...\n")
     
     GROUP_BY_NEXT_CLICKS = [
     
@@ -80,7 +80,7 @@ def do_next_Click( df,agg_suffix='nextClick', agg_type='float32'):
         all_features = spec['groupby'] + ['click_time']
 
         # Run calculation
-        print(f">> Grouping by {spec['groupby']}, and saving time to {agg_suffix} in: {new_feature}")
+        print(">> Grouping by {spec['groupby']}, and saving time to {agg_suffix} in: {new_feature}")
         df[new_feature] = (df[all_features].groupby(spec[
             'groupby']).click_time.shift(-1) - df.click_time).dt.seconds.astype(agg_type)
         
@@ -93,7 +93,7 @@ def do_next_Click( df,agg_suffix='nextClick', agg_type='float32'):
 
 def do_prev_Click( df,agg_suffix='prevClick', agg_type='float32'):
 
-    print(f">> \nExtracting {agg_suffix} time calculation features...\n")
+    print(">> \nExtracting {agg_suffix} time calculation features...\n")
     
     GROUP_BY_NEXT_CLICKS = [
     
@@ -119,7 +119,7 @@ def do_prev_Click( df,agg_suffix='prevClick', agg_type='float32'):
         all_features = spec['groupby'] + ['click_time']
 
         # Run calculation
-        print(f">> Grouping by {spec['groupby']}, and saving time to {agg_suffix} in: {new_feature}")
+        print(">> Grouping by {spec['groupby']}, and saving time to {agg_suffix} in: {new_feature}")
         df[new_feature] = (df.click_time - df[all_features].groupby(spec[
                 'groupby']).click_time.shift(+1) ).dt.seconds.astype(agg_type)
         
