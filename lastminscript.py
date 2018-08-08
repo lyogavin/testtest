@@ -386,11 +386,11 @@ def DO(frm,to,fileno):
     start_time = time.time()
 
     params = {
-        'learning_rate': 0.10,
+        'learning_rate': 0.05,
         'nthread': 16,
         #'is_unbalance': 'true', # replaced with scale_pos_weight argument
-        'num_leaves': 7,  # 2^max_depth - 1
-        'max_depth': 3,  # -1 means no limit
+        'num_leaves': 20, #7,  # 2^max_depth - 1
+        'max_depth': 4, #3,  # -1 means no limit
         'min_child_samples': 100,  # Minimum number of data need in a child(min_data_in_leaf)
         'max_bin': 100,  # Number of bucketed bin for feature values
         'subsample': 0.7,  # Subsample ratio of the training instance.
