@@ -2861,6 +2861,7 @@ train_config_133_160.add_features_list = [
 
 
 train_config_133_161 = copy_predict_config_from_test(train_config_133_160, 1226)
+train_config_133_161.use_test_supplyment = False
 
 
 debug = False
