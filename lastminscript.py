@@ -364,8 +364,8 @@ def DO(frm,to,fileno):
     for feature in word:
         if feature not in predictors:
             predictors.append(feature)
-    categorical = ['app', 'device', 'os', 'channel', 'hour', 'os_device_app_channel_by_hour_countuniq']
-    #categorical = ['app', 'device', 'os', 'channel', 'hour']
+    #categorical = ['app', 'device', 'os', 'channel', 'hour', 'os_device_app_channel_by_hour_countuniq']
+    categorical = ['app', 'device', 'os', 'channel', 'hour']
 
     print('\n\nAfter appending predictors...\n\n',sorted(predictors))
 
