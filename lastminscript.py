@@ -407,9 +407,9 @@ def DO(frm,to,fileno):
                             target, 
                             objective='binary', 
                             metrics='auc',
-                            early_stopping_rounds=500,
+                            early_stopping_rounds=1500,
                             verbose_eval=True, 
-                            num_boost_round=1000, 
+                            num_boost_round=3000,
                             categorical_features=categorical)
 
     print('[{}]: model training time'.format(time.time() - start_time))
