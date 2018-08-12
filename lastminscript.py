@@ -386,7 +386,7 @@ def DO(frm,to,fileno):
     start_time = time.time()
 
     params = {
-        'learning_rate': 0.05,
+        'learning_rate': 0.1,
         'nthread': 16,
         #'is_unbalance': 'true', # replaced with scale_pos_weight argument
         'num_leaves': 20, #7,  # 2^max_depth - 1
