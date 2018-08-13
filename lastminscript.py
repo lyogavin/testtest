@@ -402,7 +402,7 @@ def DO(frm,to,fileno):
     }
 
     for jj in range(10):
-        print('round ' + jj + ' trainning')
+        print('round ' + str(jj) + ' trainning')
         (bst,best_iteration) = lgb_modelfit_nocv(params,
                                 train_df,
                                 val_df,
