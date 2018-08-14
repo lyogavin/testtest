@@ -388,7 +388,7 @@ def DO(frm,to,fileno):
         'boosting_type': 'gbdt',
         'objective': 'binary',
         'metric': 'auc',
-        'learning_rate': 0.1,
+        'learning_rate': 0.02,
         'num_leaves': 9,
         'max_depth': 5,
         'min_child_samples': 100,
