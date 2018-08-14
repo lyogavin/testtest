@@ -384,7 +384,29 @@ def DO(frm,to,fileno):
 
     print("Training...")
     start_time = time.time()
-
+    new_lgbm_params = {
+        'boosting_type': 'gbdt',
+        'objective': 'binary',
+        'metric': 'auc',
+        'learning_rate': 0.1,
+        'num_leaves': 9,
+        'max_depth': 5,
+        'min_child_samples': 100,
+        'max_bin': 150,
+        'subsample': 0.9,
+        'subsample_freq': 1,
+        'colsample_bytree': 0.7,
+        'min_child_weight': 0,
+        'subsample_for_bin': 200000,
+        'min_split_gain': 0,
+        'reg_alpha': 0,
+        'reg_lambda': 0,
+        'nthread': 16,
+        'verbose': 9,
+        'early_stopping_round': 20,
+        # 'is_unbalance': True,
+        'scale_pos_weight': 99.0
+    }
     params = {
         'learning_rate': 0.05,
         'nthread': 16,
@@ -403,7 +425,7 @@ def DO(frm,to,fileno):
 
     for jj in range(10):
         print('round ' + str(jj) + ' trainning')
-        (bst,best_iteration) = lgb_modelfit_nocv(params,
+        (bst,best_iteration) = lgb_modelfit_nocv(new_lgbm_params, #params,
                                 train_df,
                                 val_df,
                                 predictors,
