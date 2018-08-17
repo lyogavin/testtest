@@ -403,7 +403,7 @@ def DO(frm,to,fileno):
         'reg_lambda': 0,
         'nthread': 16,
         'verbose': 9,
-        'early_stopping_round': 20,
+        'early_stopping_round': 500,
         # 'is_unbalance': True,
         'scale_pos_weight': 99.0
     }
