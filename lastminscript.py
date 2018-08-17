@@ -388,7 +388,7 @@ def DO(frm,to,fileno):
         'boosting_type': 'gbdt',
         'objective': 'binary',
         'metric': 'auc',
-        'learning_rate': 0.02,
+        'learning_rate': 0.04,
         'num_leaves': 9,
         'max_depth': 5,
         'min_child_samples': 100,
@@ -432,9 +432,9 @@ def DO(frm,to,fileno):
                                 target,
                                 objective='binary',
                                 metrics='auc',
-                                early_stopping_rounds=1500,
+                                early_stopping_rounds=800,
                                 verbose_eval=True,
-                                num_boost_round=3000,
+                                num_boost_round=2000,
                                 categorical_features=categorical)
 
     print('[{}]: model training time'.format(time.time() - start_time))
