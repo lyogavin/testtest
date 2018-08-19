@@ -21,7 +21,7 @@ Any ideas on improvement are welcome.
 # In[ ]:
 
 FILENO= 200102 #To distinguish the output file name.
-debug=1  #Whethere or not in debuging mode
+debug=0  #Whethere or not in debuging mode
 
 import pandas as pd
 import time
@@ -374,7 +374,7 @@ def DO(frm,to,fileno):
     
     gc.collect()
 
-    #train_df = do_LDA( train_df,agg_suffix='LDA', agg_type='float32'  ); gc.collect()
+    train_df = do_LDA( train_df,agg_suffix='LDA', agg_type='float32'  ); gc.collect()
     train_df = do_next_Click( train_df,agg_suffix='nextClick', agg_type='float32'  ); gc.collect()
     train_df = do_prev_Click( train_df,agg_suffix='prevClick', agg_type='float32'  ); gc.collect()  
     train_df = do_countuniq( train_df, ['ip'], 'channel' ); gc.collect()
