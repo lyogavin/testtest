@@ -44,6 +44,10 @@ from train_utils.config_schema import *
 from train_utils.utils import *
 import logging
 from optparse import OptionParser
+from sklearn.feature_extraction.text import CountVectorizer
+
+from sklearn.decomposition import LatentDirichletAllocation as LDA
+
 logger = getLogger()
 
 
@@ -452,6 +456,29 @@ def add_statistic_feature(group_by_cols,
 
             #if print_verbose:
             #logger.debug('next click added:', training[feature_name_added].describe())
+    elif op == 'LDA':
+        sentence_dict = {}
+
+        with timer("Adding LDA features"):
+            for groupby, joint in zip(training[group_by_cols[0]].values,
+                                      training[counting_col].values):
+                sentence_dict.setdefault(joint, []).append(str(groupby))
+            keys = list(sentence_dict.keys())
+            sentences = [' '.join(sentence_dict[key]) for key in keys]
+            sentences_as_matrix = CountVectorizer(analyzer = "word",
+                                                  token_pattern = r"(?u)\b\w+\b").\
+                fit_transform(sentences)
+            topics = LDA(n_components=5).fit_transform(sentences_as_matrix)
+            to_merge = pd.DataFrame({'counting_col': keys,
+                                     feature_name_added + '_0':topics[:, 0],
+                                     feature_name_added + '_1':topics[:, 1],
+                                     feature_name_added + '_2':topics[:, 2],
+                                     feature_name_added + '_3':topics[:, 3],
+                                     feature_name_added + '_4':topics[:, 4]})
+            training = pd.merge(training, to_merge,
+                                on = 'counting_col', how = 'inner')
+            del keys, sentences, sentences_as_matrix, topics, to_merge
+
     elif op=='nextclick':
         with timer("Adding next click times"):
             D = 2 ** 26

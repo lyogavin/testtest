@@ -2816,6 +2816,7 @@ train_config_133_160 = copy.deepcopy(train_config_133_157)
 train_config_133_160.use_test_data = True
 train_config_133_160.use_test_supplyment = True
 train_config_133_160.add_features_list = [
+                                            {'group': ['app', 'ip'], 'op': 'LDA'},
                                             {'group': ['ip', 'channel'], 'op': 'nunique'},
                                             {'group': ['ip', 'device', 'os', 'app'], 'op': 'nunique'},
                                             {'group': ['ip', 'device', 'os', 'app'], 'op': 'mean'},

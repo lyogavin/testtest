@@ -1,5 +1,6 @@
 {'add_10min_ft': False,
- 'add_features_list': [{'group': ['ip', 'channel'], 'op': 'nunique'},
+ 'add_features_list': [{'group': ['app', 'ip'], 'op': 'LDA'},
+                       {'group': ['ip', 'channel'], 'op': 'nunique'},
                        {'group': ['ip', 'device', 'os', 'app'],
                         'op': 'nunique'},
                        {'group': ['ip', 'device', 'os', 'app'], 'op': 'mean'},

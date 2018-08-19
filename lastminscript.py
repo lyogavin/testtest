@@ -21,7 +21,7 @@ Any ideas on improvement are welcome.
 # In[ ]:
 
 FILENO= 200102 #To distinguish the output file name.
-debug=0  #Whethere or not in debuging mode
+debug=1  #Whethere or not in debuging mode
 
 import pandas as pd
 import time
@@ -32,6 +32,9 @@ import gc
 #import matplotlib.pyplot as plt
 import os
 
+from sklearn.feature_extraction.text import CountVectorizer
+
+from sklearn.decomposition import LatentDirichletAllocation as LDA
 path = '../input/talkingdata-adtracking-fraud-detection/'
 
 
@@ -44,6 +47,51 @@ path = '../input/talkingdata-adtracking-fraud-detection/'
     ###Did some Cosmetic changes 
 
 predictors=[]
+
+
+def do_LDA(df, agg_suffix='LDA', agg_type='float32'):
+    print(">> \nExtracting {agg_suffix} LDA features...\n")
+
+    GROUP_BY_LDA = []
+
+    for col1 in ['ip', 'app', 'device', 'os', 'channel']:
+        for col2 in [ 'ip', 'app', 'device', 'os', 'channel']:
+            if col1 != col2:
+                GROUP_BY_LDA.append({'groupby': [col1, col2]})
+
+    # Calculate the time to next click for each group
+    for spec in GROUP_BY_LDA:
+        # Name of new feature
+        feature_name_added = '{}_{}'.format('_'.join(spec['groupby']), agg_suffix)
+        sentence_dict = {}
+
+        for groupby, joint in zip(df[spec['groupby'][0]].values,
+                                  df[spec['groupby'][1]].values):
+            sentence_dict.setdefault(joint, []).append(str(groupby))
+        keys = list(sentence_dict.keys())
+        sentences = [' '.join(sentence_dict[key]) for key in keys]
+        sentences_as_matrix = CountVectorizer(analyzer = "word",
+                                              token_pattern = r"(?u)\b\w+\b").\
+            fit_transform(sentences)
+        topics = LDA(n_components=5, learning_method='batch').fit_transform(sentences_as_matrix)
+        to_merge = pd.DataFrame({spec['groupby'][1]: keys,
+                                 feature_name_added + '_0':topics[:, 0],
+                                 feature_name_added + '_1':topics[:, 1],
+                                 feature_name_added + '_2':topics[:, 2],
+                                 feature_name_added + '_3':topics[:, 3],
+                                 feature_name_added + '_4':topics[:, 4]})
+        df = pd.merge(df, to_merge,
+                            on = spec['groupby'][1], how = 'left')
+        del keys, sentences, sentences_as_matrix, topics, to_merge
+        #print(df[feature_name_added + '_0'])
+        predictors.append(feature_name_added + '_0')
+        predictors.append(feature_name_added + '_1')
+        predictors.append(feature_name_added + '_2')
+        predictors.append(feature_name_added + '_3')
+        predictors.append(feature_name_added + '_4')
+
+    return (df)
+
 def do_next_Click( df,agg_suffix='nextClick', agg_type='float32'):
     
     print(">> \nExtracting {agg_suffix} time calculation features...\n")
@@ -325,7 +373,8 @@ def DO(frm,to,fileno):
     train_df['day'] = pd.to_datetime(train_df.click_time).dt.day.astype('int8')     
     
     gc.collect()
-    
+
+    train_df = do_LDA( train_df,agg_suffix='LDA', agg_type='float32'  ); gc.collect()
     train_df = do_next_Click( train_df,agg_suffix='nextClick', agg_type='float32'  ); gc.collect()
     train_df = do_prev_Click( train_df,agg_suffix='prevClick', agg_type='float32'  ); gc.collect()  
     train_df = do_countuniq( train_df, ['ip'], 'channel' ); gc.collect()
