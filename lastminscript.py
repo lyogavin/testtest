@@ -91,6 +91,8 @@ def do_LDA(df, agg_suffix='LDA', agg_type='float32'):
         predictors.append(feature_name_added + '_3')
         predictors.append(feature_name_added + '_4')
 
+        print('added 5 ' + feature_name_added + ' features')
+
     return (df)
 
 def do_next_Click( df,agg_suffix='nextClick', agg_type='float32'):
