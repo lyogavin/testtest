@@ -374,7 +374,7 @@ def DO(frm,to,fileno):
     
     gc.collect()
 
-    train_df = do_LDA( train_df,agg_suffix='LDA', agg_type='float32'  ); gc.collect()
+    #train_df = do_LDA( train_df,agg_suffix='LDA', agg_type='float32'  ); gc.collect()
     train_df = do_next_Click( train_df,agg_suffix='nextClick', agg_type='float32'  ); gc.collect()
     train_df = do_prev_Click( train_df,agg_suffix='prevClick', agg_type='float32'  ); gc.collect()  
     train_df = do_countuniq( train_df, ['ip'], 'channel' ); gc.collect()
@@ -431,6 +431,24 @@ def DO(frm,to,fileno):
 
     gc.collect()
 
+    print('neg sampling...')
+    np.random.seed(999)
+
+    pos_in_train_count = (train_df['is_attributed'] == 1).sum()
+    neg_in_train_count = (train_df['is_attributed'] != 1).sum()
+    neg_sample_rate = neg_in_train_count // pos_in_train_count
+
+    print('pos count: {}, neg count: {}, total len: {}, sample rate: {}'.format(
+                pos_in_train_count,
+                neg_in_train_count,
+                len(train_df),
+                neg_sample_rate))
+
+    neg_sample_indice = (np.random.randint(0, neg_sample_rate, len(train_df), np.uint16) == 0) \
+                        | (train_df['is_attributed'] == 1)
+
+    train_df = train_df[neg_sample_indice]
+
     print("Training...")
     start_time = time.time()
     new_lgbm_params = {
@@ -454,7 +472,7 @@ def DO(frm,to,fileno):
         'verbose': 9,
         'early_stopping_round': 500,
         # 'is_unbalance': True,
-        'scale_pos_weight': 99.0
+        'scale_pos_weight': 1.0#99.0
     }
     params = {
         'learning_rate': 0.05,
