@@ -83,6 +83,7 @@ def do_LDA(df, agg_suffix='LDA', agg_type='float32'):
         df = pd.merge(df, to_merge,
                             on = spec['groupby'][1], how = 'left')
         del keys, sentences, sentences_as_matrix, topics, to_merge
+        gc.collect()
         #print(df[feature_name_added + '_0'])
         predictors.append(feature_name_added + '_0')
         predictors.append(feature_name_added + '_1')
