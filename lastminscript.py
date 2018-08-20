@@ -31,6 +31,7 @@ import lightgbm as lgb
 import gc
 #import matplotlib.pyplot as plt
 import os
+import psutil
 
 from sklearn.feature_extraction.text import CountVectorizer
 
@@ -49,12 +50,26 @@ path = '../input/talkingdata-adtracking-fraud-detection/'
 predictors=[]
 
 
+
+
+def cpuStats(pp = False):
+    pid = os.getpid()
+    py = psutil.Process(pid)
+    memoryUse = py.memory_info()[0] / 2. ** 30
+    gc.collect()
+    # all_objects = muppy.get_objects()
+    # sum1 = summary.summarize(all_objects)
+    # summary.log.debug_(sum1)(Pdb) import objgraph
+
+    return memoryUse
+
+
 def do_LDA(df, agg_suffix='LDA', agg_type='float32'):
     print(">> \nExtracting {agg_suffix} LDA features...\n")
 
     GROUP_BY_LDA = []
 
-    for col1 in ['ip', 'app', 'device', 'os', 'channel']:
+    for col1 in ['ip']: #, 'app', 'device', 'os', 'channel']:
         for col2 in [ 'ip', 'app', 'device', 'os', 'channel']:
             if col1 != col2:
                 GROUP_BY_LDA.append({'groupby': [col1, col2]})
@@ -91,7 +106,7 @@ def do_LDA(df, agg_suffix='LDA', agg_type='float32'):
         predictors.append(feature_name_added + '_3')
         predictors.append(feature_name_added + '_4')
 
-        print('added 5 ' + feature_name_added + ' features')
+        print('added 5 ' + feature_name_added + ' features with mem: ' + cpuStats())
 
     return (df)
 
