@@ -106,7 +106,7 @@ def do_LDA(df, agg_suffix='LDA', agg_type='float32'):
         predictors.append(feature_name_added + '_3')
         predictors.append(feature_name_added + '_4')
 
-        print('added 5 ' + feature_name_added + ' features with mem: ' + cpuStats())
+        print('added 5 ' + feature_name_added + ' features with mem: ' + str(cpuStats()))
 
     return (df)
 
