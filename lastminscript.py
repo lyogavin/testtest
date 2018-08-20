@@ -392,6 +392,12 @@ def DO(frm,to,fileno):
     
     gc.collect()
 
+
+    test_df = train_df[len_train:]
+    val_df = train_df[(len_train-val_size):len_train]
+    train_df = train_df[:(len_train-val_size)]
+
+
     print('neg sampling...')
     np.random.seed(999)
 
@@ -410,6 +416,10 @@ def DO(frm,to,fileno):
 
     train_df = train_df[neg_sample_indice]
     gc.collect()
+
+    len_train = len(train_df)
+    train_df = train_df.append(val_df)
+    train_df = train_df.append(test_df)
 
     train_df = do_LDA( train_df,agg_suffix='LDA', agg_type='float32'  ); gc.collect()
     train_df = do_next_Click( train_df,agg_suffix='nextClick', agg_type='float32'  ); gc.collect()
