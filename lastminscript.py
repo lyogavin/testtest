@@ -419,6 +419,7 @@ def DO(frm,to,fileno):
 
     len_train = len(train_df)
     train_df = train_df.append(val_df)
+    len_train = len_train + len(val_df)
     train_df = train_df.append(test_df)
 
     train_df = do_LDA( train_df,agg_suffix='LDA', agg_type='float32'  ); gc.collect()
