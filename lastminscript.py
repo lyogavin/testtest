@@ -69,7 +69,7 @@ def do_LDA(df, agg_suffix='LDA', agg_type='float32'):
 
     GROUP_BY_LDA = []
 
-    for col1 in ['ip', 'app', 'device', 'os', 'channel']:
+    for col1 in ['app']: #['ip', 'app', 'device', 'os', 'channel']:
         for col2 in [ 'ip', 'app', 'device', 'os', 'channel']:
             if col1 != col2:
                 GROUP_BY_LDA.append({'groupby': [col1, col2]})
@@ -420,7 +420,7 @@ def DO(frm,to,fileno):
     len_train = len(train_df)
     train_df = train_df.append(val_df)
     len_train = len_train + len(val_df)
-    #train_df = train_df.append(test_df)
+    train_df = train_df.append(test_df)
 
     train_df = do_LDA( train_df,agg_suffix='LDA', agg_type='float32'  ); gc.collect()
     train_df = do_next_Click( train_df,agg_suffix='nextClick', agg_type='float32'  ); gc.collect()
@@ -450,7 +450,6 @@ def DO(frm,to,fileno):
     #train_df = do_var( train_df, ['os', 'device', 'app', 'channel'], 'hour' ); gc.collect()
 
     
-    train_df = train_df.append(test_df)
 
     print(train_df.head(5))
     gc.collect()
