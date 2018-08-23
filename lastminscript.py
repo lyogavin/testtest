@@ -67,12 +67,19 @@ def cpuStats(pp = False):
 def do_LDA(df, agg_suffix='LDA', agg_type='float32'):
     print(">> \nExtracting {agg_suffix} LDA features...\n")
 
-    GROUP_BY_LDA = []
+    GROUP_BY_LDA = [
+        {'groupby': ['channel', 'app']},
+        {'groupby': ['os', 'app']},
+        {'groupby': ['device', 'app']},
+        {'groupby': ['app', 'channel']},
+        {'groupby': ['ip', 'channel']},
+        {'groupby': ['ip', 'app']},
+    ]
 
-    for col1 in ['channel']: #['ip', 'app', 'device', 'os', 'channel']:
-        for col2 in [ 'ip', 'app', 'device', 'os', 'channel']:
-            if col1 != col2:
-                GROUP_BY_LDA.append({'groupby': [col1, col2]})
+    #for col1 in ['channel']: #['ip', 'app', 'device', 'os', 'channel']:
+    #    for col2 in [ 'ip', 'app', 'device', 'os', 'channel']:
+    #        if col1 != col2:
+    #            GROUP_BY_LDA.append({'groupby': [col1, col2]})
 
     # Calculate the time to next click for each group
     for spec in GROUP_BY_LDA:
@@ -397,7 +404,7 @@ def DO(frm,to,fileno):
     val_df = train_df[(len_train-val_size):len_train]
     train_df = train_df[:(len_train-val_size)]
 
-
+    """
     print('neg sampling...')
     np.random.seed(999)
 
@@ -421,6 +428,7 @@ def DO(frm,to,fileno):
     train_df = train_df.append(val_df)
     len_train = len_train + len(val_df)
     train_df = train_df.append(test_df)
+    """
 
     train_df = do_LDA( train_df,agg_suffix='LDA', agg_type='float32'  ); gc.collect()
     train_df = do_next_Click( train_df,agg_suffix='nextClick', agg_type='float32'  ); gc.collect()
