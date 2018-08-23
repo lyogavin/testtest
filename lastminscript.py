@@ -69,7 +69,7 @@ def do_LDA(df, agg_suffix='LDA', agg_type='float32'):
 
     GROUP_BY_LDA = []
 
-    for col1 in ['os']: #['ip', 'app', 'device', 'os', 'channel']:
+    for col1 in ['channel']: #['ip', 'app', 'device', 'os', 'channel']:
         for col2 in [ 'ip', 'app', 'device', 'os', 'channel']:
             if col1 != col2:
                 GROUP_BY_LDA.append({'groupby': [col1, col2]})
