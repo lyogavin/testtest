@@ -385,9 +385,9 @@ def DO(frm,to,fileno):
     use_supplement = False
 
     if debug:
-        test_df = pd.read_csv(path +  "test_supplement.csv" if use_supplement else "test.csv", nrows=100000, parse_dates=['click_time'], dtype=dtypes, usecols=['ip','app','device','os', 'channel', 'click_time', 'click_id'])
+        test_df = pd.read_csv(path +  ("test_supplement.csv" if use_supplement else "test.csv"), nrows=100000, parse_dates=['click_time'], dtype=dtypes, usecols=['ip','app','device','os', 'channel', 'click_time', 'click_id'])
     else:
-        test_df = pd.read_csv(path + "test_supplement.csv" if use_supplement else "test.csv", parse_dates=['click_time'], dtype=dtypes, usecols=['ip','app','device','os', 'channel', 'click_time', 'click_id'])
+        test_df = pd.read_csv(path + ("test_supplement.csv" if use_supplement else "test.csv"), parse_dates=['click_time'], dtype=dtypes, usecols=['ip','app','device','os', 'channel', 'click_time', 'click_id'])
 
         
     len_train = len(train_df)
