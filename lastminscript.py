@@ -382,10 +382,12 @@ def DO(frm,to,fileno):
     train_df = pd.read_csv(path + "train.csv", parse_dates=['click_time'], skiprows=range(1,frm), nrows=to-frm, dtype=dtypes, usecols=['ip','app','device','os', 'channel', 'click_time', 'is_attributed'])
 
     print('loading test data...')
+    use_supplement = False
+
     if debug:
-        test_df = pd.read_csv(path +  "test_supplement.csv", nrows=100000, parse_dates=['click_time'], dtype=dtypes, usecols=['ip','app','device','os', 'channel', 'click_time', 'click_id'])
+        test_df = pd.read_csv(path +  "test_supplement.csv" if use_supplement else "test.csv", nrows=100000, parse_dates=['click_time'], dtype=dtypes, usecols=['ip','app','device','os', 'channel', 'click_time', 'click_id'])
     else:
-        test_df = pd.read_csv(path + "test_supplement.csv", parse_dates=['click_time'], dtype=dtypes, usecols=['ip','app','device','os', 'channel', 'click_time', 'click_id'])
+        test_df = pd.read_csv(path + "test_supplement.csv" if use_supplement else "test.csv", parse_dates=['click_time'], dtype=dtypes, usecols=['ip','app','device','os', 'channel', 'click_time', 'click_id'])
 
         
     len_train = len(train_df)
