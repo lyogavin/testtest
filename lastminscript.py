@@ -633,7 +633,7 @@ val_size=40000000
 
 
 #frm=nrows-65000000
-frm=0
+frm=50000000
 to=nrows
 if debug:
     frm=0
