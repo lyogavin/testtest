@@ -404,9 +404,9 @@ def DO(frm,to,fileno):
 
     test_df = train_df[len_train:]
     val_df = train_df[(len_train-val_size):len_train]
-    train_df = train_df[:(len_train-val_size)]
 
     """
+    train_df = train_df[:(len_train-val_size)]
     print('neg sampling...')
     np.random.seed(999)
 
