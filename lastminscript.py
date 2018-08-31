@@ -21,8 +21,9 @@ Any ideas on improvement are welcome.
 # In[ ]:
 
 FILENO= 200102 #To distinguish the output file name.
-debug=0  #Whethere or not in debuging mode
+debug=1  #Whethere or not in debuging mode
 
+import pickle
 import pandas as pd
 import time
 import numpy as np
@@ -335,27 +336,52 @@ def lgb_modelfit_nocv(params, dtrain, dvalid, predictors, target='target', objec
 
     xgtrain = lgb.Dataset(dtrain[predictors].values, label=dtrain[target].values,
                           feature_name=predictors,
+                          free_raw_data=False,
                           categorical_feature=categorical_features
                           )
     xgvalid = lgb.Dataset(dvalid[predictors].values, label=dvalid[target].values,
                           feature_name=predictors,
+                          free_raw_data=False,
                           categorical_feature=categorical_features
                           )
 
     evals_results = {}
+    best_iter = 0
 
-    bst1 = lgb.train(lgb_params, 
-                     xgtrain, 
-                     valid_sets=[xgtrain, xgvalid], 
-                     valid_names=['train','valid'], 
-                     evals_result=evals_results, 
-                     num_boost_round=num_boost_round,
-                     early_stopping_rounds=early_stopping_rounds,
-                     verbose_eval=10, 
-                     feval=feval)
+    if os.path.exists('./best_iter.pickle'):
+        best_iter = pickle.load(open('./best_iter.pickle', 'rb'))
+
+    for i in list(range(100))[1:]:
+        if os.path.exists('./saved_model'):
+            print('found saved model, continue....')
+        else:
+            print('not found saved model, brand new trainning')
+        bst1 = lgb.train(lgb_params,
+                         xgtrain,
+                         init_model='./saved_model' if os.path.exists('./saved_model') else None,
+                         valid_sets=[xgtrain, xgvalid],
+                         valid_names=['train','valid'],
+                         evals_result=evals_results,
+                         num_boost_round=i * early_stopping_rounds + best_iter,
+                         early_stopping_rounds=early_stopping_rounds,
+                         verbose_eval=10,
+                         feval=feval)
+        if bst1.best_iteration == i * early_stopping_rounds + best_iter:
+            print('early stopping not reached, save model to ./saved_model to continue next round....')
+            bst1.save_model('./saved_model')
+
+            pickle.dump(bst1.best_iteration, open('./best_iter.pickle', 'wb'))
+        else:
+            print('best iter reached, removed saved model ./saved_model.')
+            if os.path.exists('./saved_model'):
+                os.remove('./saved_model')
+                os.remove('./best_iter.pickle')
+            break
+
+
     print("\nModel Report")
     print("bst1.best_iteration: ", bst1.best_iteration)
-    print(metrics+":", evals_results['valid'][metrics][bst1.best_iteration-1])
+    #print(metrics+":", evals_results['valid'][metrics][bst1.best_iteration-1])
 
     return (bst1,bst1.best_iteration)
 
@@ -544,6 +570,7 @@ def DO(frm,to,fileno):
                                 verbose_eval=True,
                                 num_boost_round=12000,
                                 categorical_features=categorical)
+
 
     print('[{}]: model training time'.format(time.time() - start_time))
     del train_df
