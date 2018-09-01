@@ -21,7 +21,7 @@ Any ideas on improvement are welcome.
 # In[ ]:
 
 FILENO= 200102 #To distinguish the output file name.
-debug=1  #Whethere or not in debuging mode
+debug=0  #Whethere or not in debuging mode
 
 import pickle
 import pandas as pd
@@ -534,7 +534,7 @@ def DO(frm,to,fileno):
         'boosting_type': 'gbdt',
         'objective': 'binary',
         'metric': 'auc',
-        'learning_rate': 0.05, #0.02,
+        'learning_rate': 0.02,
         'num_leaves': 9,
         'max_depth': 5,
         'min_child_samples': 100,
