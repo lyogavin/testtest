@@ -346,44 +346,56 @@ def lgb_modelfit_nocv(params, dtrain, dvalid, predictors, target='target', objec
                           )
 
     evals_results = {}
-    best_iter = 0
+    last_rounds = []
 
-    if os.path.exists('./best_iter.pickle'):
-        best_iter = pickle.load(open('./best_iter.pickle', 'rb'))
+    if os.path.exists('./checkpoint_last_rounds.pickle'):
+        last_rounds = pickle.load(open('./checkpoint_last_rounds.pickle', 'rb'))
+
+    save_rounds = 100
+    maxid = -1
 
     for i in list(range(100))[1:]:
-        if os.path.exists('./saved_model'):
+        if os.path.exists('./checkpoint_saved_model'):
             print('found saved model, continue....')
         else:
             print('not found saved model, brand new trainning')
         bst1 = lgb.train(lgb_params,
                          xgtrain,
-                         init_model='./saved_model' if os.path.exists('./saved_model') else None,
+                         init_model='./checkpoint_saved_model' if os.path.exists('./checkpoint_saved_model') else None,
                          valid_sets=[xgtrain, xgvalid],
                          valid_names=['train','valid'],
                          evals_result=evals_results,
-                         num_boost_round=i * early_stopping_rounds + best_iter,
-                         early_stopping_rounds=early_stopping_rounds,
+                         num_boost_round=save_rounds,
+                         #early_stopping_rounds=early_stopping_rounds,
                          verbose_eval=10,
+                         keep_training_booster=True,
                          feval=feval)
-        if bst1.best_iteration == i * early_stopping_rounds + best_iter:
-            print('early stopping not reached, save model to ./saved_model to continue next round....')
-            bst1.save_model('./saved_model')
+        print('metrics len :' + str(len(evals_results['valid'][metrics])))
+        last_rounds = last_rounds + evals_results['valid'][metrics]
+        print(last_rounds[-30:])
 
-            pickle.dump(bst1.best_iteration, open('./best_iter.pickle', 'wb'))
+        maxid = last_rounds.index(max(last_rounds))
+
+        print('max id %d so far' % maxid)
+
+        if len(last_rounds) - 1 - maxid < early_stopping_rounds:
+            print('early stopping not reached, save model to ./checkpoint_saved_model to continue next round....')
+            bst1.save_model('./checkpoint_saved_model')
+
+            pickle.dump(last_rounds, open('./checkpoint_last_rounds.pickle', 'wb'))
         else:
-            print('best iter reached, removed saved model ./saved_model.')
-            if os.path.exists('./saved_model'):
-                os.remove('./saved_model')
-                os.remove('./best_iter.pickle')
+            print('best iter reached %d, removed saved model ./checkpoint_saved_model.' % maxid)
+            if os.path.exists('./checkpoint_saved_model'):
+                os.remove('./checkpoint_saved_model')
+                os.remove('./checkpoint_last_rounds.pickle')
             break
 
 
     print("\nModel Report")
-    print("bst1.best_iteration: ", bst1.best_iteration)
+    print("bst1.best_iteration: ", maxid)
     #print(metrics+":", evals_results['valid'][metrics][bst1.best_iteration-1])
 
-    return (bst1,bst1.best_iteration)
+    return (bst1,maxid)
 
 
 # In[ ]:
@@ -537,7 +549,7 @@ def DO(frm,to,fileno):
         'reg_lambda': 0,
         'nthread': 16,
         'verbose': 9,
-        'early_stopping_round': 500,
+        #'early_stopping_round': 500,
         # 'is_unbalance': True,
         'scale_pos_weight': 1.0#99.0
     }
@@ -585,7 +597,7 @@ def DO(frm,to,fileno):
 
 
     print("Features importance...")
-    gain = bst.feature_importance('gain')
+    gain = bst.feature_importance('gain', iteration = best_iteration)
     ft = pd.DataFrame({'feature':bst.feature_name(), 'split':bst.feature_importance('split'), 'gain':100 * gain / gain.sum()}).sort_values('gain', ascending=False)
     print(ft)    
     
